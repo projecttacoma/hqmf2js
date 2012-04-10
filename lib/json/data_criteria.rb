@@ -6,36 +6,62 @@ module JSON
   
     attr_reader :id,:title,:section,:subset_code,:code_list_id, :property, :type, :status, :value, :effective_time, :inline_code_list
   
-    # Create a new instance based on the supplied HQMF entry
-    # @param [Nokogiri::XML::Element] entry the parsed HQMF entry
-    def initialize(id, json)
+    # Create a new data criteria instance
+    # @param [String] id
+    # @param [String] title
+    # @param [String] section
+    # @param [String] subset_code
+    # @param [String] code_list_id
+    # @param [String] property
+    # @param [String] type
+    # @param [String] status
+    # @param [Value|Range|Coded] value
+    # @param [Range] effective_time
+    # @param [Hash<String,String>] inline_code_list
+    def initialize(id, title,section,subset_code,code_list_id,property,type,status,value,effective_time,inline_code_list)
       @id = id
-      @title = json[:title] if json[:title]
-      @section = json[:section] if json[:section]
-      @subset_code = json[:subset_code] if json[:subset_code]
-      @code_list_id = json[:code_list_id] if json[:code_list_id]
-      @property = json[:property].to_sym if json[:property]
-      @type = json[:type].to_sym if json[:type]
-      @status = json[:status] if json[:status]
+      @title = title
+      @section = section
+      @subset_code = subset_code
+      @code_list_id = code_list_id
+      @property = property
+      @type = type
+      @status = status
+      @value = value
+      @effective_time = effective_time
+      @inline_code_list = inline_code_list
+    end
+    
+    # Create a new data criteria instance from a JSON hash keyed with symbols
+    def self.from_json(id, json)
+      title = json[:title] if json[:title]
+      section = json[:section] if json[:section]
+      subset_code = json[:subset_code] if json[:subset_code]
+      code_list_id = json[:code_list_id] if json[:code_list_id]
+      property = json[:property].to_sym if json[:property]
+      type = json[:type].to_sym if json[:type]
+      status = json[:status] if json[:status]
 
-      @value = convert_value(json[:value]) if json[:value]
-      @effective_time = JSON::Range.new(json[:effective_time]) if json[:effective_time]
-      @inline_code_list = json[:inline_code_list].inject({}){|memo,(k,v)| memo[k.to_s] = v; memo} if json[:inline_code_list]
+      value = convert_value(json[:value]) if json[:value]
+      effective_time = JSON::Range.from_json(json[:effective_time]) if json[:effective_time]
+      inline_code_list = json[:inline_code_list].inject({}){|memo,(k,v)| memo[k.to_s] = v; memo} if json[:inline_code_list]
+      
+      JSON::DataCriteria.new(id,title,section,subset_code,code_list_id,property,type,status,value,effective_time,inline_code_list)
       
     end
     
     private 
     
-    def convert_value(json)
+    def self.convert_value(json)
       value = nil
       type = json[:type]
       case type
         when 'TS'
-          value = JSON::Value.new(json)
+          value = JSON::Value.from_json(json)
         when 'IVL_PQ'
-          value = JSON::Range.new(json)
+          value = JSON::Range.from_json(json)
         when 'CD'
-          value = JSON::Coded.new(json)
+          value = JSON::Coded.from_json(json)
         else
           raise "Unknown value type [#{value_type}]"
         end

@@ -6,14 +6,33 @@ module JSON
     
     attr_reader :type,:unit,:value,:expression
     
-    def initialize(json)
-      @type = json[:type] if json[:type]
-      @unit = json[:unit] if json[:unit]
-      @value = json[:value] if json[:value]
-      @inclusive = json[:inclusive?] if json[:inclusive?]
-      @derived = json[:derived?] if json[:derived?]
-      @expression = json[:expression] if json[:expression]
+    # Create a new JSON::Value
+    # @param [String] type
+    # @param [String] unit
+    # @param [String] value
+    # @param [String] inclusive
+    # @param [String] derived
+    # @param [String] expression
+    def initialize(type,unit,value,inclusive,derived,expression)
+      @type = type
+      @unit = unit
+      @value = value
+      @inclusive = inclusive
+      @derived = derived
+      @expression = expression
     end
+    
+    def self.from_json(json)
+      type = json[:type] if json[:type]
+      unit = json[:unit] if json[:unit]
+      value = json[:value] if json[:value]
+      inclusive = json[:inclusive?] if json[:inclusive?]
+      derived = json[:derived?] if json[:derived?]
+      expression = json[:expression] if json[:expression]
+      
+      JSON::Value.new(type,unit,value,inclusive,derived,expression)
+    end
+    
     
     def inclusive?
       @inclusive
@@ -29,12 +48,27 @@ module JSON
   class Range
     attr_reader :low, :high, :width, :type
     
-    def initialize(json)
-      @type = json[:type] if json[:type]
-      @low = JSON::Value.new(json[:low]) if json[:low]
-      @high = JSON::Value.new(json[:high]) if json[:high]
-      @width = JSON::Value.new(json[:width]) if json[:width]
+    # Create a new JSON::Value
+    # @param [String] type
+    # @param [Value] low
+    # @param [Value] high
+    # @param [Value] width
+    def initialize(type,low,high,width)
+      @type = type
+      @low = low
+      @high = high
+      @width = width
     end
+    
+    def self.from_json(json)
+      type = json[:type] if json[:type]
+      low = JSON::Value.from_json(json[:low]) if json[:low]
+      high = JSON::Value.from_json(json[:high]) if json[:high]
+      width = JSON::Value.from_json(json[:width]) if json[:width]
+      
+      JSON::Range.new(type,low,high,width)
+    end
+    
     
   end
   
@@ -53,11 +87,24 @@ module JSON
   class Coded
     attr_reader :type, :system, :code
     
-    def initialize(json)
-      @type = json[:type] if json[:type]
-      @system = json[:system] if json[:system]
-      @code = json[:code] if json[:code]
+    # Create a new JSON::Coded
+    # @param [String] type
+    # @param [String] system
+    # @param [String] code
+    def initialize(type,system,code)
+      @type = type
+      @system = system
+      @code = code
     end
+    
+    def self.from_json(json)
+      type = json[:type] if json[:type]
+      system = json[:system] if json[:system]
+      code = json[:code] if json[:code]
+      
+      JSON::Coded.new(type,system,code)
+    end
+    
     
     def value
       code
@@ -79,6 +126,8 @@ module JSON
     
     attr_reader :id
     
+    # Create a new JSON::Reference
+    # @param [String] id
     def initialize(id)
       @id = id
     end

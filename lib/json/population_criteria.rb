@@ -5,11 +5,18 @@ module JSON
   
     attr_reader :preconditions, :id
     
-    # Create a new population criteria from the supplied HQMF entry
-    # @param [Nokogiri::XML::Element] the HQMF entry
-    def initialize(id, json)
+    # Create a new population criteria
+    # @param [String] id
+    # @param [Array#Precondition] preconditions 
+    def initialize(id, preconditions)
       @id = id
-      @preconditions = json[:preconditions].map {|preciondition| JSON::Precondition.new(preciondition)} 
+      @preconditions = preconditions 
+    end
+    
+    # Create a new population criteria from a JSON hash keyed off symbols
+    def self.from_json(id, json)
+      preconditions = json[:preconditions].map {|preciondition| JSON::Precondition.from_json(preciondition)} 
+      JSON::PopulationCriteria.new(id, preconditions)
     end
     
     # Return true of this precondition represents a conjunction with nested preconditions

@@ -10,7 +10,7 @@ namespace :js do
       #File.open(File.expand_path(File.join(".","test","fixtures","json","59New.json")), 'w') {|f| f.write @doc.to_json}
 
       json = JSON.parse(File.open(File.expand_path(File.join(".","test","fixtures","json","59New.json"))).read,symbolize_names: true);
-      doc = JSON::Document.new(json)
+      doc = JSON::Document.from_json(json)
 
       @gen = Generator::JS.new(nil, doc)
 
