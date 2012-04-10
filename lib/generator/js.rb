@@ -36,7 +36,7 @@ module Generator
     end
     
     def js_for_bounds(bounds)
-      if bounds.class == HQMF::Range
+      if (bounds.class == HQMF::Range || bounds.class == JSON::Range)
         "new IVL(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
       else
         "#{js_for_value(bounds)}"
@@ -81,8 +81,12 @@ module Generator
   # Entry point to JavaScript generator
   class JS
   
-    def initialize(hqmf_file)
-      @doc = HQMF::Document.new(hqmf_file)
+    def initialize(hqmf_file, doc=nil)
+      if (doc) 
+        @doc = doc
+      else
+        @doc = HQMF::Document.new(hqmf_file)
+      end
     end
     
     # Generate JS for a HQMF::PopulationCriteria

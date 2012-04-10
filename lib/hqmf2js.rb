@@ -17,6 +17,12 @@ require_relative 'hqmf/data_criteria'
 require_relative 'hqmf/population_criteria'
 require_relative 'hqmf/precondition'
 
+require_relative 'json/document'
+require_relative 'json/data_criteria'
+require_relative 'json/population_criteria'
+require_relative 'json/precondition'
+require_relative 'json/types'
+
 require_relative 'generator/js'
 require_relative 'generator/codes_to_json'
 

@@ -1,26 +1,15 @@
-module HQMF
+module JSON
   # Represents an HQMF population criteria, also supports all the same methods as
   # HQMF::Precondition
   class PopulationCriteria
   
-    include HQMF::Utilities
-    
-    attr_reader :preconditions
+    attr_reader :preconditions, :id
     
     # Create a new population criteria from the supplied HQMF entry
     # @param [Nokogiri::XML::Element] the HQMF entry
-    def initialize(entry, doc)
-      @doc = doc
-      @entry = entry
-      @preconditions = @entry.xpath('./*/cda:precondition').collect do |entry|
-        Precondition.new(entry, @doc)
-      end
-    end
-    
-    # Get the id for the population criteria
-    # @return [String] the id
-    def id
-      attr_val('./*/cda:id/@extension')
+    def initialize(id, json)
+      @id = id
+      @preconditions = json[:preconditions].map {|preciondition| JSON::Precondition.new(preciondition)} 
     end
     
     # Return true of this precondition represents a conjunction with nested preconditions
@@ -42,13 +31,6 @@ module HQMF
       end
     end
     
-    def to_json
-      x = nil
-      json = build_hash(self, [:conjunction?])
-      json[:preconditions] = x if x = json_array(@preconditions)
-      {self.id.to_sym => json}
-    end
-
   end
   
 end

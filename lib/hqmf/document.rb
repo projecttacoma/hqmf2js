@@ -1,6 +1,9 @@
 module HQMF
   # Class representing an HQMF document
   class Document
+
+    include HQMF::Utilities
+    
     attr_reader :measure_period
   
     # Create a new HQMF::Document instance by parsing at file at the supplied path
@@ -65,6 +68,25 @@ module HQMF
       doc.root.add_namespace_definition('cda', 'urn:hl7-org:v3')
       doc.root.add_namespace_definition('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
       doc
+    end
+    
+    def to_json
+      json = build_hash(self, [:title, :description])
+
+      json[:population_criteria] = {}
+      @population_criteria.each do |population|
+        json[:population_criteria].merge! population.to_json
+      end
+
+      json[:data_criteria] = {}
+      @data_criteria.each do |data|
+        json[:data_criteria].merge! data.to_json
+      end
+      
+      json[:measure_period] = @measure_period.to_json
+
+      json
+
     end
     
     private

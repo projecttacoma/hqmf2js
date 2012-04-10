@@ -38,6 +38,10 @@ module HQMF
         @entry.at_xpath('./cda:expression').inner_text
       end
     end
+    
+    def to_json
+      build_hash(self, [:type,:unit,:value,:inclusive?,:derived?,:expression])
+    end
   end
   
   # Represents a HQMF physical quantity which can have low and high bounds
@@ -58,6 +62,14 @@ module HQMF
       attr_val('./@xsi:type')
     end
     
+    def to_json
+      json = build_hash(self, [:type])
+      json[:low] = self.low.to_json if self.low
+      json[:high] = self.high.to_json if self.high
+      json[:width] = self.width.to_json if self.width
+      json
+    end
+    
     private
     
     def optional_value(xpath, type)
@@ -76,7 +88,7 @@ module HQMF
       else
         'PQ'
       end
-    end 
+    end
   end
   
   # Represents a HQMF effective time which is a specialization of a interval
@@ -121,6 +133,11 @@ module HQMF
     def unit
       nil
     end
+    
+    def to_json
+      build_hash(self, [:type,:system,:code])
+    end
+    
   end
   
   # Represents a HQMF reference from a precondition to a data criteria
@@ -134,6 +151,7 @@ module HQMF
     def id
       attr_val('./@extension')
     end
+    
   end
   
 end

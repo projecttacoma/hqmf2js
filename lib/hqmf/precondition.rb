@@ -30,6 +30,16 @@ module HQMF
       @entry.at_xpath('./*[1]').name
     end
     
+    def to_json
+      x = nil
+      json = {}
+      json[:reference] = self.reference.id if self.reference
+      json[:preconditions] = x if x = json_array(@preconditions)
+      json[:conjunction_code] = self.conjunction_code if self.conjunction_code
+      json
+    end
+    
+    
   end
     
 end
