@@ -99,6 +99,7 @@ module Generator
         context = ErbContext.new(params)
         template.result(context.get_binding)
       else
+        Kernel.warn("could not find criteria code: #{criteria_code}")
         ''
       end
     end

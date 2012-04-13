@@ -3,6 +3,8 @@ module JSON
   # HQMF::Precondition
   class PopulationCriteria
   
+    include HQMF::Utilities
+  
     attr_reader :preconditions, :id
     
     # Create a new population criteria
@@ -18,6 +20,14 @@ module JSON
       preconditions = json[:preconditions].map {|preciondition| JSON::Precondition.from_json(preciondition)} 
       JSON::PopulationCriteria.new(id, preconditions)
     end
+    
+    def to_json
+      x = nil
+      json = build_hash(self, [:conjunction?])
+      json[:preconditions] = x if x = json_array(@preconditions)
+      {self.id.to_sym => json}
+    end
+    
     
     # Return true of this precondition represents a conjunction with nested preconditions
     # or false of this precondition is a reference to a data criteria

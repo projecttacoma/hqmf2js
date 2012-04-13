@@ -10,6 +10,8 @@ require 'coffee_script'
 require 'sprockets'
 require 'execjs'
 
+require 'hqmf-parser'
+
 require_relative 'hqmf/utilities'
 require_relative 'hqmf/types'
 require_relative 'hqmf/document'
@@ -25,6 +27,13 @@ require_relative 'json/types'
 
 require_relative 'generator/js'
 require_relative 'generator/codes_to_json'
+
+require_relative 'hqmf_converter/document_converter'
+require_relative 'hqmf_converter/data_criteria_converter'
+require_relative 'hqmf_converter/population_criteria_converter'
+require_relative 'hqmf_converter/precondition_converter'
+require_relative 'hqmf_converter/restriction_converter'
+
 
 Tilt::CoffeeScriptTemplate.default_bare = true
 class HqmfUtility

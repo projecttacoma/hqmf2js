@@ -2,6 +2,8 @@ module JSON
   # Class representing an HQMF document
   class Document
 
+    include HQMF::Utilities
+
     attr_reader :title, :description, :measure_period
   
     # Create a new JSON::Document which can be converted to JavaScript
@@ -32,6 +34,26 @@ module JSON
       measure_period = JSON::Range.from_json(json[:measure_period]) if json[:measure_period]
       JSON::Document.new(title, description, population_criterias, data_criterias, measure_period)
     end
+    
+    def to_json
+      json = build_hash(self, [:title, :description])
+
+      json[:population_criteria] = {}
+      @population_criteria.each do |population|
+        json[:population_criteria].merge! population.to_json
+      end
+
+      json[:data_criteria] = {}
+      @data_criteria.each do |data|
+        json[:data_criteria].merge! data.to_json
+      end
+      
+      json[:measure_period] = @measure_period.to_json
+
+      json
+
+    end
+    
     
     # Get all the population criteria defined by the measure
     # @return [Array] an array of JSON::PopulationCriteria

@@ -4,7 +4,8 @@ module JSON
 
     include HQMF::Utilities
   
-    attr_reader :id,:title,:section,:subset_code,:code_list_id, :property, :type, :status, :value, :effective_time, :inline_code_list
+    attr_reader :id,:title,:section,:subset_code,:code_list_id, :property, :type, :status, :inline_code_list
+    attr_accessor :value, :effective_time
   
     # Create a new data criteria instance
     # @param [String] id
@@ -49,6 +50,15 @@ module JSON
       JSON::DataCriteria.new(id,title,section,subset_code,code_list_id,property,type,status,value,effective_time,inline_code_list)
       
     end
+    
+    def to_json
+      json = build_hash(self, [:title,:section,:subset_code,:code_list_id, :property, :type, :status])
+      json[:value] = self.value.to_json if self.value
+      json[:effective_time] = self.effective_time.to_json if self.effective_time
+      json[:inline_code_list] = self.inline_code_list if self.inline_code_list
+      {self.id.to_sym => json}
+    end
+    
     
     private 
     

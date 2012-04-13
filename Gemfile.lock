@@ -5,6 +5,13 @@ GIT
   specs:
     hquery-patient-api (0.1.0)
 
+GIT
+  remote: https://github.com/pophealth/hqmf-parser.git
+  revision: dca94b531eb5d80bb6dcac1719ad564034e9e890
+  branch: develop
+  specs:
+    hqmf-parser (0.0.1)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -100,6 +107,7 @@ DEPENDENCIES
   coffee-rails
   coffee-script
   cover_me (>= 1.0.0.rc6)
+  hqmf-parser!
   hquery-patient-api!
   minitest
   nokogiri

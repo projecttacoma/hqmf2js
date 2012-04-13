@@ -42,11 +42,18 @@ module JSON
       @derived
     end
     
+    def to_json
+      build_hash(self, [:type,:unit,:value,:inclusive?,:derived?,:expression])
+    end
+    
   end
   
   # Represents a HQMF physical quantity which can have low and high bounds
   class Range
-    attr_reader :low, :high, :width, :type
+    include HQMF::Utilities
+    
+    attr_reader :type
+    attr_accessor :low, :high, :width
     
     # Create a new JSON::Value
     # @param [String] type
@@ -69,13 +76,20 @@ module JSON
       JSON::Range.new(type,low,high,width)
     end
     
+    def to_json
+      json = build_hash(self, [:type])
+      json[:low] = self.low.to_json if self.low
+      json[:high] = self.high.to_json if self.high
+      json[:width] = self.width.to_json if self.width
+      json
+    end
     
   end
   
   # Represents a HQMF effective time which is a specialization of a interval
   class EffectiveTime < Range
-    def initialize(entry)
-      super
+    def initialize(low,high,width)
+      super('LVL_TS', low, high, width)
     end
     
     def type
@@ -85,6 +99,8 @@ module JSON
   
   # Represents a HQMF CD value which has a code and codeSystem
   class Coded
+    include HQMF::Utilities
+    
     attr_reader :type, :system, :code
     
     # Create a new JSON::Coded
@@ -105,6 +121,9 @@ module JSON
       JSON::Coded.new(type,system,code)
     end
     
+    def to_json
+      build_hash(self, [:type,:system,:code])
+    end
     
     def value
       code

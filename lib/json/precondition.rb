@@ -2,6 +2,8 @@ module JSON
   
   class Precondition
   
+    include HQMF::Utilities
+  
     attr_reader :preconditions, :reference, :conjunction_code
   
     # Create a new population criteria
@@ -9,7 +11,7 @@ module JSON
     # @param [Reference] reference
     # @param [String] conjunction_code
     def initialize(preconditions,reference,conjunction_code)
-      @preconditions = preconditions
+      @preconditions = preconditions || []
       @reference = reference
       @conjunction_code = conjunction_code
     end
@@ -22,6 +24,14 @@ module JSON
       conjunction_code = json[:conjunction_code] if json[:conjunction_code]
       
       JSON::Precondition.new(preconditions,reference,conjunction_code)
+    end
+    def to_json
+      x = nil
+      json = {}
+      json[:reference] = self.reference.id if self.reference
+      json[:preconditions] = x if x = json_array(@preconditions)
+      json[:conjunction_code] = self.conjunction_code if self.conjunction_code
+      json
     end
     
     
