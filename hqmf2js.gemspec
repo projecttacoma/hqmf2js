@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.authors = ["Marc Hadley", "Saul Kravitz"]
   s.version = '0.1.0'
   
-  s.add_dependency 'nokogiri', '~> 1.4.4'
+  s.add_dependency 'nokogiri', '~> 1.5.2'
   
   s.add_development_dependency "awesome_print", "~> 0.3"
 
