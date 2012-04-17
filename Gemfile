@@ -1,5 +1,7 @@
 source "http://rubygems.org"
 
+gem 'rails'
+
 group :assets do
   gem 'sass-rails'
   gem 'coffee-rails'
@@ -7,7 +9,8 @@ group :assets do
 end
 
 gem "hquery-patient-api", :git => 'http://github.com/hquery/patientapi.git', :branch => 'develop'
-gem 'hqmf-parser', :git => 'https://github.com/pophealth/hqmf-parser.git', :branch => 'develop'
+#gem 'hqmf-parser', :git => 'https://github.com/andrequina/hqmf-parser.git', :branch => 'develop'
+gem 'hqmf-parser', :path => '../hqmf-parser'
 
 gem 'nokogiri'
 gem 'sprockets'

@@ -1,9 +1,8 @@
-require 'pry'
-
 module HQMF2JS
   module Generator
     class CodesToJson
-      # Create a new HQMF::Document instance by parsing at file at the supplied path
+      # Create a new Nokogiri::XML::Document instance by parsing at file at the supplied path
+      # from an IHE SVS XML document
       # @param [String] path the path to the HQMF document
       def initialize(code_systems_file)
         @doc = HQMF2JS::Generator::CodesToJson.parse(code_systems_file)

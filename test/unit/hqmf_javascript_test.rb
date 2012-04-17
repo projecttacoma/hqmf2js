@@ -4,6 +4,9 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def setup
     # Open a path to all of our fixtures
     hqmf_contents = File.open("test/fixtures/NQF59New.xml").read
+    
+    doc = HQMF::Parser.parse(hqmf_contents, HQMF::Parser::HQMF_VERSION_2)
+    
     codes_file_path = File.expand_path("../../fixtures/codes.xml", __FILE__)
     # This patient is identified from Cypress as in the denominator and numerator for NQF59
     numerator_patient_json = File.read('test/fixtures/patients/larry_vanderman.json')
@@ -19,7 +22,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     codes_json = codes.json
     
     # Convert the HQMF document included as a fixture into JavaScript
-    converter = HQMF2JS::Generator::JS.new(hqmf_contents)
+    converter = HQMF2JS::Generator::JS.new(doc)
     converted_hqmf = "#{converter.js_for_data_criteria}
       #{converter.js_for('IPP')}
       #{converter.js_for('DENOM')}
@@ -183,7 +186,9 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   
   def test_map_reduce_generation
     hqmf_contents = File.open("test/fixtures/NQF59New.xml").read
-    map_reduce = HQMF2JS::Converter.generate_map_reduce(hqmf_contents)
+    doc = HQMF::Parser.parse(hqmf_contents, HQMF::Parser::HQMF_VERSION_2)
+    
+    map_reduce = HQMF2JS::Converter.generate_map_reduce(doc)
     
     # Extremely loose testing here. Just want to be sure for now that we're getting results of some kind.
     # We'll test for validity over on the hQuery Gateway side of things.
@@ -194,4 +199,17 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert map_reduce[:functions].include? 'atLeastOneTrue'
     assert map_reduce[:functions].include? 'OidDictionary'
   end
+  
+  
+  def test_missing_id
+    
+    context = HQMF2JS::Generator::ErbContext.new({})
+    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
+    
+    exception = assert_raise RuntimeError do
+      n = context.js_name(criteria)
+    end
+    assert exception.message.match(/^No identifier for .*/)
+  end  
+
 end

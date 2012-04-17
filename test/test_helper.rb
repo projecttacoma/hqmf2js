@@ -1,4 +1,6 @@
 require 'cover_me'
+require 'test/unit'
+require 'turn'
 
 if RUBY_PLATFORM=='java'
   require 'rhino'
@@ -9,4 +11,3 @@ end
 PROJECT_ROOT = File.expand_path("../../", __FILE__)
 require File.join(PROJECT_ROOT, 'lib', 'hqmf2js')
 
-require 'test/unit'

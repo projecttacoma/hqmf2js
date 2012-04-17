@@ -37,7 +37,7 @@ module HQMF2JS
       end
 
       def js_for_bounds(bounds)
-        if (bounds.class == HQMF::Range || bounds.class == JSON::Range)
+        if (bounds.respond_to?(:low) && bounds.respond_to?(:high))
           "new IVL(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
         else
           "#{js_for_value(bounds)}"
@@ -77,20 +77,25 @@ module HQMF2JS
         context = ErbContext.new(params)
         template.result(context.get_binding)
       end
+      
+      # Returns a Javascript compatable name based on an entity's identifier
+      def js_name(entity)
+        if !entity.id
+          raise "No identifier for #{entity.to_json}"
+        end
+        entity.id.gsub(/\W/, '_')
+      end
+      
     end
 
     class JS
   
       # Entry point to JavaScript generator
-      def initialize(hqmf_file, doc=nil)
-        if (doc) 
-          @doc = doc
-        else
-          @doc = HQMF::Document.new(hqmf_file)
-        end
+      def initialize(doc)
+        @doc = doc
       end
       
-      # Generate JS for a HQMF::PopulationCriteria
+      # Generate JS for a HQMF2::PopulationCriteria
       def js_for(criteria_code)
         template_str = File.read(File.expand_path("../population_criteria.js.erb", __FILE__))
         template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
@@ -104,16 +109,15 @@ module HQMF2JS
         end
       end
       
-      # Generate JS for a HQMF::DataCriteria
+      # Generate JS for a HQMF2::DataCriteria
       def js_for_data_criteria
         template_str = File.read(File.expand_path("../data_criteria.js.erb", __FILE__))
         template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
         params = {'all_criteria' => @doc.all_data_criteria, 'measure_period' => @doc.measure_period}
         context = ErbContext.new(params)
         template.result(context.get_binding)
-      else
-        Kernel.warn("could not find criteria code: #{criteria_code}")
       end
+      
   
     end
   
