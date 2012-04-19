@@ -1,6 +1,6 @@
 module HQMF2JS
   module Generator
-  
+    
     # Utility class used to supply a binding to Erb. Contains utility functions used
     # by the erb templates that are used to generate code.
     class ErbContext < OpenStruct
@@ -118,6 +118,18 @@ module HQMF2JS
         template.result(context.get_binding)
       end
       
+      def self.library_functions
+        ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
+        Tilt::CoffeeScriptTemplate.default_bare = true 
+        ctx.append_path "app/assets/javascripts"
+        
+        ["// #########################\n// ###### PATIENT API ######\n// #########################\n",
+         HqueryPatientApi::Generator.patient_api_javascript.to_s,
+         "// #########################\n// ### LIBRARY FUNCTIONS ###\n// #########################\n",
+         ctx.find_asset('hqmf_util').to_s, 
+         "// #########################\n// ### PATIENT EXTENSION ###\n// #########################\n",
+         ctx.find_asset('attribute_mapper').to_s].join("\n")
+      end
   
     end
   

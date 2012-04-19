@@ -3,18 +3,20 @@ require 'fileutils'
 
 namespace :hqmf do
   desc 'Convert a HQMF file to JavaScript'
-  task :convert, [:file, :version] do |t, args|
+  task :convert, [:hqmf, :codes, :hqmf_version, :patient] do |t, args|
     
     FileUtils.mkdir_p File.join(".","tmp",'js')
-    file = File.expand_path(args.file)
+    file = File.expand_path(args.hqmf)
     version = args.version || HQMF::Parser::HQMF_VERSION_1
     filename = Pathname.new(file).basename
     doc = HQMF::Parser.parse(File.open(file).read, version)
     
     gen = HQMF2JS::Generator::JS.new(doc)
 
+    binding.pry
+
     codes = HQMF2JS::Generator::CodesToJson.new(File.expand_path("../../../test/fixtures/codes.xml", __FILE__))
-    codes_json = codes.json
+    codes_json = codes.to_json
     
     File.open(File.join(".","tmp",'js',"#{filename}.js"), 'w') do |f| 
 
@@ -60,8 +62,8 @@ namespace :hqmf do
       f.write("// #########################\n\n")
 
       fixture_json = File.read('test/fixtures/patients/francis_drake.json')
-      f.write("var the_patient = #{fixture_json};\n")
-      initialize_patient = 'var numeratorPatient = new hQuery.Patient(the_patient);'
+      f.write("var patient_json = #{fixture_json};\n")
+      initialize_patient = 'var patient = new hQuery.Patient(patient_json);'
       f.write("#{initialize_patient}\n")
       
     end

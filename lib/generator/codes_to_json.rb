@@ -1,14 +1,29 @@
 module HQMF2JS
   module Generator
     class CodesToJson
-      # Create a new Nokogiri::XML::Document instance by parsing at file at the supplied path
-      # from an IHE SVS XML document
-      # @param [String] path the path to the HQMF document
-      def initialize(code_systems_file)
-        @doc = HQMF2JS::Generator::CodesToJson.parse(code_systems_file)
+      
+      def self.from_xls(code_systems_file)
+        value_sets = HQMF::ValueSet::Parser.new().parse(code_systems_file)
+        translation = {}
+        value_sets.each do |value_set|
+          code_sets = {}
+          
+          value_set[:code_sets].each do |code_set|
+            code_sets[code_set[:code_set]] = code_set[:codes]
+          end
+          
+          translation[value_set[:oid]] = code_sets
+        end
+        return translation
       end
       
-      # Parse this CodesToJson object into a JSON format. The original XML is of the format:
+      def self.hash_to_js(hash)
+        hash.to_json.gsub(/\"/, "'")
+      end
+      
+      
+      # Create a new Nokogiri::XML::Document instance by parsing at file at the supplied path
+      # from an IHE SVS XML document then converts into a JSON format. The original XML is of the format:
       #
       # Originally formatted like this:
       # <CodeSystems>
@@ -26,9 +41,10 @@ module HQMF2JS
       #                                       'HL7' => [ 00110 ]
       #                                     }
       # }
-      def json
+      def self.from_xml(code_systems_file)
+        doc = HQMF2JS::Generator::CodesToJson.parse(code_systems_file)
         translation = {}
-        @doc.xpath('//ValueSet').each do |set|
+        doc.xpath('//ValueSet').each do |set|
           set_list = {}
           set_id = set.at_xpath('@id').value
             

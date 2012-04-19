@@ -8,7 +8,8 @@ group :assets do
   gem 'uglifier'
 end
 
-gem "hquery-patient-api", :git => 'http://github.com/hquery/patientapi.git', :branch => 'develop'
+#gem "hquery-patient-api", :git => 'http://github.com/hquery/patientapi.git', :branch => 'develop'
+gem 'hquery-patient-api', :path => '../patientapi'
 #gem 'hqmf-parser', :git => 'https://github.com/andrequina/hqmf-parser.git', :branch => 'develop'
 gem 'hqmf-parser', :path => '../hqmf-parser'
 
