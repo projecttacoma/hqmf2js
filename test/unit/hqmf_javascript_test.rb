@@ -18,8 +18,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
     
     # Parse the code systems that are mapped to the OIDs we support
-    codes = HQMF2JS::Generator::CodesToJson.new(codes_file_path)
-    codes_json = codes.json
+    codes_json = HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path)
     
     # Convert the HQMF document included as a fixture into JavaScript
     converter = HQMF2JS::Generator::JS.new(doc)
@@ -204,7 +203,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_missing_id
     
     context = HQMF2JS::Generator::ErbContext.new({})
-    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
+    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
     
     exception = assert_raise RuntimeError do
       n = context.js_name(criteria)

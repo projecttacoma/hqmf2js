@@ -25,8 +25,7 @@ module HQMF2JS
 
       # Parse the code systems that are mapped to the OIDs we support
       codes_file_path = File.expand_path("../../../test/fixtures/codes.xml", __FILE__)
-      codes = HQMF2JS::Generator::CodesToJson.new(codes_file_path)
-      codes_json = codes.json
+      codes_json = HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path)
 
       # Convert the HQMF document included as a fixture into JavaScript
       converter = HQMF2JS::Generator::JS.new(hqmf_contents)
