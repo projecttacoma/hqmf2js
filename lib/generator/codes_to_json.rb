@@ -62,7 +62,7 @@ module HQMF2JS
           translation[set_id] = set_list
         end
         
-        return translation.to_json.gsub(/\"/, "'")
+        translation
       end
       
       # Parse an XML document at the supplied path

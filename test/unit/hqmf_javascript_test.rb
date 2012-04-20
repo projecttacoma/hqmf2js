@@ -7,7 +7,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     
     doc = HQMF::Parser.parse(hqmf_contents, HQMF::Parser::HQMF_VERSION_2)
     
-    codes_file_path = File.expand_path("../../fixtures/codes.xml", __FILE__)
+    codes_file_path = File.expand_path("../../fixtures/codes/codes.xml", __FILE__)
     # This patient is identified from Cypress as in the denominator and numerator for NQF59
     numerator_patient_json = File.read('test/fixtures/patients/larry_vanderman.json')
     
@@ -18,7 +18,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
     
     # Parse the code systems that are mapped to the OIDs we support
-    codes_json = HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path)
+    codes_json = HQMF2JS::Generator::CodesToJson.hash_to_js(HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path))
     
     # Convert the HQMF document included as a fixture into JavaScript
     converter = HQMF2JS::Generator::JS.new(doc)

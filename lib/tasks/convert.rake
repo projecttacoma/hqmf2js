@@ -15,7 +15,7 @@ namespace :hqmf do
 
     binding.pry
 
-    codes = HQMF2JS::Generator::CodesToJson.new(File.expand_path("../../../test/fixtures/codes.xml", __FILE__))
+    codes = HQMF2JS::Generator::CodesToJson.new(File.expand_path("../../../test/fixtures/codes/codes.xml", __FILE__))
     codes_json = codes.to_json
     
     File.open(File.join(".","tmp",'js',"#{filename}.js"), 'w') do |f| 

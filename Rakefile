@@ -16,7 +16,7 @@ desc "Run basic tests"
 Rake::TestTask.new("test_units") { |t|
   t.pattern = 'test/unit/*_test.rb'
   t.verbose = true
-  t.warning = true
+  t.warning = false
 }
 
 task :default => [:test_units,'cover_me:report']
