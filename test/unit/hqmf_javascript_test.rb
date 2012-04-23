@@ -181,6 +181,22 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     # getCode
     assert_equal 1, @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")').count
     assert_equal "00110", @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")["HL7"][0]')
+    
+    # DURING
+    @context.eval('var events1 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,5);}}]')
+    @context.eval('var events2 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,2);}, "endDate": function() {return new Date(2012,0,5);}}]')
+    @context.eval('var bound1 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,5);}}]')
+    @context.eval('var bound2 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,7);}}]')
+    @context.eval('var bound3 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,3);}, "endDate": function() {return new Date(2012,0,7);}}]')
+    @context.eval('var bound4 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,6);}, "endDate": function() {return new Date(2012,0,7);}}]')
+    assert_equal 1, @context.eval('DURING(events1, bound1)').count
+    assert_equal 0, @context.eval('DURING(events1, bound2)').count
+    assert_equal 1, @context.eval('DURING(events1, bound3)').count
+    assert_equal 0, @context.eval('DURING(events1, bound4)').count
+    assert_equal 1, @context.eval('DURING(events2, bound3)').count
+    assert_equal 0, @context.eval('DURING(events2, bound4)').count
+    assert_equal 1, @context.eval('DURING(events2, bound1)').count
+    assert_equal 0, @context.eval('DURING(events2, bound2)').count
   end
   
   def test_map_reduce_generation

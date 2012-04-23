@@ -70,3 +70,22 @@ RECENT = (events) ->
     b.json.time - a.json.time
   [events.sort(dateSortDescending)[0]]
   
+eventDuringTimeBounds = (event, bounds) ->
+  twentyFourHours = 24*60*60*1000
+  matchingBounds = (bound for bound in bounds when (
+    if event.isTimeRange() && bound.isTimeRange()
+      event.startDate().getTime()<=bound.endDate().getTime() && event.endDate().getTime()>=bound.startDate().getTime()
+    else if event.isTimeRange()
+      event.startDate().getTime()<=bound.timeStamp().getTime() && event.endDate().getTime()>=bound.timeStamp().getTime()
+    else if bound.isTimeRange()
+      bound.startDate().getTime()<=event.timeStamp().getTime() && bound.endDate().getTime()>=event.timeStamp().getTime()
+    else
+      Math.abs(bound.timeStamp().getTime()-event.timeStamp().getTime()) < twentyFourHours
+  ))
+  matchingBounds && matchingBounds.length>0
+
+DURING = (events, bounds) ->
+  matchingEvents = (event for event in events when (
+    eventDuringTimeBounds(event, bounds)
+  ))
+  matchingEvents
