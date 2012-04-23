@@ -42,7 +42,15 @@ class PQ
 class IVL
   constructor: (@low_pq, @high_pq) ->
   match: (val) ->
-    (!@low_pq? || (@low_pq? && @low_pq.lessThan(val))) && (!@high_pq? || (@high_pq? && @high_pq.greaterThan(val)))
+    (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
+    
+class IVL_TS
+  constructor: (@low, @high) ->
+  match: (ts) ->
+    (!@low? || (@low.asDate().getTime()<=ts.asDate().getTime())) && (!@high? || (@high.asDate().getTime()>=ts.asDate().getTime()))
+  isTimeRange: -> true
+  startDate: -> @low.asDate()
+  endDate: -> @high.asDate()
 	
 atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))

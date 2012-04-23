@@ -151,6 +151,14 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("new IVL(new PQ(1, 'mo'), null).match(2)")
     assert !@context.eval("new IVL(new PQ(1, 'mo'), null).match(0)")
     
+    # IVL_TS - Time Range
+    ivl = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
+    assert @context.eval("#{ivl}.isTimeRange()")
+    assert_equal 10, @context.eval("#{ivl}.startDate().getDate()")
+    assert_equal 20, @context.eval("#{ivl}.endDate().getDate()")
+    assert @context.eval("#{ivl}.match(new TS('20120315'))")
+    assert !@context.eval("#{ivl}.match(new TS('20120325'))")
+    
     # atLeastOneTrue
     assert !@context.eval("atLeastOneTrue()")
     assert !@context.eval("atLeastOneTrue(false, false, false)")
