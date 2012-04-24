@@ -18,16 +18,17 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
     
     # Parse the code systems that are mapped to the OIDs we support
-    codes_json = HQMF2JS::Generator::CodesToJson.hash_to_js(HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path))
+    @codes_hash = HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path)
+    codes_json = HQMF2JS::Generator::CodesToJson.hash_to_js(@codes_hash)
     
     # Convert the HQMF document included as a fixture into JavaScript
-    converter = HQMF2JS::Generator::JS.new(doc)
-    converted_hqmf = "#{converter.js_for_data_criteria}
-      #{converter.js_for('IPP')}
-      #{converter.js_for('DENOM')}
-      #{converter.js_for('NUMER')}
-      #{converter.js_for('DENEXCEP')}
-      #{converter.js_for('DUMMY')}"
+    @converter = HQMF2JS::Generator::JS.new(doc)
+    converted_hqmf = "#{@converter.js_for_data_criteria}
+      #{@converter.js_for('IPP')}
+      #{@converter.js_for('DENOM')}
+      #{@converter.js_for('NUMER')}
+      #{@converter.js_for('DENEXCEP')}
+      #{@converter.js_for('DUMMY')}"
     
     # Now we can wrap and compile all of our code as one little JavaScript context for all of the tests below
     patient_api = File.open('test/fixtures/patient_api.js').read
@@ -59,6 +60,20 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 9, @context.eval('OidDictionary["2.16.840.1.113883.3.464.1.72"]["SNOMED-CT"]').count
   end
   
+  def test_to_js_method
+    value = @converter.to_js(@codes_hash)
+    local_context = V8::Context.new
+    hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
+    local_context.eval("#{hqmf_utils}
+                        #{value}")
+                        
+    local_context.eval('typeof hqmfjs != undefined').must_equal true
+    local_context.eval('typeof OidDictionary != undefined').must_equal true
+    local_context.eval('typeof hqmfjs.IPP != undefined').must_equal true
+    local_context.eval('typeof hqmfjs.NUMER != undefined').must_equal true
+    local_context.eval('typeof hqmfjs.DENOM != undefined').must_equal true
+  end
+  
   def test_converted_hqmf
     # Measure variables
     assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getFullYear()")
@@ -69,48 +84,48 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 'a', @context.eval("MeasurePeriod.width.unit")
   
     # Age functions - Fixture is 37.1
-    assert @context.eval("ageBetween17and64(numeratorPatient)")
-    assert @context.eval("ageBetween30and39(numeratorPatient)")
-    assert !@context.eval("ageBetween17and21(numeratorPatient)")
-    assert !@context.eval("ageBetween22and29(numeratorPatient)")
-    assert !@context.eval("ageBetween40and49(numeratorPatient)")
-    assert !@context.eval("ageBetween50and59(numeratorPatient)")
-    assert !@context.eval("ageBetween60and64(numeratorPatient)")
+    assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient)")
+    assert @context.eval("hqmfjs.ageBetween30and39(numeratorPatient)")
+    assert !@context.eval("hqmfjs.ageBetween17and21(numeratorPatient)")
+    assert !@context.eval("hqmfjs.ageBetween22and29(numeratorPatient)")
+    assert !@context.eval("hqmfjs.ageBetween40and49(numeratorPatient)")
+    assert !@context.eval("hqmfjs.ageBetween50and59(numeratorPatient)")
+    assert !@context.eval("hqmfjs.ageBetween60and64(numeratorPatient)")
     
     # Gender functions - Fixture is male
-    assert @context.eval("genderMale(numeratorPatient)")
-    assert !@context.eval("genderFemale(numeratorPatient)")
+    assert @context.eval("hqmfjs.genderMale(numeratorPatient)")
+    assert !@context.eval("hqmfjs.genderFemale(numeratorPatient)")
     
     # Be sure the actual mechanic of code lists being returned works correctly - Using HasDiabetes as an example
-    results = @context.eval("HasDiabetes(numeratorPatient)").first['json']
+    results = @context.eval("hqmfjs.HasDiabetes(numeratorPatient)").first['json']
     assert_equal 3, results['codes'].count
     assert_equal '250', results['codes']['ICD-9-CM'].first
     assert_equal 1270094400, results['time']
     
     # Encounters
-    assert_equal 0, @context.eval("EDorInpatientEncounter(numeratorPatient)").count
-    assert_equal 0, @context.eval("AmbulatoryEncounter(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.EDorInpatientEncounter(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.AmbulatoryEncounter(numeratorPatient)").count
     
     # Conditions
-    assert_equal 1, @context.eval("HasDiabetes(numeratorPatient)").count
-    assert_equal 0, @context.eval("HasGestationalDiabetes(numeratorPatient)").count
-    assert_equal 0, @context.eval("HasPolycysticOvaries(numeratorPatient)").count
-    assert_equal 0, @context.eval("HasSteroidInducedDiabetes(numeratorPatient)").count
+    assert_equal 1, @context.eval("hqmfjs.HasDiabetes(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.HasGestationalDiabetes(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.HasPolycysticOvaries(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.HasSteroidInducedDiabetes(numeratorPatient)").count
     
     # Results
-    assert_equal 1, @context.eval("HbA1C(numeratorPatient)").count
+    assert_equal 1, @context.eval("hqmfjs.HbA1C(numeratorPatient)").count
     
     # Medications
-    assert_equal 1, @context.eval("DiabetesMedAdministered(numeratorPatient)").count
-    assert_equal 0, @context.eval("DiabetesMedIntended(numeratorPatient)").count
-    assert_equal 0, @context.eval("DiabetesMedSupplied(numeratorPatient)").count
-    assert_equal 0, @context.eval("DiabetesMedOrdered(numeratorPatient)").count
+    assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministered(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.DiabetesMedIntended(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.DiabetesMedSupplied(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.DiabetesMedOrdered(numeratorPatient)").count
     
     # Standard population health query buckets
-    assert @context.eval("IPP(numeratorPatient)")
-    assert @context.eval("DENOM(numeratorPatient)")
-    assert @context.eval("NUMER(numeratorPatient)")
-    assert !@context.eval("DENEXCEP(numeratorPatient)")
+    assert @context.eval("hqmfjs.IPP(numeratorPatient)")
+    assert @context.eval("hqmfjs.DENOM(numeratorPatient)")
+    assert @context.eval("hqmfjs.NUMER(numeratorPatient)")
+    assert !@context.eval("hqmfjs.DENEXCEP(numeratorPatient)")
   end
   
   def test_converted_utils
