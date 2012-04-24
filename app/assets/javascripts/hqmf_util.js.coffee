@@ -42,7 +42,15 @@ class @PQ
 class @IVL
   constructor: (@low_pq, @high_pq) ->
   match: (val) ->
-    (!@low_pq? || (@low_pq? && @low_pq.lessThan(val))) && (!@high_pq? || (@high_pq? && @high_pq.greaterThan(val)))
+    (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
+    
+class IVL_TS
+  constructor: (@low, @high) ->
+  match: (ts) ->
+    (!@low? || (@low.asDate().getTime()<=ts.asDate().getTime())) && (!@high? || (@high.asDate().getTime()>=ts.asDate().getTime()))
+  isTimeRange: -> true
+  startDate: -> @low.asDate()
+  endDate: -> @high.asDate()
 	
 @atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
@@ -70,7 +78,25 @@ class @IVL
     b.json.time - a.json.time
   [events.sort(dateSortDescending)[0]]
   
+@eventDuringTimeBounds = (event, bounds) ->
+  twentyFourHours = 24*60*60*1000
+  matchingBounds = (bound for bound in bounds when (
+    if event.isTimeRange() && bound.isTimeRange()
+      event.startDate().getTime()<=bound.endDate().getTime() && event.endDate().getTime()>=bound.startDate().getTime()
+    else if event.isTimeRange()
+      event.startDate().getTime()<=bound.timeStamp().getTime() && event.endDate().getTime()>=bound.timeStamp().getTime()
+    else if bound.isTimeRange()
+      bound.startDate().getTime()<=event.timeStamp().getTime() && bound.endDate().getTime()>=event.timeStamp().getTime()
+    else
+      Math.abs(bound.timeStamp().getTime()-event.timeStamp().getTime()) < twentyFourHours
+  ))
+  matchingBounds && matchingBounds.length>0
+
+@DURING = (events, bounds) ->
+  matchingEvents = (event for event in events when (
+    eventDuringTimeBounds(event, bounds)
+  ))
+  matchingEvents
+
 @OidDictionary = {};
 @hqmfjs = @hqmfjs||{};
-
-  
