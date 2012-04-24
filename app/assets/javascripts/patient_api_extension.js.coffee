@@ -6,4 +6,3 @@ hQuery.Patient.prototype.allDevices = -> this.conditions().concat(this.procedure
 hQuery.Patient.prototype.activeDiagnosis = -> this.conditions().concat(this.socialHistories()).withStatuses(['active'])
 hQuery.Patient.prototype.inactiveDiagnosis = -> this.conditions().concat(this.socialHistories()).withStatuses(['inactive'])
 hQuery.Patient.prototype.resolvedDiagnosis = -> this.conditions().concat(this.socialHistories()).withStatuses(['resolved'])
-

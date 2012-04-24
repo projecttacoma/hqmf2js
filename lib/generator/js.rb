@@ -95,6 +95,31 @@ module HQMF2JS
         @doc = doc
       end
       
+      def to_js(codes)
+        "
+        // #########################
+        // ##### DATA ELEMENTS #####
+        // #########################
+
+        OidDictionary = #{HQMF2JS::Generator::CodesToJson.hash_to_js(codes)};
+        #{js_for_data_criteria()}
+
+        // #########################
+        // ##### MEASURE LOGIC #####
+        // #########################
+
+        // INITIAL PATIENT POPULATION
+        #{js_for('IPP')}
+        // DENOMINATOR
+        #{js_for('DENOM')}
+        // NUMERATOR
+        #{js_for('NUMER')}
+        #{js_for('DENEXCEP')}
+        "
+      end
+      
+      
+      
       # Generate JS for a HQMF2::PopulationCriteria
       def js_for(criteria_code)
         template_str = File.read(File.expand_path("../population_criteria.js.erb", __FILE__))
@@ -128,7 +153,9 @@ module HQMF2JS
          "// #########################\n// ### LIBRARY FUNCTIONS ###\n// #########################\n",
          ctx.find_asset('hqmf_util').to_s, 
          "// #########################\n// ### PATIENT EXTENSION ###\n// #########################\n",
-         ctx.find_asset('attribute_mapper').to_s].join("\n")
+         ctx.find_asset('patient_api_extension').to_s,
+         "// #########################\n// ##### LOGGING UTILS #####\n// #########################\n",
+         ctx.find_asset('logging_utils').to_s].join("\n")
       end
   
     end

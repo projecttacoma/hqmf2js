@@ -1,4 +1,4 @@
-class TS  
+class @TS  
   constructor: (hl7ts) ->
     year = parseInt(hl7ts.substring(0, 4))
     month = parseInt(hl7ts.substring(4, 6), 10)-1
@@ -21,14 +21,14 @@ class TS
   asDate: ->
     @date
   
-class CD
+class @CD
 	constructor: (@code) ->
 	code: ->
 	  @code
 	match: (val) ->
 	  @code==val
 	
-class PQ
+class @PQ
 	constructor: (@value, @unit) ->
 	unit: -> @unit
 	value: -> @value
@@ -39,34 +39,38 @@ class PQ
 	match: (val) ->
 	  @value==val
 	
-class IVL
+class @IVL
   constructor: (@low_pq, @high_pq) ->
   match: (val) ->
     (!@low_pq? || (@low_pq? && @low_pq.lessThan(val))) && (!@high_pq? || (@high_pq? && @high_pq.greaterThan(val)))
 	
-atLeastOneTrue = (values...) ->
+@atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
   trueValues.length>0
   
-allTrue = (values...) ->
+@allTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
   trueValues.length>0 && trueValues.length==values.length
   
-matchingValue = (value, compareTo) ->
+@matchingValue = (value, compareTo) ->
   compareTo.match(value)
 
-filterEventsByValue = (events, value) ->
+@filterEventsByValue = (events, value) ->
   matchingValues = (event for event in events when (event.value && value.match(event.value().scalar)))
   matchingValues
 
-getCodes = (oid) ->
+@getCodes = (oid) ->
   OidDictionary[oid]
 
-PREVSUM = (eventList) ->
+@PREVSUM = (eventList) ->
   eventList
 
-RECENT = (events) ->
+@RECENT = (events) ->
   dateSortDescending = (a, b) ->
     b.json.time - a.json.time
   [events.sort(dateSortDescending)[0]]
+  
+@OidDictionary = {};
+@hqmfjs = @hqmfjs||{};
+
   
