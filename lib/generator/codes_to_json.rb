@@ -1,26 +1,27 @@
 module HQMF2JS
   module Generator
-    class CodesToJson
-      
+    class CodesToJson      
       def self.from_xls(code_systems_file)
         value_sets = HQMF::ValueSet::Parser.new().parse(code_systems_file)
-        translation = {}
-        value_sets.each do |value_set|
-          code_sets = {}
-          
-          value_set[:code_sets].each do |code_set|
-            code_sets[code_set[:code_set]] = code_set[:codes]
-          end
-          
-          translation[value_set[:oid]] = code_sets
-        end
-        return translation
+        from_value_sets(value_sets)
       end
       
       def self.hash_to_js(hash)
         hash.to_json.gsub(/\"/, "'")
       end
       
+      def self.from_value_sets(value_sets)
+        translation = {}
+        value_sets.each do |value_set|
+          code_sets = {}
+          value_set["code_sets"].each do |code_set|
+            code_sets[code_set["code_set"]] = code_set["codes"]
+          end
+          translation[value_set["oid"]] = code_sets
+        end
+        
+        translation
+      end
       
       # Create a new Nokogiri::XML::Document instance by parsing at file at the supplied path
       # from an IHE SVS XML document then converts into a JSON format. The original XML is of the format:
@@ -70,6 +71,7 @@ module HQMF2JS
       def self.parse(path)
         doc = Nokogiri::XML(File.new(path))
       end
+      
     end
   end
 end
