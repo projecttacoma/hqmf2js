@@ -109,9 +109,9 @@ module HQMF2JS
         // #########################
 
         // INITIAL PATIENT POPULATION
-        #{js_for('IPP')}
+        #{js_for('IPP', true)}
         // DENOMINATOR
-        #{js_for('DENOM')}
+        #{js_for('DENOM', true)}
         // NUMERATOR
         #{js_for('NUMER')}
         #{js_for('DENEXCEP')}
@@ -121,7 +121,7 @@ module HQMF2JS
       
       
       # Generate JS for a HQMF2::PopulationCriteria
-      def js_for(criteria_code)
+      def js_for(criteria_code, when_not_found=false)
         template_str = File.read(File.expand_path("../population_criteria.js.erb", __FILE__))
         template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
         criteria = @doc.population_criteria(criteria_code)
@@ -130,7 +130,7 @@ module HQMF2JS
           context = ErbContext.new(params)
           template.result(context.get_binding)
         else
-          ''
+          "hqmfjs.#{criteria_code} = function(patient) { return #{when_not_found}; }"
         end
       end
       

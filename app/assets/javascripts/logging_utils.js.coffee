@@ -61,7 +61,12 @@ class @Logger
     );
     
     hQuery.CodedEntryList.prototype.match = _.wrap(hQuery.CodedEntryList.prototype.match, (func, codeSet, start, end) ->
-      Logger.info("matching: codeSets(#{_.keys(codeSet).join(",")}), #{start}, #{end}")
+      
+      if (codeSet)
+        Logger.info("matching: codeSets(#{_.keys(codeSet).join(",")}), #{start}, #{end}")
+      else
+        Logger.info("matching: WARNING: CODE SETS ARE NULL, #{start}, #{end}")
+        
       func = _.bind(func, this, codeSet,start,end)
       result = func(codeSet,start,end)
       Logger.info("matched -> #{Logger.stringify(result)}")

@@ -11,12 +11,19 @@ module HQMF2JS
       end
       
       def self.from_value_sets(value_sets)
+        # make sure we have a string keyed hash
+        value_sets = JSON.parse(value_sets.to_json)
         translation = {}
         value_sets.each do |value_set|
           code_sets = {}
-          value_set["code_sets"].each do |code_set|
-            code_sets[code_set["code_set"]] = code_set["codes"]
+          if value_set["code_sets"] && !value_set["code_sets"].compact.empty?
+            value_set["code_sets"].each do |code_set|
+              code_sets[code_set["code_set"]] = code_set["codes"]
+            end
+          else
+            Kernel.warn("Value Set does not have code sets: #{value_set[:key]}")
           end
+          
           translation[value_set["oid"]] = code_sets
         end
         
