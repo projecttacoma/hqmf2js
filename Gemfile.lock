@@ -7,7 +7,7 @@ GIT
 
 GIT
   remote: https://github.com/pophealth/hqmf-parser.git
-  revision: cbe34e88115e70cb1af6fed6aba2e6c8e37cb15d
+  revision: 3379c0131f7996200988997a333f3ecf094f8ada
   branch: develop
   specs:
     hqmf-parser (0.0.1)
@@ -88,14 +88,14 @@ GEM
     method_source (0.7.1)
     mime-types (1.18)
     minitest (2.12.1)
-    multi_json (1.3.2)
+    multi_json (1.3.4)
     multipart-post (1.1.5)
     nokogiri (1.5.0)
     oauth (0.4.6)
-    oauth2 (0.7.0)
+    oauth2 (0.7.1)
       faraday (~> 0.8)
       httpauth (~> 0.1)
-      multi_json (~> 1.3)
+      multi_json (~> 1.0)
       rack (~> 1.4)
     polyglot (0.3.3)
     pry (0.9.9.3)
@@ -135,14 +135,14 @@ GEM
       spreadsheet (> 0.6.4)
       todonotes (>= 0.1.0)
     ruby-ole (1.2.11.3)
-    rubyzip (0.9.7)
+    rubyzip (0.9.8)
     sass (3.1.15)
     sass-rails (3.2.5)
       railties (~> 3.2.0)
       sass (>= 3.1.10)
       tilt (~> 1.3)
     slop (2.4.4)
-    spreadsheet (0.6.8)
+    spreadsheet (0.7.0)
       ruby-ole (>= 1.0)
     sprockets (2.1.2)
       hike (~> 1.2)
