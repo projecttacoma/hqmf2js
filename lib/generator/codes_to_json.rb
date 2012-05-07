@@ -16,12 +16,8 @@ module HQMF2JS
         translation = {}
         value_sets.each do |value_set|
           code_sets = {}
-          if value_set["code_sets"] && !value_set["code_sets"].compact.empty?
-            value_set["code_sets"].each do |code_set|
-              code_sets[code_set["code_set"]] = code_set["codes"]
-            end
-          else
-            Kernel.warn("Value Set does not have code sets: #{value_set[:key]}")
+          value_set["code_sets"].each do |code_set|
+            code_sets[code_set["code_set"]] = code_set["codes"]
           end
           
           translation[value_set["oid"]] = code_sets
