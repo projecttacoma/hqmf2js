@@ -78,6 +78,17 @@ module HQMF2JS
         template.result(context.get_binding)
       end
       
+      def conjunction_code_for(precondition)
+        case precondition.conjunction_code
+        when 'allTrue', 'atLeastOneTrue'
+          precondition.conjunction_code
+        else
+          # TODO: by default return allTrue.  We will also need to be able to handle QDM operators like COUNT, etc.
+          Kernel.warn("defaulting conjunction code to allTrue... need to check other options")
+          'allTrue'
+        end
+      end
+      
       # Returns a Javascript compatable name based on an entity's identifier
       def js_name(entity)
         if !entity.id
