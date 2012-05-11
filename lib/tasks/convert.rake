@@ -3,22 +3,25 @@ require 'fileutils'
 
 namespace :hqmf do
   desc 'Convert a HQMF file to JavaScript'
-  task :convert, [:hqmf, :codes, :hqmf_version, :patient] do |t, args|
+  task :convert, [:hqmf, :codes, :hqmf_version] do |t, args|
+    
+    raise "The path to the the hqmf xml must be specified" unless args.hqmf
+    raise "The path to the codes xml must be specified" unless args.codes
     
     FileUtils.mkdir_p File.join(".","tmp",'js')
     file = File.expand_path(args.hqmf)
-    version = args.version || HQMF::Parser::HQMF_VERSION_1
+    version = args.hqmf_version || HQMF::Parser::HQMF_VERSION_1
     filename = Pathname.new(file).basename
     doc = HQMF::Parser.parse(File.open(file).read, version)
     
     gen = HQMF2JS::Generator::JS.new(doc)
 
-    binding.pry
-
-    codes = HQMF2JS::Generator::CodesToJson.new(File.expand_path("../../../test/fixtures/codes/codes.xml", __FILE__))
+    codes = HQMF2JS::Generator::CodesToJson.from_xml(File.expand_path(args.codes))
     codes_json = codes.to_json
     
-    File.open(File.join(".","tmp",'js',"#{filename}.js"), 'w') do |f| 
+    out_file = File.join(".","tmp",'js',"#{filename}.js")
+    
+    File.open(out_file, 'w') do |f| 
 
       ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
       Tilt::CoffeeScriptTemplate.default_bare = true 
@@ -68,8 +71,7 @@ namespace :hqmf do
       
     end
     
-    true
-    
+    puts "wrote javascript to: #{out_file}"
     
   end
 end
