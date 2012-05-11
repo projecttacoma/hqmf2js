@@ -215,12 +215,15 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     @context.eval('var bound2 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,7);}}]')
     @context.eval('var bound3 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,3);}, "endDate": function() {return new Date(2012,0,7);}}]')
     @context.eval('var bound4 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,6);}, "endDate": function() {return new Date(2012,0,7);}}]')
+    @context.eval('var bound5 = {"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,6);}, "endDate": function() {return new Date(2012,0,7);}}')
     assert_equal 1, @context.eval('DURING(events1, bound1)').count
     assert_equal 0, @context.eval('DURING(events1, bound2)').count
     assert_equal 1, @context.eval('DURING(events1, bound3)').count
     assert_equal 0, @context.eval('DURING(events1, bound4)').count
+    assert_equal 0, @context.eval('DURING(events1, bound5)').count
     assert_equal 1, @context.eval('DURING(events2, bound3)').count
     assert_equal 0, @context.eval('DURING(events2, bound4)').count
+    assert_equal 0, @context.eval('DURING(events2, bound5)').count
     assert_equal 1, @context.eval('DURING(events2, bound1)').count
     assert_equal 0, @context.eval('DURING(events2, bound2)').count
   end

@@ -93,6 +93,8 @@ class IVL_TS
   matchingBounds && matchingBounds.length>0
 
 @DURING = (events, bounds) ->
+  if (bounds.length==undefined)
+    bounds = [bounds]
   matchingEvents = (event for event in events when (
     eventDuringTimeBounds(event, bounds)
   ))
