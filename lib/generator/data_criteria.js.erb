@@ -2,14 +2,17 @@
 <%- if measure_period -%>
 var MeasurePeriod = {
   <%- if measure_period.low -%>
-  "low": <%= js_for_value(measure_period.low) %><%= ',' if measure_period.high || measure_period.width %>
+  "low": <%= js_for_value(measure_period.low) %>,
   <%- end -%>
+  "startDate": function() {return this.low ? this.low.asDate() : undefined;},
   <%- if measure_period.high -%>
-  "high": <%= js_for_value(measure_period.high) %><%= ',' if measure_period.width %>
+  "high": <%= js_for_value(measure_period.high) %>,
   <%- end -%>
+  "endDate": function() {return this.high ? this.high.asDate() : undefined;},
   <%- if measure_period.width -%>
-  "width": <%= js_for_value(measure_period.width) %>
+  "width": <%= js_for_value(measure_period.width) %>,
   <%- end -%>
+  "isTimeRange": function() {return true;}
 };
 <%- end -%>
 <%- all_criteria.select {|c| c.type == :variable}.each do |criteria| -%>
