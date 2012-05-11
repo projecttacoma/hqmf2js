@@ -57,7 +57,7 @@ module HQMF2JS
         if bound
           "#{js_for_value(bound)}.asDate()"
         else
-          'EndDate.asDate()'
+          'MeasurePeriod.high.asDate()'
         end
       end
       

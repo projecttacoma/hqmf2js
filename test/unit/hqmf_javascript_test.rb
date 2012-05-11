@@ -138,14 +138,14 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("#{pq}.match(1)")
     
     # TS - Timestamp 2010-01-01
-    assert_equal 2010, @context.eval("StartDate.asDate().getFullYear()")
-    assert_equal 0, @context.eval("StartDate.asDate().getMonth()")
-    assert_equal 1, @context.eval("StartDate.asDate().getDate()")
-    assert_equal 2011, @context.eval("StartDate.add(new PQ(1, 'a')).asDate().getFullYear()")
-    assert_equal 2, @context.eval("StartDate.add(new PQ(1, 'd')).asDate().getDate()")
-    assert_equal 1, @context.eval("StartDate.add(new PQ(1, 'h')).asDate().getHours()")
-    assert_equal 5, @context.eval("StartDate.add(new PQ(5, 'min')).asDate().getMinutes()")
-    assert_equal 11, @context.eval("StartDate.add(new PQ(-1, 'mo')).asDate().getMonth()")
+    assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getFullYear()")
+    assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getMonth()")
+    assert_equal 1, @context.eval("MeasurePeriod.low.asDate().getDate()")
+    assert_equal 2012, @context.eval("MeasurePeriod.low.add(new PQ(1, 'a')).asDate().getFullYear()")
+    assert_equal 2, @context.eval("MeasurePeriod.low.add(new PQ(1, 'd')).asDate().getDate()")
+    assert_equal 1, @context.eval("MeasurePeriod.low.add(new PQ(1, 'h')).asDate().getHours()")
+    assert_equal 5, @context.eval("MeasurePeriod.low.add(new PQ(5, 'min')).asDate().getMinutes()")
+    assert_equal 11, @context.eval("MeasurePeriod.low.add(new PQ(-1, 'mo')).asDate().getMonth()")
     
     # CD - Code
     cd = "new CD('M')"
