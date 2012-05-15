@@ -53,7 +53,19 @@ class @IVL
     
 class @IVL_TS
   constructor: (@low, @high) ->
+  add: (pq) ->
+    @low.add(pq)
+    @high.add(pq)
+    this
   DURING: (other) -> @low.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
+  SBS: (other) -> @low.before(other.low)
+  SAS: (other) -> @low.after(other.low)
+  SBE: (other) -> @low.before(other.high)
+  SAE: (other) -> @low.after(other.high)
+  EBS: (other) -> @high.before(other.low)
+  EAS: (other) -> @high.after(other.low)
+  EBE: (other) -> @high.before(other.high)
+  EAE: (other) -> @high.after(other.high)
 	
 @atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
@@ -81,10 +93,13 @@ class @IVL_TS
     b.json.time - a.json.time
   [events.sort(dateSortDescending)[0]]
   
-@eventMatchesBounds = (event, bounds, methodName) ->
+@eventMatchesBounds = (event, bounds, methodName, offset) ->
   eventTS = event.asIVL_TS()
   matchingBounds = (bound for bound in bounds when (
-    eventTS[methodName](bound.asIVL_TS())
+    boundTS = bound.asIVL_TS()
+    if offset
+      boundTS.add(offset)
+    eventTS[methodName](boundTS)
   ))
   matchingBounds && matchingBounds.length>0
 
@@ -92,7 +107,15 @@ class @IVL_TS
   if (bounds.length==undefined)
     bounds = [bounds]
   matchingEvents = (event for event in events when (
-    eventMatchesBounds(event, bounds, "DURING")
+    eventMatchesBounds(event, bounds, "DURING", offset)
+  ))
+  matchingEvents
+
+@SBS = (events, bounds, offset) ->
+  if (bounds.length==undefined)
+    bounds = [bounds]
+  matchingEvents = (event for event in events when (
+    eventMatchesBounds(event, bounds, "SBS", offset)
   ))
   matchingEvents
 

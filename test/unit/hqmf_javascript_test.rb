@@ -216,7 +216,6 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")').count
     assert_equal "00110", @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")["HL7"][0]')
     
-    # DURING
     @context.eval('var events1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
     @context.eval('var events2 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120102"), new TS("20120105"));}}]')
     @context.eval('var bound1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
@@ -224,6 +223,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     @context.eval('var bound3 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120103"), new TS("20120107"));}}]')
     @context.eval('var bound4 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120106"), new TS("20120107"));}}]')
     @context.eval('var bound5 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120106"), new TS("20120107"));}}')
+    @context.eval('var offset1 = new PQ(1, "a")')
+    @context.eval('var offset2 = new PQ(-1, "a")')
+    
+    # DURING
     assert_equal 1, @context.eval('DURING(events1, bound1)').count
     assert_equal 0, @context.eval('DURING(events1, bound2)').count
     assert_equal 1, @context.eval('DURING(events1, bound3)').count
@@ -234,6 +237,12 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval('DURING(events2, bound5)').count
     assert_equal 0, @context.eval('DURING(events2, bound1)').count
     assert_equal 0, @context.eval('DURING(events2, bound2)').count
+    
+    # SBS
+    assert_equal 0, @context.eval('SBS(events1, bound1)').count
+    assert_equal 1, @context.eval('SBS(events2, bound1, offset1)').count
+    assert_equal 1, @context.eval('SBS(events2, bound1)').count
+    assert_equal 0, @context.eval('SBS(events2, bound1, offset2)').count
   end
   
   def test_map_reduce_generation
