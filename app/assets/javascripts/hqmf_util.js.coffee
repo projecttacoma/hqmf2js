@@ -57,7 +57,7 @@ class @IVL_TS
     @low.add(pq)
     @high.add(pq)
     this
-  DURING: (other) -> @low.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
+  DURING: (other) -> this.SDU(other) || this.EDU(other) || (this.SBS(other) && this.EAE(other))
   SBS: (other) -> @low.before(other.low)
   SAS: (other) -> @low.after(other.low)
   SBE: (other) -> @low.before(other.high)
@@ -66,6 +66,11 @@ class @IVL_TS
   EAS: (other) -> @high.after(other.low)
   EBE: (other) -> @high.before(other.high)
   EAE: (other) -> @high.after(other.high)
+  SDU: (other) -> @low.afterOrConcurrent(other.low) && @low.beforeOrConcurrent(other.high)
+  EDU: (other) -> @high.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
+  ECW: (other) -> @high.asDate().getTime() == other.high.asDate().getTime()
+  SCW: (other) -> @low.asDate().getTime() == other.low.asDate().getTime()
+  CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
 	
 @atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))

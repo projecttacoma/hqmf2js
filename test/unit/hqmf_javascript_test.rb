@@ -232,10 +232,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval('DURING(events1, bound3)').count
     assert_equal 0, @context.eval('DURING(events1, bound4)').count
     assert_equal 0, @context.eval('DURING(events1, bound5)').count
-    assert_equal 0, @context.eval('DURING(events2, bound3)').count
+    assert_equal 1, @context.eval('DURING(events2, bound3)').count
     assert_equal 0, @context.eval('DURING(events2, bound4)').count
     assert_equal 0, @context.eval('DURING(events2, bound5)').count
-    assert_equal 0, @context.eval('DURING(events2, bound1)').count
+    assert_equal 1, @context.eval('DURING(events2, bound1)').count
     assert_equal 0, @context.eval('DURING(events2, bound2)').count
     
     # SBS
