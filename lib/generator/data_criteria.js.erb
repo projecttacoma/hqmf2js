@@ -1,19 +1,18 @@
 // Measure variables
 <%- if measure_period -%>
 var MeasurePeriod = {
-  <%- if measure_period.low -%>
   "low": <%= js_for_value(measure_period.low) %>,
-  <%- end -%>
-  "startDate": function() {return this.low ? this.low.asDate() : undefined;},
-  <%- if measure_period.high -%>
-  "high": <%= js_for_value(measure_period.high) %>,
-  <%- end -%>
-  "endDate": function() {return this.high ? this.high.asDate() : undefined;},
-  <%- if measure_period.width -%>
-  "width": <%= js_for_value(measure_period.width) %>,
-  <%- end -%>
-  "isTimeRange": function() {return true;}
-};
+  "high": <%= js_for_value(measure_period.high) %>
+}
+hqmfjs.MeasurePeriod = function(patient) {
+  return new hQuery.CodedEntry(
+    {
+      "start_time": MeasurePeriod.low.asDate().getTime()/1000,
+      "end_time": MeasurePeriod.high.asDate().getTime()/1000,
+      "codes": {}
+    }
+  );
+}
 <%- end -%>
 <%- all_criteria.select {|c| c.type == :variable}.each do |criteria| -%>
 var <%=  js_name(criteria) %> = <%= js_for_value(criteria.value) %>;
@@ -41,6 +40,9 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- end -%>
   <%- if criteria.subset_code -%>
   events = <%= criteria.subset_code %>(events);
+  <%- end -%>
+  <%- if criteria.temporal_reference -%>
+  events = <%= criteria.temporal_reference.type %>(events, hqmfjs.<%= criteria.temporal_reference.reference.id %>(patient)<%= ", #{js_for_value(criteria.temporal_reference.offset)}" if criteria.temporal_reference.offset %>);
   <%- end -%>
   return events;
   <%- end -%>

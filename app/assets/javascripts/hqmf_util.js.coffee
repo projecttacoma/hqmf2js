@@ -1,9 +1,12 @@
 class @TS  
   constructor: (hl7ts) ->
-    year = parseInt(hl7ts.substring(0, 4))
-    month = parseInt(hl7ts.substring(4, 6), 10)-1
-    day = parseInt(hl7ts.substring(6, 8), 10)
-    @date = new Date(year, month, day)
+    if hl7ts
+      year = parseInt(hl7ts.substring(0, 4))
+      month = parseInt(hl7ts.substring(4, 6), 10)-1
+      day = parseInt(hl7ts.substring(6, 8), 10)
+      @date = new Date(year, month, day)
+    else
+      @date = new Date()
   add: (pq) ->
     if pq.unit=="a"
       @date.setFullYear(@date.getFullYear()+pq.value)
@@ -20,6 +23,10 @@ class @TS
     this
   asDate: ->
     @date
+  before: (other) -> @date.getTime() < other.date.getTime()
+  after: (other) ->  @date.getTime() > other.date.getTime()
+  beforeOrConcurrent: (other) ->  @date.getTime() <= other.date.getTime()
+  afterOrConcurrent: (other) -> @date.getTime() >= other.date.getTime()
   
 class @CD
 	constructor: (@code) ->
@@ -44,13 +51,9 @@ class @IVL
   match: (val) ->
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
     
-class IVL_TS
+class @IVL_TS
   constructor: (@low, @high) ->
-  match: (ts) ->
-    (!@low? || (@low.asDate().getTime()<=ts.asDate().getTime())) && (!@high? || (@high.asDate().getTime()>=ts.asDate().getTime()))
-  isTimeRange: -> true
-  startDate: -> @low.asDate()
-  endDate: -> @high.asDate()
+  DURING: (other) -> @low.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
 	
 @atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
@@ -78,25 +81,18 @@ class IVL_TS
     b.json.time - a.json.time
   [events.sort(dateSortDescending)[0]]
   
-@eventDuringTimeBounds = (event, bounds) ->
-  twentyFourHours = 24*60*60*1000
+@eventMatchesBounds = (event, bounds, methodName) ->
+  eventTS = event.asIVL_TS()
   matchingBounds = (bound for bound in bounds when (
-    if event.isTimeRange() && bound.isTimeRange()
-      event.startDate().getTime()<=bound.endDate().getTime() && event.endDate().getTime()>=bound.startDate().getTime()
-    else if event.isTimeRange()
-      event.startDate().getTime()<=bound.timeStamp().getTime() && event.endDate().getTime()>=bound.timeStamp().getTime()
-    else if bound.isTimeRange()
-      bound.startDate().getTime()<=event.timeStamp().getTime() && bound.endDate().getTime()>=event.timeStamp().getTime()
-    else
-      Math.abs(bound.timeStamp().getTime()-event.timeStamp().getTime()) < twentyFourHours
+    eventTS[methodName](bound.asIVL_TS())
   ))
   matchingBounds && matchingBounds.length>0
 
-@DURING = (events, bounds) ->
+@DURING = (events, bounds, offset) ->
   if (bounds.length==undefined)
     bounds = [bounds]
   matchingEvents = (event for event in events when (
-    eventDuringTimeBounds(event, bounds)
+    eventMatchesBounds(event, bounds, "DURING")
   ))
   matchingEvents
 

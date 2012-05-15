@@ -15,7 +15,8 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
     Tilt::CoffeeScriptTemplate.default_bare = true 
     ctx.append_path "app/assets/javascripts"
-    hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
+    hqmf_utils = HQMF2JS::Generator::JS.library_functions
+#    hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
     
     # Parse the code systems that are mapped to the OIDs we support
     @codes_hash = HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path)
@@ -39,10 +40,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     else
       @context = V8::Context.new
     end
-    @context.eval("#{hqmf_utils}
+    @context.eval("#{patient_api}
+      #{hqmf_utils}
       var OidDictionary = #{codes_json};
       #{converted_hqmf}
-      #{patient_api}
       var larry = #{fixture_json};
       #{initialize_patient}")
   end
@@ -63,8 +64,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_to_js_method
     value = @converter.to_js(@codes_hash)
     local_context = V8::Context.new
+    patient_api = File.open('test/fixtures/patient_api.js').read
     hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
-    local_context.eval("#{hqmf_utils}
+    local_context.eval("#{patient_api}
+                        #{hqmf_utils}
                         #{value}")
                         
     local_context.eval('typeof hqmfjs != undefined').must_equal true
@@ -80,11 +83,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getMonth()")
     assert_equal 2011, @context.eval("MeasurePeriod.high.asDate().getFullYear()")
     assert_equal 11, @context.eval("MeasurePeriod.high.asDate().getMonth()")
-    assert_equal 1, @context.eval("MeasurePeriod.width.value")
-    assert_equal 'a', @context.eval("MeasurePeriod.width.unit")
-    assert @context.eval("MeasurePeriod.startDate()===MeasurePeriod.low.asDate()")
-    assert @context.eval("MeasurePeriod.endDate()===MeasurePeriod.high.asDate()")
-    assert @context.eval("MeasurePeriod.isTimeRange()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().low.asDate().getFullYear()")
+    assert_equal 0, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().low.asDate().getMonth()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().high.asDate().getFullYear()")
+    assert_equal 11, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().high.asDate().getMonth()")
   
     # Age functions - Fixture is 37.1
     assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient)")
@@ -141,14 +143,23 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("#{pq}.match(1)")
     
     # TS - Timestamp 2010-01-01
-    assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getFullYear()")
-    assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getMonth()")
-    assert_equal 1, @context.eval("MeasurePeriod.low.asDate().getDate()")
-    assert_equal 2012, @context.eval("MeasurePeriod.low.add(new PQ(1, 'a')).asDate().getFullYear()")
-    assert_equal 2, @context.eval("MeasurePeriod.low.add(new PQ(1, 'd')).asDate().getDate()")
-    assert_equal 1, @context.eval("MeasurePeriod.low.add(new PQ(1, 'h')).asDate().getHours()")
-    assert_equal 5, @context.eval("MeasurePeriod.low.add(new PQ(5, 'min')).asDate().getMinutes()")
-    assert_equal 11, @context.eval("MeasurePeriod.low.add(new PQ(-1, 'mo')).asDate().getMonth()")
+    ts = 'new TS("20110101")'
+    ts2 = 'new TS("20100101")'
+    ts3 = 'new TS("20120101")'
+    assert_equal 2011, @context.eval("#{ts}.asDate().getFullYear()")
+    assert_equal 0, @context.eval("#{ts}.asDate().getMonth()")
+    assert_equal 1, @context.eval("#{ts}.asDate().getDate()")
+    assert_equal 2012, @context.eval("#{ts}.add(new PQ(1, 'a')).asDate().getFullYear()")
+    assert_equal 2, @context.eval("#{ts}.add(new PQ(1, 'd')).asDate().getDate()")
+    assert_equal 1, @context.eval("#{ts}.add(new PQ(1, 'h')).asDate().getHours()")
+    assert_equal 5, @context.eval("#{ts}.add(new PQ(5, 'min')).asDate().getMinutes()")
+    assert_equal 11, @context.eval("#{ts}.add(new PQ(-1, 'mo')).asDate().getMonth()")
+    assert @context.eval("#{ts2}.before(#{ts})")
+    assert @context.eval("#{ts3}.after(#{ts})")
+    assert !@context.eval("#{ts}.before(#{ts2})")
+    assert !@context.eval("#{ts}.after(#{ts3})")
+    assert @context.eval("#{ts}.beforeOrConcurrent(#{ts})")
+    assert @context.eval("#{ts}.afterOrConcurrent(#{ts})")
     
     # CD - Code
     cd = "new CD('M')"
@@ -170,19 +181,16 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("new IVL(new PQ(1, 'mo'), null).match(0)")
     
     # IVL_TS - Time Range
-    ivl = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
-    assert @context.eval("#{ivl}.isTimeRange()")
-    assert_equal 10, @context.eval("#{ivl}.startDate().getDate()")
-    assert_equal 20, @context.eval("#{ivl}.endDate().getDate()")
-    assert @context.eval("#{ivl}.match(new TS('20120315'))")
-    assert !@context.eval("#{ivl}.match(new TS('20120325'))")
+    ivl1 = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
+    ivl2 = 'new IVL_TS(new TS("20120312"), new TS("20120320"))'
+    assert @context.eval("#{ivl2}.DURING(#{ivl1})")
     
     # atLeastOneTrue
     assert !@context.eval("atLeastOneTrue()")
     assert !@context.eval("atLeastOneTrue(false, false, false)")
     assert @context.eval("atLeastOneTrue(false, true, false)")
     
-    # All true
+    # allTrue
     assert !@context.eval("allTrue()")
     assert !@context.eval("allTrue(true, true, false)")
     assert @context.eval("allTrue(true, true, true)")
@@ -209,22 +217,22 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal "00110", @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")["HL7"][0]')
     
     # DURING
-    @context.eval('var events1 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,5);}}]')
-    @context.eval('var events2 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,2);}, "endDate": function() {return new Date(2012,0,5);}}]')
-    @context.eval('var bound1 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,5);}}]')
-    @context.eval('var bound2 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,7);}}]')
-    @context.eval('var bound3 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,3);}, "endDate": function() {return new Date(2012,0,7);}}]')
-    @context.eval('var bound4 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,6);}, "endDate": function() {return new Date(2012,0,7);}}]')
-    @context.eval('var bound5 = {"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,6);}, "endDate": function() {return new Date(2012,0,7);}}')
+    @context.eval('var events1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
+    @context.eval('var events2 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120102"), new TS("20120105"));}}]')
+    @context.eval('var bound1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
+    @context.eval('var bound2 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120107"), new TS("20120107"));}}]')
+    @context.eval('var bound3 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120103"), new TS("20120107"));}}]')
+    @context.eval('var bound4 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120106"), new TS("20120107"));}}]')
+    @context.eval('var bound5 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120106"), new TS("20120107"));}}')
     assert_equal 1, @context.eval('DURING(events1, bound1)').count
     assert_equal 0, @context.eval('DURING(events1, bound2)').count
     assert_equal 1, @context.eval('DURING(events1, bound3)').count
     assert_equal 0, @context.eval('DURING(events1, bound4)').count
     assert_equal 0, @context.eval('DURING(events1, bound5)').count
-    assert_equal 1, @context.eval('DURING(events2, bound3)').count
+    assert_equal 0, @context.eval('DURING(events2, bound3)').count
     assert_equal 0, @context.eval('DURING(events2, bound4)').count
     assert_equal 0, @context.eval('DURING(events2, bound5)').count
-    assert_equal 1, @context.eval('DURING(events2, bound1)').count
+    assert_equal 0, @context.eval('DURING(events2, bound1)').count
     assert_equal 0, @context.eval('DURING(events2, bound2)').count
   end
   
@@ -248,7 +256,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_missing_id
     
     context = HQMF2JS::Generator::ErbContext.new({})
-    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
+    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
     
     exception = assert_raise RuntimeError do
       n = context.js_name(criteria)
