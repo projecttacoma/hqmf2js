@@ -82,6 +82,9 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 11, @context.eval("MeasurePeriod.high.asDate().getMonth()")
     assert_equal 1, @context.eval("MeasurePeriod.width.value")
     assert_equal 'a', @context.eval("MeasurePeriod.width.unit")
+    assert @context.eval("MeasurePeriod.startDate()===MeasurePeriod.low.asDate()")
+    assert @context.eval("MeasurePeriod.endDate()===MeasurePeriod.high.asDate()")
+    assert @context.eval("MeasurePeriod.isTimeRange()")
   
     # Age functions - Fixture is 37.1
     assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient)")
@@ -138,14 +141,14 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("#{pq}.match(1)")
     
     # TS - Timestamp 2010-01-01
-    assert_equal 2010, @context.eval("StartDate.asDate().getFullYear()")
-    assert_equal 0, @context.eval("StartDate.asDate().getMonth()")
-    assert_equal 1, @context.eval("StartDate.asDate().getDate()")
-    assert_equal 2011, @context.eval("StartDate.add(new PQ(1, 'a')).asDate().getFullYear()")
-    assert_equal 2, @context.eval("StartDate.add(new PQ(1, 'd')).asDate().getDate()")
-    assert_equal 1, @context.eval("StartDate.add(new PQ(1, 'h')).asDate().getHours()")
-    assert_equal 5, @context.eval("StartDate.add(new PQ(5, 'min')).asDate().getMinutes()")
-    assert_equal 11, @context.eval("StartDate.add(new PQ(-1, 'mo')).asDate().getMonth()")
+    assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getFullYear()")
+    assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getMonth()")
+    assert_equal 1, @context.eval("MeasurePeriod.low.asDate().getDate()")
+    assert_equal 2012, @context.eval("MeasurePeriod.low.add(new PQ(1, 'a')).asDate().getFullYear()")
+    assert_equal 2, @context.eval("MeasurePeriod.low.add(new PQ(1, 'd')).asDate().getDate()")
+    assert_equal 1, @context.eval("MeasurePeriod.low.add(new PQ(1, 'h')).asDate().getHours()")
+    assert_equal 5, @context.eval("MeasurePeriod.low.add(new PQ(5, 'min')).asDate().getMinutes()")
+    assert_equal 11, @context.eval("MeasurePeriod.low.add(new PQ(-1, 'mo')).asDate().getMonth()")
     
     # CD - Code
     cd = "new CD('M')"
@@ -212,12 +215,15 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     @context.eval('var bound2 = [{"isTimeRange": function() {return false;}, "timeStamp": function() {return new Date(2012,0,7);}}]')
     @context.eval('var bound3 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,3);}, "endDate": function() {return new Date(2012,0,7);}}]')
     @context.eval('var bound4 = [{"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,6);}, "endDate": function() {return new Date(2012,0,7);}}]')
+    @context.eval('var bound5 = {"isTimeRange": function() {return true;}, "startDate": function() {return new Date(2012,0,6);}, "endDate": function() {return new Date(2012,0,7);}}')
     assert_equal 1, @context.eval('DURING(events1, bound1)').count
     assert_equal 0, @context.eval('DURING(events1, bound2)').count
     assert_equal 1, @context.eval('DURING(events1, bound3)').count
     assert_equal 0, @context.eval('DURING(events1, bound4)').count
+    assert_equal 0, @context.eval('DURING(events1, bound5)').count
     assert_equal 1, @context.eval('DURING(events2, bound3)').count
     assert_equal 0, @context.eval('DURING(events2, bound4)').count
+    assert_equal 0, @context.eval('DURING(events2, bound5)').count
     assert_equal 1, @context.eval('DURING(events2, bound1)').count
     assert_equal 0, @context.eval('DURING(events2, bound2)').count
   end

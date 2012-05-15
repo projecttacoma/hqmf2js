@@ -40,23 +40,6 @@
       <code code="57025-9" codeSystem="2.16.840.1.113883.6.1"/>
       <title>Data Criteria Section</title>
       <text>This section describes the data criteria.</text>
-      <!-- Define the measure parameters as observations in event mood -->
-      <entry>
-        <localVariableName>StartDate</localVariableName>
-        <observationCriteria>
-          <id root="0" extension="StartDate"/>
-          <code code="52832-3" codeSystem="2.16.840.1.113883.6.1"/>
-          <value xsi:type="TS" value="20100101"/>
-        </observationCriteria>
-      </entry>
-      <entry>
-        <localVariableName>EndDate</localVariableName>
-        <observationCriteria>
-          <id root="0" extension="EndDate"/>
-          <code code="52833-1" codeSystem="2.16.840.1.113883.6.1"/>
-          <value xsi:type="TS" value="20101231"/>
-        </observationCriteria>
-      </entry>
       <entry>
         <localVariableName>ageBetween17and64</localVariableName>
         <observationCriteria>
@@ -255,7 +238,7 @@
           <!-- EDorInpatientEncounterValueSet -->
           <effectiveTime>
             <high nullFlavor="DER">
-              <expression>EndDate.add(new PQ(-2,"a"))</expression>
+              <expression>MeasurePeriod.high.add(new PQ(-2,"a"))</expression>
             </high>
           </effectiveTime>
           <definition>
@@ -274,7 +257,7 @@
           <!-- AmbulatoryEncounterValueSet -->
           <effectiveTime>
             <high nullFlavor="DER">
-              <expression>EndDate.add(new PQ(-2,"a"))</expression>
+              <expression>MeasurePeriod.high.add(new PQ(-2,"a"))</expression>
             </high>
           </effectiveTime>
           <repeatNumber>
@@ -363,10 +346,10 @@
           <id root="0" extension="HasGestationalDiabetes"/>
           <effectiveTime>
             <low nullFlavor="DER">
-              <expression>StartDate</expression>
+              <expression>MeasurePeriod.low</expression>
             </low>
             <high nullFlavor="DER">
-              <expression>EndDate</expression>
+              <expression>MeasurePeriod.high</expression>
             </high>
           </effectiveTime>
           <value xsi:type="CD" valueSet="2.16.840.1.113883.3.464.1.67"/>
@@ -384,10 +367,10 @@
           <id root="0" extension="HasPolycysticOvaries"/>
           <effectiveTime>
             <low nullFlavor="DER">
-              <expression>StartDate.add(new PQ(-1,"a"))</expression>
+              <expression>MeasurePeriod.low.add(new PQ(-1,"a"))</expression>
             </low>
             <high nullFlavor="DER">
-              <expression>EndDate</expression>
+              <expression>MeasurePeriod.high</expression>
             </high>
           </effectiveTime>
           <value xsi:type="CD" valueSet="2.16.840.1.113883.3.464.1.98"/>
@@ -404,10 +387,10 @@
           <id root="0" extension="HasSteroidInducedDiabetes"/>
           <effectiveTime>
             <low nullFlavor="DER">
-              <expression>StartDate</expression>
+              <expression>MeasurePeriod.low</expression>
             </low>
             <high nullFlavor="DER">
-              <expression>EndDate</expression>
+              <expression>MeasurePeriod.high</expression>
             </high>
           </effectiveTime>
           <value xsi:type="CD" valueSet="2.16.840.1.113883.3.464.1.113"/>
@@ -441,7 +424,7 @@
           <id root="0" extension="DiabetesMedAdministered"/>
           <effectiveTime xsi:type="IVL_TS">
             <low nullFlavor="DER">
-              <expression>StartDate.add(new PQ(-2,"a"))</expression>
+              <expression>MeasurePeriod.low.add(new PQ(-2,"a"))</expression>
             </low>
           </effectiveTime>
           <participant typeCode="CSM">
@@ -462,7 +445,7 @@
           <id root="0" extension="DiabetesMedIntended"/>
           <effectiveTime xsi:type="IVL_TS">
             <high nullFlavor="DER">
-              <expression>EndDate.add(new PQ(-2,"a"))</expression>
+              <expression>MeasurePeriod.high.add(new PQ(-2,"a"))</expression>
             </high>
           </effectiveTime>
           <participant typeCode="CSM">
@@ -483,7 +466,7 @@
           <id root="0" extension="DiabetesMedSupplied"/>
           <effectiveTime xsi:type="IVL_TS">
             <high nullFlavor="DER">
-              <expression>EndDate.add(new PQ(-2,"a"))</expression>
+              <expression>MeasurePeriod.high.add(new PQ(-2,"a"))</expression>
             </high>
           </effectiveTime>
           <participant typeCode="PRD">
@@ -504,7 +487,7 @@
           <id root="0" extension="DiabetesMedOrdered"/>
           <effectiveTime xsi:type="IVL_TS">
             <high nullFlavor="DER">
-              <expression>EndDate.add(new PQ(-2,"a"))</expression>
+              <expression>MeasurePeriod.high.add(new PQ(-2,"a"))</expression>
             </high>
           </effectiveTime>
           <participant typeCode="PRD">
