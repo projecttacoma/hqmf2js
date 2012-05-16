@@ -38,11 +38,11 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- if criteria.value -%>
   events = filterEventsByValue(events, <%= js_for_bounds(criteria.value) %>);
   <%- end -%>
-  <%- if criteria.subset_code -%>
-  events = <%= criteria.subset_code %>(events);
-  <%- end -%>
   <%- if criteria.temporal_reference -%>
   events = <%= criteria.temporal_reference.type %>(events, hqmfjs.<%= criteria.temporal_reference.reference.id %>(patient)<%= ", #{js_for_value(criteria.temporal_reference.offset)}" if criteria.temporal_reference.offset %>);
+  <%- end -%>
+  <%- if criteria.subset_code -%>
+  events = <%= criteria.subset_code %>(events<%= ", #{js_for_bounds(criteria.subset_value)}" if criteria.subset_value %>);
   <%- end -%>
   return events;
   <%- end -%>

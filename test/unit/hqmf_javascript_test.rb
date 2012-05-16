@@ -118,7 +118,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval("hqmfjs.HasSteroidInducedDiabetes(numeratorPatient)").count
     
     # Results
-    assert_equal 1, @context.eval("hqmfjs.HbA1C(numeratorPatient)").count
+    assert_equal 2, @context.eval("hqmfjs.HbA1C(numeratorPatient)").count
     
     # Medications
     assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministered(numeratorPatient)").count
@@ -287,7 +287,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_missing_id
     
     context = HQMF2JS::Generator::ErbContext.new({})
-    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
+    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
     
     exception = assert_raise RuntimeError do
       n = context.js_name(criteria)
