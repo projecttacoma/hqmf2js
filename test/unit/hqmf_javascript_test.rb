@@ -167,18 +167,18 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("#{cd}.match('M')")
     assert !@context.eval("#{cd}.match('F')")
     
-    # IVL - Range
-    ivl = "new IVL(new PQ(1, 'mo'), new PQ(10, 'mo'))"
+    # IVL_PQ - Range
+    ivl = "new IVL_PQ(new PQ(1, 'mo'), new PQ(10, 'mo'))"
     assert_equal 1, @context.eval("#{ivl}.low_pq.value")
     assert_equal 10, @context.eval("#{ivl}.high_pq.value")
     assert @context.eval("#{ivl}.match(5)")
     assert !@context.eval("#{ivl}.match(0)")
     assert !@context.eval("#{ivl}.match(11)")
     # IVL with null values on the ends
-    assert @context.eval("new IVL(null, new PQ(10, 'mo')).match(5)")
-    assert !@context.eval("new IVL(null, new PQ(10, 'mo')).match(11)")
-    assert @context.eval("new IVL(new PQ(1, 'mo'), null).match(2)")
-    assert !@context.eval("new IVL(new PQ(1, 'mo'), null).match(0)")
+    assert @context.eval("new IVL_PQ(null, new PQ(10, 'mo')).match(5)")
+    assert !@context.eval("new IVL_PQ(null, new PQ(10, 'mo')).match(11)")
+    assert @context.eval("new IVL_PQ(new PQ(1, 'mo'), null).match(2)")
+    assert !@context.eval("new IVL_PQ(new PQ(1, 'mo'), null).match(0)")
     
     # IVL_TS - Time Range
     ivl1 = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
@@ -196,13 +196,13 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("allTrue(true, true, true)")
     
     # Matching value
-    assert @context.eval("matchingValue(5, new IVL(PQ(3, 'mo'), new PQ(9, 'mo')))")
-    assert !@context.eval("matchingValue(12, new IVL(PQ(3, 'mo'), new PQ(9, 'mo')))")
+    assert @context.eval("matchingValue(5, new IVL_PQ(PQ(3, 'mo'), new PQ(9, 'mo')))")
+    assert !@context.eval("matchingValue(12, new IVL_PQ(PQ(3, 'mo'), new PQ(9, 'mo')))")
     
     # Filter events by value - HbA1C as an example
     events = 'numeratorPatient.results().match(getCodes("2.16.840.1.113883.3.464.1.72"))'
-    assert_equal 2, @context.eval("filterEventsByValue(#{events}, new IVL(new PQ(9, '%'), null))").count
-    assert_equal 0, @context.eval("filterEventsByValue(#{events}, new IVL(new PQ(10, '%'), null))").count
+    assert_equal 2, @context.eval("filterEventsByValue(#{events}, new IVL_PQ(new PQ(9, '%'), null))").count
+    assert_equal 0, @context.eval("filterEventsByValue(#{events}, new IVL_PQ(new PQ(10, '%'), null))").count
     
     # PREVSUM
     # TODO - Not sure what this is supposed to do. Currently does nothing.
@@ -220,10 +220,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     events0 = '[]'
     events1 = '[1]'
     events2 = '[1,2]'
-    exactly0 = 'new IVL(new PQ(0), new PQ(0))'
-    exactly1 = 'new IVL(new PQ(1), new PQ(1))'
-    moreThanZero = 'new IVL(new PQ(1))'
-    lessThanTwo = 'new IVL(null, new PQ(1))'
+    exactly0 = 'new IVL_PQ(new PQ(0), new PQ(0))'
+    exactly1 = 'new IVL_PQ(new PQ(1), new PQ(1))'
+    moreThanZero = 'new IVL_PQ(new PQ(1))'
+    lessThanTwo = 'new IVL_PQ(null, new PQ(1))'
     assert @context.eval("COUNT(#{events0}, #{exactly0})")
     assert !@context.eval("COUNT(#{events0}, #{exactly1})")
     assert !@context.eval("COUNT(#{events0}, #{moreThanZero})")

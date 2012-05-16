@@ -38,7 +38,7 @@ module HQMF2JS
 
       def js_for_bounds(bounds)
         if (bounds.respond_to?(:low) && bounds.respond_to?(:high))
-          "new IVL(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
+          "new IVL_PQ(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
         else
           "#{js_for_value(bounds)}"
         end

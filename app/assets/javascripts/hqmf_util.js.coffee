@@ -50,7 +50,7 @@ class @PQ
 	match: (val) ->
 	  @value==val
 	
-class @IVL
+class @IVL_PQ
   constructor: (@low_pq, @high_pq) ->
   match: (val) ->
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
