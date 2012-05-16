@@ -43,6 +43,10 @@ class @PQ
 	  @value<val
 	greaterThan: (val) ->
 	  @value>val
+	lessThanOrEqual: (val) ->
+	  @value<=val
+	greaterThanOrEqual: (val) ->
+	  @value>=val
 	match: (val) ->
 	  @value==val
 	
@@ -50,6 +54,8 @@ class @IVL
   constructor: (@low_pq, @high_pq) ->
   match: (val) ->
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
+  matchInclusive: (val) ->
+    (!@low_pq? || @low_pq.lessThanOrEqual(val)) && (!@high_pq? || @high_pq.greaterThanOrEqual(val))
     
 class @IVL_TS
   constructor: (@low, @high) ->
@@ -89,6 +95,10 @@ class @IVL_TS
 
 @getCodes = (oid) ->
   OidDictionary[oid]
+
+@COUNT = (events, range) ->
+  count = events.length
+  range.matchInclusive(count)
 
 @PREVSUM = (eventList) ->
   eventList

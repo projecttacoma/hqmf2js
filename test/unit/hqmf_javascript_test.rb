@@ -216,6 +216,28 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")').count
     assert_equal "00110", @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")["HL7"][0]')
     
+    # COUNT
+    events0 = '[]'
+    events1 = '[1]'
+    events2 = '[1,2]'
+    exactly0 = 'new IVL(new PQ(0), new PQ(0))'
+    exactly1 = 'new IVL(new PQ(1), new PQ(1))'
+    moreThanZero = 'new IVL(new PQ(1))'
+    lessThanTwo = 'new IVL(null, new PQ(1))'
+    assert @context.eval("COUNT(#{events0}, #{exactly0})")
+    assert !@context.eval("COUNT(#{events0}, #{exactly1})")
+    assert !@context.eval("COUNT(#{events0}, #{moreThanZero})")
+    assert @context.eval("COUNT(#{events0}, #{lessThanTwo})")
+    assert !@context.eval("COUNT(#{events1}, #{exactly0})")
+    assert @context.eval("COUNT(#{events1}, #{exactly1})")
+    assert @context.eval("COUNT(#{events1}, #{moreThanZero})")
+    assert @context.eval("COUNT(#{events1}, #{lessThanTwo})")
+    assert !@context.eval("COUNT(#{events2}, #{exactly0})")
+    assert !@context.eval("COUNT(#{events2}, #{exactly1})")
+    assert @context.eval("COUNT(#{events2}, #{moreThanZero})")
+    assert !@context.eval("COUNT(#{events2}, #{lessThanTwo})")
+
+    # Events and bounds for temporal operators
     @context.eval('var events1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
     @context.eval('var events2 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120102"), new TS("20120105"));}}]')
     @context.eval('var bound1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
