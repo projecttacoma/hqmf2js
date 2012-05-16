@@ -131,6 +131,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("hqmfjs.DENOM(numeratorPatient)")
     assert @context.eval("hqmfjs.NUMER(numeratorPatient)")
     assert !@context.eval("hqmfjs.DENEXCEP(numeratorPatient)")
+    
+    # COUNTing
+    assert @context.eval("hqmfjs.moreThanTwoHbA1CTests(numeratorPatient)")
+    assert !@context.eval("hqmfjs.moreThanFourHbA1CTests(numeratorPatient)")
   end
   
   def test_converted_utils

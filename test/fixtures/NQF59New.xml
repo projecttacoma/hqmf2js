@@ -457,6 +457,50 @@
         </observationCriteria>
       </entry>
       <entry>
+        <localVariableName>moreThanTwoHbA1CTests</localVariableName>
+        <subsetCode code="RECENT"/>
+        <observationCriteria>
+          <id root="0" extension="moreThanTwoHbA1CTests"/>
+          <code valueSet="2.16.840.1.113883.3.464.1.72"/>
+          <statusCode code="completed"/>
+          <definition>
+            <observationReference moodCode="DEF">
+              <id root="0" extension="LabResults"/>
+            </observationReference>
+          </definition>
+          <excerpt>
+            <subsetCode code="COUNT"/>
+            <procedureCriteria>
+              <repeatNumber>
+                <low value="3"/>
+              </repeatNumber>
+            </procedureCriteria>
+          </excerpt>
+        </observationCriteria>
+      </entry>
+      <entry>
+        <localVariableName>moreThanFourHbA1CTests</localVariableName>
+        <subsetCode code="RECENT"/>
+        <observationCriteria>
+          <id root="0" extension="moreThanFourHbA1CTests"/>
+          <code valueSet="2.16.840.1.113883.3.464.1.72"/>
+          <statusCode code="completed"/>
+          <definition>
+            <observationReference moodCode="DEF">
+              <id root="0" extension="LabResults"/>
+            </observationReference>
+          </definition>
+          <excerpt>
+            <subsetCode code="COUNT"/>
+            <procedureCriteria>
+              <repeatNumber>
+                <low value="5"/>
+              </repeatNumber>
+            </procedureCriteria>
+          </excerpt>
+        </observationCriteria>
+      </entry>
+      <entry>
         <localVariableName>DiabetesMedAdministered</localVariableName>
         <substanceAdministrationCriteria>
           <id root="0" extension="DiabetesMedAdministered"/>
