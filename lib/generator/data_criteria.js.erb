@@ -5,13 +5,13 @@ var MeasurePeriod = {
   "high": <%= js_for_value(measure_period.high) %>
 }
 hqmfjs.MeasurePeriod = function(patient) {
-  return new hQuery.CodedEntry(
+  return [new hQuery.CodedEntry(
     {
       "start_time": MeasurePeriod.low.asDate().getTime()/1000,
       "end_time": MeasurePeriod.high.asDate().getTime()/1000,
       "codes": {}
     }
-  );
+  )];
 }
 <%- end -%>
 <%- all_criteria.select {|c| c.type == :variable}.each do |criteria| -%>
@@ -25,6 +25,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   var value = patient.<%= criteria.property %>(<%= js_for_date_bound(criteria) if criteria.property == :age %>);
   return matchingValue(value, <%= js_for_bounds(criteria.value) %>);
   <%- else -%>
+  <%- if criteria.type != :derived -%>
   var codes = <%= js_for_code_list(criteria) %>;
   <%- if criteria.effective_time -%>
   <%- startExp = js_for_value(criteria.effective_time.low) -%>
@@ -34,6 +35,13 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   var events = patient.<%= criteria.type %>().match(codes, start, end);
   <%- else -%>
   var events = patient.<%= criteria.type %>().match(codes);
+  <%- end -%>
+  <%- else -%>
+  var events = UNION(
+    <%- criteria.children_criteria.each_with_index do |child, index| -%>
+    <%= "hqmfjs.#{child}(patient)" %><%= "," if index<criteria.children_criteria.length-1 %>
+    <%- end -%>
+  );
   <%- end -%>
   <%- if criteria.value -%>
   events = filterEventsByValue(events, <%= js_for_bounds(criteria.value) %>);

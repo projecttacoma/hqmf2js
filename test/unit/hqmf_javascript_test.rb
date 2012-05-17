@@ -83,10 +83,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getMonth()")
     assert_equal 2011, @context.eval("MeasurePeriod.high.asDate().getFullYear()")
     assert_equal 11, @context.eval("MeasurePeriod.high.asDate().getMonth()")
-    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().low.asDate().getFullYear()")
-    assert_equal 0, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().low.asDate().getMonth()")
-    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().high.asDate().getFullYear()")
-    assert_equal 11, @context.eval("hqmfjs.MeasurePeriod().asIVL_TS().high.asDate().getMonth()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getFullYear()")
+    assert_equal 0, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getMonth()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getFullYear()")
+    assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getMonth()")
   
     # Age functions - Fixture is 37.1
     assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient)")
@@ -135,6 +135,9 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     # COUNTing
     assert @context.eval("hqmfjs.moreThanTwoHbA1CTests(numeratorPatient)")
     assert !@context.eval("hqmfjs.moreThanFourHbA1CTests(numeratorPatient)")
+
+    # UNIONing
+    assert_equal 1, @context.eval("hqmfjs.anyDiabetes(numeratorPatient)").count
   end
   
   def test_converted_utils
@@ -240,6 +243,16 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("COUNT(#{events2}, #{exactly1})")
     assert @context.eval("COUNT(#{events2}, #{moreThanZero})")
     assert !@context.eval("COUNT(#{events2}, #{lessThanTwo})")
+    
+    # UNION
+    events0 = '[]'
+    events1 = '[1]'
+    events2 = '[2,3]'
+    assert @context.eval("UNION().length===0")
+    assert @context.eval("UNION(#{events0}).length===0")
+    assert @context.eval("UNION(#{events1}).length===1")
+    assert @context.eval("UNION(#{events1},#{events2}).length===3")
+    assert @context.eval("UNION(#{events0},#{events2}).length===2")
 
     # Events and bounds for temporal operators
     @context.eval('var events1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')

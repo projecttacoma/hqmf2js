@@ -96,6 +96,12 @@ class @IVL_TS
 @getCodes = (oid) ->
   OidDictionary[oid]
 
+@UNION = (eventLists...) ->
+  union = []
+  for eventList in eventLists
+    union=union.concat(eventList)
+  union
+
 @COUNT = (events, range) ->
   count = events.length
   range.matchInclusive(count)
