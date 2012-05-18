@@ -282,6 +282,56 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval('SBS(events2, bound1, offset1)').count
     assert_equal 1, @context.eval('SBS(events2, bound1)').count
     assert_equal 0, @context.eval('SBS(events2, bound1, offset2)').count
+    
+    # SAS
+    assert_equal 0, @context.eval('SAS(events1, bound1)').count
+    assert_equal 0, @context.eval('SAS(events2, bound1, offset1)').count
+    assert_equal 0, @context.eval('SAS(events2, bound1)').count
+    assert_equal 1, @context.eval('SAS(events2, bound1, offset2)').count
+    
+    # SBE
+    assert_equal 0, @context.eval('SBE(events1, bound1)').count
+    assert_equal 1, @context.eval('SBE(events1, bound2)').count
+    
+    # SAE
+    assert_equal 0, @context.eval('SAE(events1, bound1)').count
+    assert_equal 1, @context.eval('SAE(bound2, events1)').count
+    
+    # EBS
+    assert_equal 0, @context.eval('EBS(events1, bound1)').count
+    assert_equal 1, @context.eval('EBS(events1, bound2)').count
+    
+    # EAS
+    assert_equal 0, @context.eval('EAS(events1, bound1)').count
+    assert_equal 1, @context.eval('EAS(events1, bound3)').count
+    
+    # EBE
+    assert_equal 0, @context.eval('EBE(events1, bound1)').count
+    assert_equal 1, @context.eval('EBE(events1, bound2)').count
+    
+    # EAE
+    assert_equal 0, @context.eval('EAE(events1, bound1)').count
+    assert_equal 1, @context.eval('EAE(bound3, events2)').count
+    
+    # SDU
+    assert_equal 1, @context.eval('SDU(events1, bound1)').count
+    assert_equal 0, @context.eval('SDU(events1, bound2)').count
+    
+    # EDU
+    assert_equal 1, @context.eval('EDU(events1, bound1)').count
+    assert_equal 0, @context.eval('EDU(events1, bound2)').count
+    
+    # ECW
+    assert_equal 1, @context.eval('ECW(events1, bound1)').count
+    assert_equal 0, @context.eval('ECW(events1, bound2)').count
+    
+    # SCW
+    assert_equal 1, @context.eval('ECW(events1, bound1)').count
+    assert_equal 0, @context.eval('ECW(events1, bound2)').count
+    
+    # CONCURRENT
+    assert_equal 1, @context.eval('CONCURRENT(events1, bound1)').count
+    assert_equal 0, @context.eval('CONCURRENT(events1, bound2)').count
   end
   
   def test_map_reduce_generation

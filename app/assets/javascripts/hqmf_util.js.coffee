@@ -123,22 +123,58 @@ class @IVL_TS
     eventTS[methodName](boundTS)
   ))
   matchingBounds && matchingBounds.length>0
-
-@DURING = (events, bounds, offset) ->
+  
+@eventsMatchBounds = (events, bounds, methodName, offset) ->
   if (bounds.length==undefined)
     bounds = [bounds]
+  if (events.length==undefined)
+    events = [events]
   matchingEvents = (event for event in events when (
-    eventMatchesBounds(event, bounds, "DURING", offset)
+    eventMatchesBounds(event, bounds, methodName, offset)
   ))
   matchingEvents
+  
+@DURING = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "DURING", offset)
 
 @SBS = (events, bounds, offset) ->
-  if (bounds.length==undefined)
-    bounds = [bounds]
-  matchingEvents = (event for event in events when (
-    eventMatchesBounds(event, bounds, "SBS", offset)
-  ))
-  matchingEvents
+  eventsMatchBounds(events, bounds, "SBS", offset)
+
+@SAS = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "SAS", offset)
+
+@SBE = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "SBE", offset)
+
+@SAE = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "SAE", offset)
+
+@EBS = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "EBS", offset)
+
+@EAS = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "EAS", offset)
+
+@EBE = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "EBE", offset)
+
+@EAE = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "EAE", offset)
+
+@SDU = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "SDU", offset)
+
+@EDU = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "EDU", offset)
+
+@ECW = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "ECW", offset)
+
+@SCW = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "SCW", offset)
+
+@CONCURRENT = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "CONCURRENT", offset)
 
 @OidDictionary = {};
 @hqmfjs = @hqmfjs||{};
