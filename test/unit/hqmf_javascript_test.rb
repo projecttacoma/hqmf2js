@@ -354,7 +354,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_missing_id
     
     context = HQMF2JS::Generator::ErbContext.new({})
-    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
+    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
     
     exception = assert_raise RuntimeError do
       n = context.js_name(criteria)

@@ -1,5 +1,5 @@
 class @TS  
-  constructor: (hl7ts) ->
+  constructor: (hl7ts, @inclusive=false) ->
     if hl7ts
       year = parseInt(hl7ts.substring(0, 4))
       month = parseInt(hl7ts.substring(4, 6), 10)-1
@@ -23,8 +23,16 @@ class @TS
     this
   asDate: ->
     @date
-  before: (other) -> @date.getTime() < other.date.getTime()
-  after: (other) ->  @date.getTime() > other.date.getTime()
+  before: (other) -> 
+    if other.inclusive
+      beforeOrConcurrent(other)
+    else
+      @date.getTime() < other.date.getTime()
+  after: (other) ->
+    if other.inclusive
+      afterOrConcurrent(other)
+    else
+      @date.getTime() > other.date.getTime()
   beforeOrConcurrent: (other) ->  @date.getTime() <= other.date.getTime()
   afterOrConcurrent: (other) -> @date.getTime() >= other.date.getTime()
   
@@ -36,9 +44,7 @@ class @CD
 	  @code==val
 	
 class @PQ
-	constructor: (@value, @unit) ->
-	unit: -> @unit
-	value: -> @value
+	constructor: (@value, @unit, @inclusive=false) ->
 	lessThan: (val) ->
 	  @value<val
 	greaterThan: (val) ->
