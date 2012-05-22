@@ -370,6 +370,30 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval("FIFTH(#{events6})").count
     assert_equal 4, @context.eval("FIFTH(#{events6})[0].timestamp().getMonth()")
     
+    # MIN and MAX
+    v10 = '{"value": function() {return {"scalar": 10};}}'
+    v20 = '{"value": function() {return {"scalar": 20};}}'
+    events0 = "[]"
+    events2 = "[#{v10},#{v20}]"
+    exactly10 = 'new IVL_PQ(new PQ(10), new PQ(10))'
+    exactly20 = 'new IVL_PQ(new PQ(20), new PQ(20))'
+    moreThan10 = 'new IVL_PQ(new PQ(11))'
+    lessThan20 = 'new IVL_PQ(null, new PQ(19))'
+    between15and25 = 'new IVL_PQ(new PQ(15), new PQ(25))'
+    assert !@context.eval("MIN(#{events0},#{exactly10})")
+    assert !@context.eval("MAX(#{events0},#{exactly10})")
+    assert !@context.eval("MIN(#{events0},#{exactly20})")
+    assert !@context.eval("MAX(#{events0},#{exactly20})")
+    assert @context.eval("MIN(#{events2},#{exactly10})")
+    assert !@context.eval("MAX(#{events2},#{exactly10})")
+    assert !@context.eval("MIN(#{events2},#{exactly20})")
+    assert @context.eval("MAX(#{events2},#{exactly20})")
+    assert !@context.eval("MIN(#{events2},#{moreThan10})")
+    assert @context.eval("MAX(#{events2},#{moreThan10})")
+    assert @context.eval("MIN(#{events2},#{lessThan20})")
+    assert !@context.eval("MAX(#{events2},#{lessThan20})")
+    assert !@context.eval("MIN(#{events2},#{between15and25})")
+    assert @context.eval("MAX(#{events2},#{between15and25})")
   end
   
   def test_map_reduce_generation

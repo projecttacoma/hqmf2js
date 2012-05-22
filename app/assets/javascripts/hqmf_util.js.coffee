@@ -222,5 +222,39 @@ class @IVL_TS
 @LAST = (events) ->
   RECENT(events)
   
+@valueSortDescending = (a, b) ->
+  va = vb = Infinity
+  if a.value
+    va = a.value()["scalar"]
+  if b.value 
+    vb = b.value()["scalar"]
+  if va==vb
+    0
+  else
+    vb - va
+
+@valueSortAscending = (a, b) ->
+  va = vb = Infinity
+  if a.value
+    va = a.value()["scalar"]
+  if b.value 
+    vb = b.value()["scalar"]
+  if va==vb
+    0
+  else
+    va - vb
+
+@MIN = (events, range) ->
+  minValue = Infinity
+  if (events.length > 0)
+    minValue = events.sort(valueSortAscending)[0].value()["scalar"]
+  range.matchInclusive(minValue)
+
+@MAX = (events, range) ->
+  maxValue = -Infinity
+  if (events.length > 0)
+    maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
+  range.matchInclusive(maxValue)
+
 @OidDictionary = {};
 @hqmfjs = @hqmfjs||{};
