@@ -334,6 +334,35 @@
         </procedureCriteria>
       </entry>
       <entry>
+        <localVariableName>DummyProcedureAfterHasDiabetesAndBeforeEncounter</localVariableName>
+        <procedureCriteria>
+          <id root="0" extension="DummyProcedureAfterHasDiabetesAndBeforeEncounter"/>
+          <statusCode code="completed"/>
+          <code codeSystemName="SNOMED-CT" codeSystem="2.16.840.1.113883.6.1"
+           displayName="" code="127355002"/>
+          <effectiveTime>
+            <low value="20100101"/>
+            <high value="20111231"/>
+          </effectiveTime>
+          <definition>
+            <observationReference moodCode="DEF">
+              <id root="0" extension="Procedure"/>
+            </observationReference>
+          </definition>
+          <temporallyRelatedInformation typeCode="SAS">
+            <pauseQuantity value="-1" unit="a"/>
+            <observationReference moodCode="EVN">
+              <id root="0" extension="HasDiabetes"/>
+            </observationReference>
+          </temporallyRelatedInformation>
+          <temporallyRelatedInformation typeCode="SBS">
+            <encounterReference moodCode="EVN">
+              <id root="0" extension="AmbulatoryEncounter"/>
+            </encounterReference>
+          </temporallyRelatedInformation>
+        </procedureCriteria>
+      </entry>
+      <entry>
         <localVariableName>DummyProcedureAfterHasDiabetesWithCount</localVariableName>
         <procedureCriteria>
           <id root="0" extension="DummyProcedureAfterHasDiabetesWithCount"/>

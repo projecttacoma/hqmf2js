@@ -1,4 +1,4 @@
-class @TS  
+class @TS
   constructor: (hl7ts, @inclusive=false) ->
     if hl7ts
       year = parseInt(hl7ts.substring(0, 4))
@@ -115,11 +115,6 @@ class @IVL_TS
 @PREVSUM = (eventList) ->
   eventList
 
-@RECENT = (events) ->
-  dateSortDescending = (a, b) ->
-    b.json.time - a.json.time
-  [events.sort(dateSortDescending)[0]]
-  
 @eventMatchesBounds = (event, bounds, methodName, offset) ->
   eventTS = event.asIVL_TS()
   matchingBounds = (bound for bound in bounds when (
@@ -175,12 +170,57 @@ class @IVL_TS
 
 @ECW = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "ECW", offset)
-
+  
 @SCW = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SCW", offset)
 
 @CONCURRENT = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "CONCURRENT", offset)
 
+@dateSortDescending = (a, b) ->
+  b.timestamp().getTime() - a.timestamp().getTime()
+
+@dateSortAscending = (a, b) ->
+  a.timestamp().getTime() - b.timestamp().getTime()
+
+@FIRST = (events) ->
+  if (events.length > 0)
+    [events.sort(dateSortAscending)[0]]
+  else
+    []
+
+@SECOND = (events) ->
+  if (events.length > 1)
+    [events.sort(dateSortAscending)[1]]
+  else
+    []
+
+@THIRD = (events) ->
+  if (events.length > 2)
+    [events.sort(dateSortAscending)[2]]
+  else
+    []
+
+@FOURTH = (events) ->
+  if (events.length > 3)
+    [events.sort(dateSortAscending)[3]]
+  else
+    []
+
+@FIFTH = (events) ->
+  if (events.length > 4)
+    [events.sort(dateSortAscending)[4]]
+  else
+    []
+
+@RECENT = (events) ->
+  if (events.length > 0)
+    [events.sort(dateSortDescending)[0]]
+  else
+    []
+  
+@LAST = (events) ->
+  RECENT(events)
+  
 @OidDictionary = {};
 @hqmfjs = @hqmfjs||{};

@@ -211,14 +211,6 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 2, @context.eval("filterEventsByValue(#{events}, new IVL_PQ(new PQ(9, '%'), null))").count
     assert_equal 0, @context.eval("filterEventsByValue(#{events}, new IVL_PQ(new PQ(10, '%'), null))").count
     
-    # PREVSUM
-    # TODO - Not sure what this is supposed to do. Currently does nothing.
-    
-    # RECENT - HbA1C as an example
-    events = 'numeratorPatient.results().match(getCodes("2.16.840.1.113883.3.464.1.72"))'
-    assert_equal 1, @context.eval("RECENT(#{events})").count
-    assert_equal 1285992000000, @context.eval("RECENT(#{events})[0].date().getTime()")
-    
     # getCode
     assert_equal 1, @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")').count
     assert_equal "00110", @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")["HL7"][0]')
@@ -332,6 +324,52 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     # CONCURRENT
     assert_equal 1, @context.eval('CONCURRENT(events1, bound1)').count
     assert_equal 0, @context.eval('CONCURRENT(events1, bound2)').count
+    
+    # Ordinal operators
+    ts20100101 = '{"timestamp": function() {return new Date(2010,0,1);}}'
+    ts20100201 = '{"timestamp": function() {return new Date(2010,1,1);}}'
+    ts20100301 = '{"timestamp": function() {return new Date(2010,2,1);}}'
+    ts20100401 = '{"timestamp": function() {return new Date(2010,3,1);}}'
+    ts20100501 = '{"timestamp": function() {return new Date(2010,4,1);}}'
+    events0 = "[]"
+    events1 = "[#{ts20100101}]"
+    events2 = "[#{ts20100101},#{ts20100201}]"
+    events3 = "[#{ts20100101},#{ts20100201},#{ts20100301}]"
+    events4 = "[#{ts20100101},#{ts20100201},#{ts20100301},#{ts20100401}]"
+    events5 = "[#{ts20100101},#{ts20100201},#{ts20100301},#{ts20100401},#{ts20100501}]"
+    events6 = "[#{ts20100501},#{ts20100401},#{ts20100301},#{ts20100201},#{ts20100101}]"
+    
+    assert_equal 0, @context.eval("RECENT(#{events0})").count
+    assert_equal 0, @context.eval("LAST(#{events0})").count
+    assert_equal 0, @context.eval("FIRST(#{events0})").count
+    assert_equal 0, @context.eval("SECOND(#{events1})").count
+    assert_equal 0, @context.eval("THIRD(#{events2})").count
+    assert_equal 0, @context.eval("FOURTH(#{events3})").count
+    assert_equal 0, @context.eval("FIFTH(#{events4})").count
+
+    assert_equal 1, @context.eval("RECENT(#{events1})").count
+    assert_equal 1, @context.eval("LAST(#{events1})").count
+    assert_equal 1, @context.eval("FIRST(#{events1})").count
+    assert_equal 1, @context.eval("SECOND(#{events2})").count
+    assert_equal 1, @context.eval("THIRD(#{events3})").count
+    assert_equal 1, @context.eval("FOURTH(#{events4})").count
+    assert_equal 1, @context.eval("FIFTH(#{events5})").count
+
+    assert_equal 1, @context.eval("LAST(#{events6})").count
+    assert_equal 4, @context.eval("LAST(#{events6})[0].timestamp().getMonth()")
+    assert_equal 1, @context.eval("RECENT(#{events6})").count
+    assert_equal 4, @context.eval("RECENT(#{events6})[0].timestamp().getMonth()")
+    assert_equal 1, @context.eval("FIRST(#{events6})").count
+    assert_equal 0, @context.eval("FIRST(#{events6})[0].timestamp().getMonth()")
+    assert_equal 1, @context.eval("SECOND(#{events6})").count
+    assert_equal 1, @context.eval("SECOND(#{events6})[0].timestamp().getMonth()")
+    assert_equal 1, @context.eval("THIRD(#{events6})").count
+    assert_equal 2, @context.eval("THIRD(#{events6})[0].timestamp().getMonth()")
+    assert_equal 1, @context.eval("FOURTH(#{events6})").count
+    assert_equal 3, @context.eval("FOURTH(#{events6})[0].timestamp().getMonth()")
+    assert_equal 1, @context.eval("FIFTH(#{events6})").count
+    assert_equal 4, @context.eval("FIFTH(#{events6})[0].timestamp().getMonth()")
+    
   end
   
   def test_map_reduce_generation
