@@ -16,7 +16,6 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     Tilt::CoffeeScriptTemplate.default_bare = true 
     ctx.append_path "app/assets/javascripts"
     hqmf_utils = HQMF2JS::Generator::JS.library_functions
-#    hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
     
     # Parse the code systems that are mapped to the OIDs we support
     @codes_hash = HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path)
@@ -65,7 +64,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     value = @converter.to_js(@codes_hash)
     local_context = V8::Context.new
     patient_api = File.open('test/fixtures/patient_api.js').read
-    hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
+    hqmf_utils = HQMF2JS::Generator::JS.library_functions
     local_context.eval("#{patient_api}
                         #{hqmf_utils}
                         #{value}")
