@@ -35,6 +35,7 @@ class TS
       @date.getTime() > other.date.getTime()
   beforeOrConcurrent: (other) ->  @date.getTime() <= other.date.getTime()
   afterOrConcurrent: (other) -> @date.getTime() >= other.date.getTime()
+@TS = TS
   
 class CD
 	constructor: (@code) ->
@@ -42,6 +43,7 @@ class CD
 	  @code
 	match: (val) ->
 	  @code==val
+@CD = CD
 	
 class PQ
 	constructor: (@value, @unit, @inclusive=false) ->
@@ -55,6 +57,7 @@ class PQ
 	  @value>=val
 	match: (val) ->
 	  @value==val
+@PQ = PQ
 	
 class IVL_PQ
   constructor: (@low_pq, @high_pq) ->
@@ -62,6 +65,7 @@ class IVL_PQ
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
   matchInclusive: (val) ->
     (!@low_pq? || @low_pq.lessThanOrEqual(val)) && (!@high_pq? || @high_pq.greaterThanOrEqual(val))
+@IVL_PQ = IVL_PQ
     
 class IVL_TS
   constructor: (@low, @high) ->
@@ -83,37 +87,46 @@ class IVL_TS
   ECW: (other) -> @high.asDate().getTime() == other.high.asDate().getTime()
   SCW: (other) -> @low.asDate().getTime() == other.low.asDate().getTime()
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
+@IVL_TS = IVL_TS
 	
 atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
   trueValues.length>0
+@atLeastOneTrue = atLeastOneTrue
   
 allTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
   trueValues.length>0 && trueValues.length==values.length
+@allTrue = allTrue
   
 matchingValue = (value, compareTo) ->
   compareTo.match(value)
+@matchingValue = matchingValue
 
 filterEventsByValue = (events, value) ->
   matchingValues = (event for event in events when (event.value && value.match(event.value().scalar)))
   matchingValues
+@filterEventsByValue = filterEventsByValue
 
 getCodes = (oid) ->
   OidDictionary[oid]
+@getCodes = getCodes
 
 UNION = (eventLists...) ->
   union = []
   for eventList in eventLists
     union=union.concat(eventList)
   union
+@UNION = UNION
 
 COUNT = (events, range) ->
   count = events.length
   range.matchInclusive(count)
+@COUNT = COUNT
 
 PREVSUM = (eventList) ->
   eventList
+@PREVSUM = PREVSUM
 
 eventMatchesBounds = (event, bounds, methodName, offset) ->
   eventTS = event.asIVL_TS()
@@ -124,6 +137,7 @@ eventMatchesBounds = (event, bounds, methodName, offset) ->
     eventTS[methodName](boundTS)
   ))
   matchingBounds && matchingBounds.length>0
+@eventMatchesBounds = eventMatchesBounds
   
 eventsMatchBounds = (events, bounds, methodName, offset) ->
   if (bounds.length==undefined)
@@ -134,93 +148,117 @@ eventsMatchBounds = (events, bounds, methodName, offset) ->
     eventMatchesBounds(event, bounds, methodName, offset)
   ))
   matchingEvents
+@eventsMatchBounds = eventsMatchBounds
   
 DURING = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "DURING", offset)
+@DURING = DURING
 
 SBS = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SBS", offset)
+@SBS = SBS
 
 SAS = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SAS", offset)
+@SAS = SAS
 
 SBE = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SBE", offset)
+@SBE = SBE
 
 SAE = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SAE", offset)
+@SAE = SAE
 
 EBS = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "EBS", offset)
+@EBS = EBS
 
 EAS = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "EAS", offset)
+@EAS = EAS
 
 EBE = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "EBE", offset)
+@EBE = EBE
 
 EAE = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "EAE", offset)
+@EAE = EAE
 
 SDU = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SDU", offset)
+@SDU = SDU
 
 EDU = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "EDU", offset)
+@EDU = EDU
 
 ECW = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "ECW", offset)
+@ECW = ECW
   
 SCW = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SCW", offset)
+@SCW = SCW
 
 CONCURRENT = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "CONCURRENT", offset)
+@CONCURRENT = CONCURRENT
 
 dateSortDescending = (a, b) ->
   b.timeStamp().getTime() - a.timeStamp().getTime()
+@dateSortDescending= dateSortDescending
 
 dateSortAscending = (a, b) ->
   a.timeStamp().getTime() - b.timeStamp().getTime()
+@dateSortAscending = dateSortAscending
 
 FIRST = (events) ->
   if (events.length > 0)
     [events.sort(dateSortAscending)[0]]
   else
     []
+@FIRST = FIRST
 
 SECOND = (events) ->
   if (events.length > 1)
     [events.sort(dateSortAscending)[1]]
   else
     []
+@SECOND = SECOND
 
 THIRD = (events) ->
   if (events.length > 2)
     [events.sort(dateSortAscending)[2]]
   else
     []
+@THIRD = THIRD
 
 FOURTH = (events) ->
   if (events.length > 3)
     [events.sort(dateSortAscending)[3]]
   else
     []
+@FOURTH = FOURTH
 
 FIFTH = (events) ->
   if (events.length > 4)
     [events.sort(dateSortAscending)[4]]
   else
     []
+@FIFTH = FIFTH
 
 RECENT = (events) ->
   if (events.length > 0)
     [events.sort(dateSortDescending)[0]]
   else
     []
+@RECENT = RECENT
   
 LAST = (events) ->
   RECENT(events)
+@LAST = LAST
   
 valueSortDescending = (a, b) ->
   va = vb = Infinity
@@ -232,6 +270,7 @@ valueSortDescending = (a, b) ->
     0
   else
     vb - va
+@valueSortDescending = valueSortDescending
 
 valueSortAscending = (a, b) ->
   va = vb = Infinity
@@ -243,18 +282,23 @@ valueSortAscending = (a, b) ->
     0
   else
     va - vb
+@valueSortAscending = valueSortAscending
 
 MIN = (events, range) ->
   minValue = Infinity
   if (events.length > 0)
     minValue = events.sort(valueSortAscending)[0].value()["scalar"]
   range.matchInclusive(minValue)
+@MIN = MIN
 
 MAX = (events, range) ->
   maxValue = -Infinity
   if (events.length > 0)
     maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
   range.matchInclusive(maxValue)
+@MAX = MAX
 
 @OidDictionary = {};
-hqmfjs = @hqmfjs||{};
+
+hqmfjs = hqmfjs||{}
+@hqmfjs = @hqmfjs||{};
