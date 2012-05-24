@@ -1,27 +1,8 @@
 module HQMF2JS
-  class HqmfUtility
-    @@ctx = nil
-    
-    def self.ctx
-      unless @@ctx
-        @@ctx = Sprockets::Environment.new(File.expand_path("../../../", __FILE__))
-        @@ctx.append_path "app/assets/javascripts"
-      end
-      @@ctx
-    end
-  
-    def self.hqmf_utility_javascript
-      self.ctx.find_asset('hqmf_util')
-    end
-  end
-
   class Converter
     def self.generate_map_reduce(hqmf_contents)
       # First compile the CoffeeScript that enables our converted HQMF JavaScript
-      ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
-      Tilt::CoffeeScriptTemplate.default_bare = true 
-      ctx.append_path "app/assets/javascripts"
-      hqmf_utils = HQMF2JS::HqmfUtility.hqmf_utility_javascript.to_s
+      hqmf_utils = HQMF2JS::Generator::JS.library_functions
 
       # Parse the code systems that are mapped to the OIDs we support
       codes_file_path = File.expand_path("../../../test/fixtures/codes/codes.xml", __FILE__)
@@ -33,13 +14,13 @@ module HQMF2JS
       
       # Pretty stock map/reduce functions that call out to our converted HQMF code stored in the functions variable
       map = "function map(patient) {
-  if (typeof(IPP)==='function' && IPP(patient)) {
+  if (typeof(hqmfjs.IPP)==='function' && hqmfjs.IPP(patient)) {
     emit('ipp', 1);
-    if (typeof(DENOM)==='function' && DENOM(patient)) {
-      if (typeof(NUMER)==='function' && NUMER(patient)) {
+    if (typeof(hqmfjs.DENOM)==='function' && hqmfjs.DENOM(patient)) {
+      if (typeof(hqmfjs.NUMER)==='function' && hqmfjs.NUMER(patient)) {
         emit('denom', 1);
         emit('numer', 1);
-      } else if (typeof(DENEXCEP)==='function' && DENEXCEP(patient)) {
+      } else if (typeof(hqmfjs.DENEXCEP)==='function' && hqmfjs.DENEXCEP(patient)) {
         emit('denexcep', 1);
       } else {
         emit('denom', 1);
