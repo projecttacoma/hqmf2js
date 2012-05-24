@@ -325,11 +325,11 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval('CONCURRENT(events1, bound2)').count
     
     # Ordinal operators
-    ts20100101 = '{"timestamp": function() {return new Date(2010,0,1);}}'
-    ts20100201 = '{"timestamp": function() {return new Date(2010,1,1);}}'
-    ts20100301 = '{"timestamp": function() {return new Date(2010,2,1);}}'
-    ts20100401 = '{"timestamp": function() {return new Date(2010,3,1);}}'
-    ts20100501 = '{"timestamp": function() {return new Date(2010,4,1);}}'
+    ts20100101 = '{"timeStamp": function() {return new Date(2010,0,1);}}'
+    ts20100201 = '{"timeStamp": function() {return new Date(2010,1,1);}}'
+    ts20100301 = '{"timeStamp": function() {return new Date(2010,2,1);}}'
+    ts20100401 = '{"timeStamp": function() {return new Date(2010,3,1);}}'
+    ts20100501 = '{"timeStamp": function() {return new Date(2010,4,1);}}'
     events0 = "[]"
     events1 = "[#{ts20100101}]"
     events2 = "[#{ts20100101},#{ts20100201}]"
@@ -355,19 +355,19 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval("FIFTH(#{events5})").count
 
     assert_equal 1, @context.eval("LAST(#{events6})").count
-    assert_equal 4, @context.eval("LAST(#{events6})[0].timestamp().getMonth()")
+    assert_equal 4, @context.eval("LAST(#{events6})[0].timeStamp().getMonth()")
     assert_equal 1, @context.eval("RECENT(#{events6})").count
-    assert_equal 4, @context.eval("RECENT(#{events6})[0].timestamp().getMonth()")
+    assert_equal 4, @context.eval("RECENT(#{events6})[0].timeStamp().getMonth()")
     assert_equal 1, @context.eval("FIRST(#{events6})").count
-    assert_equal 0, @context.eval("FIRST(#{events6})[0].timestamp().getMonth()")
+    assert_equal 0, @context.eval("FIRST(#{events6})[0].timeStamp().getMonth()")
     assert_equal 1, @context.eval("SECOND(#{events6})").count
-    assert_equal 1, @context.eval("SECOND(#{events6})[0].timestamp().getMonth()")
+    assert_equal 1, @context.eval("SECOND(#{events6})[0].timeStamp().getMonth()")
     assert_equal 1, @context.eval("THIRD(#{events6})").count
-    assert_equal 2, @context.eval("THIRD(#{events6})[0].timestamp().getMonth()")
+    assert_equal 2, @context.eval("THIRD(#{events6})[0].timeStamp().getMonth()")
     assert_equal 1, @context.eval("FOURTH(#{events6})").count
-    assert_equal 3, @context.eval("FOURTH(#{events6})[0].timestamp().getMonth()")
+    assert_equal 3, @context.eval("FOURTH(#{events6})[0].timeStamp().getMonth()")
     assert_equal 1, @context.eval("FIFTH(#{events6})").count
-    assert_equal 4, @context.eval("FIFTH(#{events6})[0].timestamp().getMonth()")
+    assert_equal 4, @context.eval("FIFTH(#{events6})[0].timeStamp().getMonth()")
     
     # MIN and MAX
     v10 = '{"value": function() {return {"scalar": 10};}}'

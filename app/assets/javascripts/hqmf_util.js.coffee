@@ -178,10 +178,10 @@ CONCURRENT = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "CONCURRENT", offset)
 
 dateSortDescending = (a, b) ->
-  b.timestamp().getTime() - a.timestamp().getTime()
+  b.timeStamp().getTime() - a.timeStamp().getTime()
 
 dateSortAscending = (a, b) ->
-  a.timestamp().getTime() - b.timestamp().getTime()
+  a.timeStamp().getTime() - b.timeStamp().getTime()
 
 FIRST = (events) ->
   if (events.length > 0)
