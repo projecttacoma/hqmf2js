@@ -52,6 +52,19 @@ module HQMF2JS
           elsif criteria.effective_time.low
             bound = criteria.effective_time.low
           end
+        elsif criteria.temporal_references
+          # this is a check for age against the measurement period
+          measure_period_reference = criteria.temporal_references.select {|reference| reference.reference and reference.reference.id == HQMF::Document::MEASURE_PERIOD_ID}.first
+          if (measure_period_reference)
+            case measure_period_reference.type
+            when 'SBS','SAS','EBS','EAS'
+              return 'MeasurePeriod.low.asDate()'
+            when 'SBE','SAE','EBE','EAE'
+              return 'MeasurePeriod.high.asDate()'
+            else
+              raise "do not know how to get a date for this type"
+            end
+          end
         end
         
         if bound
