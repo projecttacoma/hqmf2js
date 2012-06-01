@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <QualityMeasureDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="urn:hl7-org:v3 ../../../query-health/Standards/hqmf/schemas/EMeasureNew.xsd"
+ xsi:schemaLocation="urn:hl7-org:v3 ../../../../query-health/Standards/hqmf/schemas/EMeasureNew.xsd"
  xmlns="urn:hl7-org:v3"
  classCode="DOC">
   <typeId root="2.16.840.1.113883.1.3" extension="POQM_HD00001"/>
   <id root="0"/>
-  <code code="57024-2" codeSystem="2.16.840.1.113883.6.1"/>
+  <code code="57024-2" codeSystem="2.16.840.1.113883.6.1" displayName="HQMF Document"/>
   <title>Sample Quality Measure Document</title>
   <text>This is the measure description.</text>
   <statusCode code="completed"/>
@@ -20,11 +20,11 @@
   <controlVariable>
     <localVariableName>MeasurePeriod</localVariableName>
     <measurePeriod>
-      <id extension="StartDate" root="0"/>
+      <id extension="MeasurePeriod" root="0"/>
       <value>
         <low value="20110101"/>
         <high value="20111231"/>
-        <width value="1" unit="a"/>
+        <!--<width value="1" unit="a"/>-->
       </value>
     </measurePeriod>
   </controlVariable>
@@ -40,6 +40,56 @@
       <code code="57025-9" codeSystem="2.16.840.1.113883.6.1"/>
       <title>Data Criteria Section</title>
       <text>This section describes the data criteria.</text>
+      <definition> 
+        <observationDefinition> 
+          <id root="0" extension="Derived"/> 
+        </observationDefinition> 
+      </definition> 
+      <definition> 
+        <observationDefinition> 
+          <id root="0" extension="Demographics"/> 
+        </observationDefinition> 
+      </definition> 
+      <definition> 
+        <encounterDefinition>
+          <id root="0" extension="Encounters"/>
+        </encounterDefinition> 
+      </definition> 
+      <definition> 
+        <observationDefinition> 
+          <id root="0" extension="Problems"/> 
+        </observationDefinition> 
+      </definition> 
+      <definition> 
+        <observationDefinition> 
+          <id root="0" extension="Allergies"/> 
+        </observationDefinition> 
+      </definition> 
+      <definition> 
+        <procedureDefinition>  
+          <id root="0" extension="Procedures"/> 
+        </procedureDefinition> 
+      </definition> 
+      <definition> 
+        <observationDefinition> 
+          <id root="0" extension="Results"/> 
+        </observationDefinition> 
+      </definition> 
+      <definition> 
+        <observationDefinition> 
+          <id root="0" extension="Vitals"/>
+        </observationDefinition> 
+      </definition> 
+      <definition> 
+        <substanceAdministrationDefinition> 
+          <id root="0" extension="Medications"/>
+        </substanceAdministrationDefinition> 
+      </definition> 
+      <definition> 
+        <supplyDefinition> 
+          <id root="0" extension="RX"/> 
+        </supplyDefinition> 
+      </definition>
       <entry>
         <localVariableName>ageBetween17and64</localVariableName>
         <observationCriteria>
@@ -162,7 +212,7 @@
       <entry>
         <localVariableName>dummyAge1</localVariableName>
         <observationCriteria>
-          <id root="0" extension="ageBetween60and64"/>
+          <id root="0" extension="dummyAge1"/>
           <code code="424144002" codeSystem="2.16.840.1.113883.6.96"
             displayName="Age"/>
           <effectiveTime>
@@ -183,7 +233,7 @@
       <entry>
         <localVariableName>dummyAge2</localVariableName>
         <observationCriteria>
-          <id root="0" extension="ageBetween60and64"/>
+          <id root="0" extension="dummyAge2"/>
           <code code="424144002" codeSystem="2.16.840.1.113883.6.96"
             displayName="Age"/>
           <effectiveTime>
@@ -242,9 +292,9 @@
             </high>
           </effectiveTime>
           <definition>
-            <observationReference moodCode="DEF">
-              <id root="0" extension="Encounter"/>
-            </observationReference>
+            <encounterReference moodCode="DEF">
+              <id root="0" extension="Encounters"/>
+            </encounterReference>
           </definition>
         </encounterCriteria>
       </entry>
@@ -264,9 +314,9 @@
             <low value="2" inclusive="true"/>
           </repeatNumber>
           <definition>
-            <observationReference moodCode="DEF">
-              <id root="0" extension="Encounter"/>
-            </observationReference>
+            <encounterReference moodCode="DEF">
+              <id root="0" extension="Encounters"/>
+            </encounterReference>
           </definition>
         </encounterCriteria>
       </entry>
@@ -278,7 +328,7 @@
           <value xsi:type="CD" code="ar" displayName="Arabic" codeSystem="1.0.639.1" codeSystemName="Language"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id extension="Demographics" root="2.16.840.1.113883.3.1619.5148.1"/>
+              <id extension="Demographics" root="0"/>
             </observationReference>
           </definition>
         </observationCriteria>
@@ -291,7 +341,7 @@
           <value xsi:type="CD" code="D" displayName="Divorced" codeSystem="2.16.840.1.113883.5.2" codeSystemName="MaritalStatus"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id extension="Demographics" root="2.16.840.1.113883.3.1619.5148.1"/>
+              <id extension="Demographics" root="0"/>
             </observationReference>
           </definition>
         </observationCriteria>
@@ -304,26 +354,26 @@
           <value xsi:type="CD" code="2178-2" displayName="Latin American" codeSystem="2.16.840.1.113883.6.238" codeSystemName="Race"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id extension="Demographics" root="2.16.840.1.113883.3.1619.5148.1"/>
+              <id extension="Demographics" root="0"/>
             </observationReference>
           </definition>
         </observationCriteria>
       </entry>
       <entry>
         <localVariableName>DummyProcedureAfterHasDiabetes</localVariableName>
-        <procedureCriteria>
+        <procedureCriteria classCode="PROC">
           <id root="0" extension="DummyProcedureAfterHasDiabetes"/>
-          <statusCode code="completed"/>
           <code codeSystemName="SNOMED-CT" codeSystem="2.16.840.1.113883.6.1"
-           displayName="" code="127355002"/>
+           displayName="some kind of procedure" code="127355002"/>
+          <statusCode code="completed"/>
           <effectiveTime>
             <low value="20100101"/>
             <high value="20111231"/>
           </effectiveTime>
           <definition>
-            <observationReference moodCode="DEF">
-              <id root="0" extension="Procedure"/>
-            </observationReference>
+            <procedureReference moodCode="DEF">
+              <id root="0" extension="Procedures"/>
+            </procedureReference>
           </definition>
           <temporallyRelatedInformation typeCode="SAS">
             <pauseQuantity value="-1" unit="a"/>
@@ -334,20 +384,43 @@
         </procedureCriteria>
       </entry>
       <entry>
-        <localVariableName>DummyProcedureAfterHasDiabetesAndBeforeEncounter</localVariableName>
-        <procedureCriteria>
-          <id root="0" extension="DummyProcedureAfterHasDiabetesAndBeforeEncounter"/>
-          <statusCode code="completed"/>
+        <localVariableName>DummyProcedureBeforeMeasurePeriod</localVariableName>
+        <procedureCriteria classCode="PROC">
+          <id root="0" extension="DummyProcedureBeforeMeasurePeriod"/>
           <code codeSystemName="SNOMED-CT" codeSystem="2.16.840.1.113883.6.1"
-           displayName="" code="127355002"/>
+           displayName="some kind of procedure" code="127355002"/>
+          <statusCode code="completed"/>
           <effectiveTime>
             <low value="20100101"/>
             <high value="20111231"/>
           </effectiveTime>
           <definition>
-            <observationReference moodCode="DEF">
-              <id root="0" extension="Procedure"/>
+            <procedureReference moodCode="DEF">
+              <id root="0" extension="Procedures"/>
+            </procedureReference>
+          </definition>
+          <temporallyRelatedInformation typeCode="SBS">
+            <observationReference moodCode="EVN">
+              <id root="0" extension="MeasurePeriod"/>
             </observationReference>
+          </temporallyRelatedInformation>
+        </procedureCriteria>
+      </entry>
+      <entry>
+        <localVariableName>DummyProcedureAfterHasDiabetesAndBeforeEncounter</localVariableName>
+        <procedureCriteria classCode="PROC">
+          <id root="0" extension="DummyProcedureAfterHasDiabetesAndBeforeEncounter"/>
+          <code codeSystemName="SNOMED-CT" codeSystem="2.16.840.1.113883.6.1"
+           displayName="some kind of procedure" code="127355002"/>
+          <statusCode code="completed"/>
+          <effectiveTime>
+            <low value="20100101"/>
+            <high value="20111231"/>
+          </effectiveTime>
+          <definition>
+            <procedureReference moodCode="DEF">
+              <id root="0" extension="Procedures"/>
+            </procedureReference>
           </definition>
           <temporallyRelatedInformation typeCode="SAS">
             <pauseQuantity value="-1" unit="a"/>
@@ -364,34 +437,34 @@
       </entry>
       <entry>
         <localVariableName>DummyProcedureAfterHasDiabetesWithCount</localVariableName>
-        <procedureCriteria>
+        <procedureCriteria classCode="PROC">
           <id root="0" extension="DummyProcedureAfterHasDiabetesWithCount"/>
-          <statusCode code="completed"/>
           <code codeSystemName="SNOMED-CT" codeSystem="2.16.840.1.113883.6.1"
-           displayName="" code="127355002"/>
+           displayName="some kind of procedure" code="127355002"/>
+          <statusCode code="completed"/>
           <effectiveTime>
             <low value="20100101"/>
             <high value="20111231"/>
           </effectiveTime>
           <definition>
-            <observationReference moodCode="DEF">
-              <id root="0" extension="Procedure"/>
-            </observationReference>
+            <procedureReference moodCode="DEF">
+              <id root="0" extension="Procedures"/>
+            </procedureReference>
           </definition>
+          <excerpt>
+            <subsetCode code="COUNT"/>
+            <procedureCriteria classCode="PROC">
+              <repeatNumber>
+                <low value="2" inclusive="true"/>
+              </repeatNumber>
+            </procedureCriteria>
+          </excerpt>
           <temporallyRelatedInformation typeCode="SAS">
             <pauseQuantity value="-1" unit="a"/>
             <observationReference moodCode="EVN">
               <id root="0" extension="HasDiabetes"/>
             </observationReference>
           </temporallyRelatedInformation>
-          <excerpt>
-            <subsetCode code="COUNT"/>
-            <procedureCriteria>
-              <repeatNumber>
-                <low value="2" inclusive="true"/>
-              </repeatNumber>
-            </procedureCriteria>
-          </excerpt>
         </procedureCriteria>
       </entry>
       <entry>
@@ -404,11 +477,13 @@
             </observationReference>
           </definition>
           <excerpt>
-            <observationCriteria>
+            <observationReference>
               <id root="0" extension="HasDiabetes"/>
+              <!--
               <id root="0" extension="HasGestationalDiabetes"/>
               <id root="0" extension="HasSteroidInducedDiabetes"/>
-            </observationCriteria>
+              -->
+            </observationReference>
           </excerpt>
         </observationCriteria>
       </entry>
@@ -420,7 +495,7 @@
           <value xsi:type="CD" valueSet="2.16.840.1.113883.3.464.1.37"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id root="0" extension="Problem"/>
+              <id root="0" extension="Problems"/>
             </observationReference>
           </definition>
         </observationCriteria>
@@ -441,7 +516,7 @@
           <!-- DiabetesValueSet" -->
           <definition>
             <observationReference moodCode="DEF">
-              <id root="0" extension="Problem"/>
+              <id root="0" extension="Problems"/>
             </observationReference>
           </definition>
         </observationCriteria>
@@ -461,7 +536,7 @@
           <value xsi:type="CD" valueSet="2.16.840.1.113883.3.464.1.98"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id root="0" extension="Problem"/>
+              <id root="0" extension="Problems"/>
             </observationReference>
           </definition>
         </observationCriteria>
@@ -481,7 +556,7 @@
           <value xsi:type="CD" valueSet="2.16.840.1.113883.3.464.1.113"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id root="0" extension="Problem"/>
+              <id root="0" extension="Problems"/>
             </observationReference>
           </definition>
         </observationCriteria>
@@ -498,7 +573,7 @@
           </value>
           <definition>
             <observationReference moodCode="DEF">
-              <id root="0" extension="LabResults"/>
+              <id root="0" extension="Results"/>
             </observationReference>
           </definition>
         </observationCriteria>
@@ -512,12 +587,12 @@
           <statusCode code="completed"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id root="0" extension="LabResults"/>
+              <id root="0" extension="Results"/>
             </observationReference>
           </definition>
           <excerpt>
             <subsetCode code="COUNT"/>
-            <procedureCriteria>
+            <procedureCriteria classCode="PROC">
               <repeatNumber>
                 <low value="3"/>
               </repeatNumber>
@@ -534,12 +609,12 @@
           <statusCode code="completed"/>
           <definition>
             <observationReference moodCode="DEF">
-              <id root="0" extension="LabResults"/>
+              <id root="0" extension="Results"/>
             </observationReference>
           </definition>
           <excerpt>
             <subsetCode code="COUNT"/>
-            <procedureCriteria>
+            <procedureCriteria classCode="PROC">
               <repeatNumber>
                 <low value="5"/>
               </repeatNumber>
@@ -563,7 +638,7 @@
           </participant>
           <definition>
             <substanceAdministrationReference moodCode="DEF">
-              <id root="0" extension="Medication"/>
+              <id root="0" extension="Medications"/>
             </substanceAdministrationReference>
           </definition>
         </substanceAdministrationCriteria>
@@ -584,7 +659,7 @@
           </participant>
           <definition>
             <substanceAdministrationReference moodCode="DEF">
-              <id root="0" extension="Medication"/>
+              <id root="0" extension="Medications"/>
             </substanceAdministrationReference>
           </definition>
         </substanceAdministrationCriteria>
@@ -752,34 +827,34 @@
           <id root="c75181d0-73eb-11de-8a39-0800200c9a66"
             extension="CLASSIFIER1"/>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="ageBetween17and21"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="ageBetween22and29"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="ageBetween30and39"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="ageBetween40and49"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="ageBetween50and59"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="ageBetween60and64"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
         </stratifierCriteria>
       </entry>
@@ -789,14 +864,14 @@
           <id root="c75181d0-73eb-11de-8a39-0800200c9a66"
             extension="CLASSIFIER2"/>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="genderMale"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
           <precondition>
-            <substanceAdministrationReference>
+            <observationReference>
               <id root="0" extension="genderFemale"/>
-            </substanceAdministrationReference>
+            </observationReference>
           </precondition>
         </stratifierCriteria>
       </entry>
