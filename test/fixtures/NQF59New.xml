@@ -479,10 +479,12 @@
           <excerpt>
             <observationReference>
               <id root="0" extension="HasDiabetes"/>
-              <!--
+            </observationReference>
+            <observationReference>
               <id root="0" extension="HasGestationalDiabetes"/>
+            </observationReference>
+            <observationReference>
               <id root="0" extension="HasSteroidInducedDiabetes"/>
-              -->
             </observationReference>
           </excerpt>
         </observationCriteria>
