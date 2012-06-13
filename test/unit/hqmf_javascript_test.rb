@@ -136,7 +136,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("hqmfjs.moreThanFourHbA1CTests(numeratorPatient)")
 
     # UNIONing
-    assert_equal 1, @context.eval("hqmfjs.anyDiabetes(numeratorPatient)").count
+    assert_equal 1, @context.eval("hqmfjs.anyDiabetes(numeratorPatient).length")
+
+    # XPRODUCTing
+    assert_equal 1, @context.eval("hqmfjs.allDiabetes(numeratorPatient).length")
   end
   
   def test_converted_utils
@@ -245,6 +248,40 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("UNION(#{events1},#{events2}).length===3")
     assert @context.eval("UNION(#{events0},#{events2}).length===2")
 
+    # XPRODUCT
+    events0 = '[]'
+    events1 = '[1]'
+    events2 = '[2,3]'
+    assert @context.eval("XPRODUCT().length===0")
+    assert @context.eval("XPRODUCT(#{events0}).length===0")
+    assert !@context.eval("XPRODUCT(#{events0}).iterator().hasNext()")
+    assert @context.eval("XPRODUCT(#{events1}).length===1")
+    assert @context.eval("XPRODUCT(#{events1}).iterator().hasNext()")
+    assert @context.eval("XPRODUCT(#{events1}).iterator().next().length===1")
+    assert @context.eval("XPRODUCT(#{events1}).iterator().next()[0]===1")
+    assert @context.eval("XPRODUCT(#{events1},#{events2}).length===3")
+    assert @context.eval("XPRODUCT(#{events0},#{events2}).length===2")
+    assert @context.eval("XPRODUCT(#{events0},#{events2}).iterator().hasNext()")
+    assert @context.eval("XPRODUCT(#{events0},#{events2}).iterator().next().length===1")
+    assert @context.eval("XPRODUCT(#{events0},#{events2}).iterator().next()[0]===2")
+    @context.eval("var iterator = XPRODUCT(#{events1},#{events2}).iterator()")
+    assert @context.eval("iterator.hasNext()")
+    @context.eval('var combo1 = iterator.next()')
+    assert @context.eval('combo1.length===2')
+    assert @context.eval("combo1[0]===1")
+    assert @context.eval("combo1[1]===2")
+    assert @context.eval("iterator.hasNext()")
+    @context.eval('var combo2 = iterator.next()')
+    assert @context.eval('combo2.length===2')
+    assert @context.eval("combo2[0]===1")
+    assert @context.eval("combo2[1]===3")
+    assert !@context.eval("iterator.hasNext()")
+    if RUBY_PLATFORM!='java'
+      assert_raise V8::JSError, "No more entries" do
+        @context.eval('var combo3 = iterator.next()')
+      end
+    end
+
     # Events and bounds for temporal operators
     @context.eval('var events1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
     @context.eval('var events2 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120102"), new TS("20120105"));}}]')
@@ -267,6 +304,18 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval('DURING(events2, bound5)').count
     assert_equal 1, @context.eval('DURING(events2, bound1)').count
     assert_equal 0, @context.eval('DURING(events2, bound2)').count
+    assert_equal 1, @context.eval('DURING(events1, XPRODUCT(bound1))').count
+    assert_equal 0, @context.eval('DURING(events1, XPRODUCT(bound2))').count
+    assert_equal 0, @context.eval('DURING(events1, XPRODUCT(bound1, bound2))').count
+    assert_equal 1, @context.eval('DURING(events1, XPRODUCT(bound3))').count
+    assert_equal 1, @context.eval('DURING(events1, XPRODUCT(bound1, bound3))').count
+    assert_equal 0, @context.eval('DURING(events1, XPRODUCT(bound4))').count
+    assert_equal 0, @context.eval('DURING(events1, XPRODUCT(bound5))').count
+    assert_equal 1, @context.eval('DURING(events2, XPRODUCT(bound3))').count
+    assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound4))').count
+    assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound5))').count
+    assert_equal 1, @context.eval('DURING(events2, XPRODUCT(bound1))').count
+    assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound2))').count
     
     # SBS
     assert_equal 0, @context.eval('SBS(events1, bound1)').count

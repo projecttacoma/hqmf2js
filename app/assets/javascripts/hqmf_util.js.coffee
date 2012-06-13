@@ -112,6 +112,49 @@ getCodes = (oid) ->
   OidDictionary[oid]
 @getCodes = getCodes
 
+class CrossProductIterator
+  constructor: (@crossProduct) ->
+    @positions = []
+    for eventList in @crossProduct.eventLists
+      @positions.push(0)
+  hasNext: ->
+    if @positions.length==0
+      return false
+    available = true
+    for position, i in @positions
+      if position >= @crossProduct.eventLists[i].length
+        available = false
+    available
+  next: ->
+    throw "No more entries" if !this.hasNext()
+    combination = []
+    moved = false
+    for position, i in @positions
+      combination.push @crossProduct.eventLists[i][position]
+      if !moved && position < @crossProduct.eventLists[i].length-1
+        @positions[i] = position+1
+        moved = true
+    # if we weren't able to move to a new valid position then move off end
+    if !moved
+      @positions[0] = @positions[0] + 1
+    combination
+
+class CrossProduct extends Array
+  constructor: (eventLists) ->
+    super()
+    @eventLists = []
+    for eventList in eventLists
+      if eventList.length > 0
+        @eventLists.push eventList
+        for event in eventList
+          this.push(event)
+  iterator: ->
+    new CrossProductIterator(this)
+
+XPRODUCT = (eventLists...) ->
+  new CrossProduct(eventLists)
+@XPRODUCT = XPRODUCT
+
 UNION = (eventLists...) ->
   union = []
   for eventList in eventLists
@@ -130,12 +173,27 @@ PREVSUM = (eventList) ->
 
 eventMatchesBounds = (event, bounds, methodName, offset) ->
   eventTS = event.asIVL_TS()
-  matchingBounds = (bound for bound in bounds when (
-    boundTS = bound.asIVL_TS()
-    if offset
-      boundTS.add(offset)
-    eventTS[methodName](boundTS)
-  ))
+  matchingBounds = []
+  if bounds.iterator
+    iterator = bounds.iterator()
+    while iterator.hasNext()
+      boundList = iterator.next()
+      matchesAllInBoundList = true
+      for bound in boundList
+        boundTS = bound.asIVL_TS()
+        if offset
+          boundTS.add(offset)
+        if !eventTS[methodName](boundTS)
+          matchesAllInBoundList = false
+      if matchesAllInBoundList
+        matchingBounds.push(boundList)
+  else
+    matchingBounds = (bound for bound in bounds when (
+      boundTS = bound.asIVL_TS()
+      if offset
+        boundTS.add(offset)
+      eventTS[methodName](boundTS)
+    ))
   matchingBounds && matchingBounds.length>0
 @eventMatchesBounds = eventMatchesBounds
   

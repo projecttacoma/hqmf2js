@@ -477,6 +477,30 @@
             </observationReference>
           </definition>
           <excerpt>
+            <subsetCode code="UNION"/>
+            <observationReference>
+              <id root="0" extension="HasDiabetes"/>
+            </observationReference>
+            <observationReference>
+              <id root="0" extension="HasGestationalDiabetes"/>
+            </observationReference>
+            <observationReference>
+              <id root="0" extension="HasSteroidInducedDiabetes"/>
+            </observationReference>
+          </excerpt>
+        </observationCriteria>
+      </entry>
+      <entry>
+        <localVariableName>allDiabetes</localVariableName>
+        <observationCriteria>
+          <id root="0" extension="allDiabetes"/>
+          <definition>
+            <observationReference moodCode="DEF">
+              <id root="0" extension="Derived"/>
+            </observationReference>
+          </definition>
+          <excerpt>
+            <subsetCode code="XPRODUCT"/>
             <observationReference>
               <id root="0" extension="HasDiabetes"/>
             </observationReference>
