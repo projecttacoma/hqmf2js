@@ -37,12 +37,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   var events = patient.<%= criteria.type %>().match(codes);
   <%- end -%>
   <%- else # derived criteria -%>
-  <%- compound_operator = 'UNION' -%>
-  <%- if criteria.subset_operators -%>
-    <%- compound_operators = criteria.subset_operators.select {|subset_operator| subset_operator.type=='XPRODUCT'} -%>
-    <%- compound_operator = 'XPRODUCT' if compound_operators.size>0 -%>
-  <%- end -%>
-  var events = <%= compound_operator %>(
+  var events = <%= criteria.derivation_operator %>(
     <%- criteria.children_criteria.each_with_index do |child, index| -%>
     <%= "hqmfjs.#{child}(patient)" %><%= "," if index<criteria.children_criteria.length-1 %>
     <%- end -%>
@@ -58,9 +53,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- end -%>
   <%- if criteria.subset_operators -%>
   <%- criteria.subset_operators.select {|subset_operator| subset_operator.type}.each do |subset_operator| -%>
-    <%- if subset_operator.type!='UNION' && subset_operator.type!='XPRODUCT' -%>
   events = <%= subset_operator.type %>(events<%= ", #{js_for_bounds(subset_operator.value)}" if subset_operator.value %>);
-    <%- end # not union or xproduct -%>
   <%- end # each operator -%>
   <%- end # subset operators -%>
   return events;
