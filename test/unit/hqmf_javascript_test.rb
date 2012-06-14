@@ -160,6 +160,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval("#{ts}.asDate().getDate()")
     assert_equal 2012, @context.eval("#{ts}.add(new PQ(1, 'a')).asDate().getFullYear()")
     assert_equal 2, @context.eval("#{ts}.add(new PQ(1, 'd')).asDate().getDate()")
+    assert_equal 8, @context.eval("#{ts}.add(new PQ(1, 'wk')).asDate().getDate()")
     assert_equal 1, @context.eval("#{ts}.add(new PQ(1, 'h')).asDate().getHours()")
     assert_equal 5, @context.eval("#{ts}.add(new PQ(5, 'min')).asDate().getMinutes()")
     assert_equal 11, @context.eval("#{ts}.add(new PQ(-1, 'mo')).asDate().getMonth()")

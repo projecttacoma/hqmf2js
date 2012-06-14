@@ -12,6 +12,8 @@ class TS
       @date.setFullYear(@date.getFullYear()+pq.value)
     else if pq.unit=="mo"
       @date.setMonth(@date.getMonth()+pq.value)
+    else if pq.unit=="wk"
+      @date.setDate(@date.getDate()+(7*pq.value))
     else if pq.unit=="d"
       @date.setDate(@date.getDate()+pq.value)
     else if pq.unit=="h"
@@ -158,7 +160,8 @@ XPRODUCT = (eventLists...) ->
 UNION = (eventLists...) ->
   union = []
   for eventList in eventLists
-    union=union.concat(eventList)
+    for event in eventList
+      union.push(event)
   union
 @UNION = UNION
 
