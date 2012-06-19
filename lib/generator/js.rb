@@ -91,6 +91,14 @@ module HQMF2JS
         template.result(context.get_binding)
       end
       
+      def patient_api_method(criteria)
+        method = criteria.type.to_s
+        if criteria.type == :medication_supply
+          method = 'medications'
+        end
+        method
+      end
+      
       def conjunction_code_for(precondition)
         case precondition.conjunction_code
         when 'allTrue', 'atLeastOneTrue'
