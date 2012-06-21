@@ -96,6 +96,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("hqmfjs.ageBetween50and59(numeratorPatient)")
     assert !@context.eval("hqmfjs.ageBetween60and64(numeratorPatient)")
     
+    # Birthdate function
+    assert_equal 1, @context.eval("hqmfjs.birthdateThirtyYearsBeforeMeasurementPeriod(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.birthdateFiftyYearsBeforeMeasurementPeriod(numeratorPatient)").count
+
     # Gender functions - Fixture is male
     assert @context.eval("hqmfjs.genderMale(numeratorPatient)")
     assert !@context.eval("hqmfjs.genderFemale(numeratorPatient)")
@@ -194,6 +198,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     ivl1 = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
     ivl2 = 'new IVL_TS(new TS("20120312"), new TS("20120320"))'
     assert @context.eval("#{ivl2}.DURING(#{ivl1})")
+    assert_equal 2010, @context.eval('getTS(new Date(2010,1,1)).low.asDate().getFullYear()')
     
     # atLeastOneTrue
     assert !@context.eval("atLeastOneTrue()")

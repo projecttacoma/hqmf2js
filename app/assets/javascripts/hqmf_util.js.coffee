@@ -174,8 +174,16 @@ PREVSUM = (eventList) ->
   eventList
 @PREVSUM = PREVSUM
 
+getTS = (eventOrTimeStamp) ->
+  if eventOrTimeStamp.asIVL_TS
+    eventOrTimeStamp.asIVL_TS()
+  else
+    ts = new TS()
+    ts.date = eventOrTimeStamp
+    new IVL_TS(ts, ts)
+    
 eventMatchesBounds = (event, bounds, methodName, offset) ->
-  eventTS = event.asIVL_TS()
+  eventTS = getTS(event)
   matchingBounds = []
   if bounds.iterator
     iterator = bounds.iterator()
@@ -183,7 +191,7 @@ eventMatchesBounds = (event, bounds, methodName, offset) ->
       boundList = iterator.next()
       matchesAllInBoundList = true
       for bound in boundList
-        boundTS = bound.asIVL_TS()
+        boundTS = getTS(bound)
         if offset
           boundTS.add(offset)
         if !eventTS[methodName](boundTS)
@@ -192,7 +200,7 @@ eventMatchesBounds = (event, bounds, methodName, offset) ->
         matchingBounds.push(boundList)
   else
     matchingBounds = (bound for bound in bounds when (
-      boundTS = bound.asIVL_TS()
+      boundTS = getTS(bound)
       if offset
         boundTS.add(offset)
       eventTS[methodName](boundTS)
