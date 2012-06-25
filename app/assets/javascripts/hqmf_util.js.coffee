@@ -4,7 +4,13 @@ class TS
       year = parseInt(hl7ts.substring(0, 4))
       month = parseInt(hl7ts.substring(4, 6), 10)-1
       day = parseInt(hl7ts.substring(6, 8), 10)
-      @date = new Date(year, month, day)
+      hour = parseInt(hl7ts.substring(8, 10), 10)
+      if isNaN(hour)
+        hour = 0
+      minute = parseInt(hl7ts.substring(10,12), 10)
+      if isNaN(minute)
+        minute = 0
+      @date = new Date(year, month, day, hour, minute)
     else
       @date = new Date()
   add: (pq) ->
@@ -23,6 +29,55 @@ class TS
     else
       throw "Unknown time unit: "+pq.unit
     this
+  difference: (ts, granularity) ->
+    earlier = later = null
+    if @afterOrConcurrent(ts)
+      earlier = ts.asDate()
+      later = @date
+    else
+      earlier = @date
+      later = ts.asDate()
+    if granularity=="a"
+      @yearsDifference(earlier,later)
+    else if granularity=="mo"
+      @monthsDifference(earlier,later)
+    else if granularity=="wk"
+      @weeksDifference(earlier,later)
+    else if granularity=="d"
+      @daysDifference(earlier,later)
+    else if granularity=="h"
+      @hoursDifference(earlier,later)
+    else if granularity=="min"
+      @minutesDifference(earlier,later)
+    else
+      throw "Unknown time unit: "+granularity
+  yearsDifference: (earlier, later) ->
+    if (later.getMonth() < earlier.getMonth())
+      later.getFullYear()-earlier.getFullYear()-1
+    else if (later.getMonth() == earlier.getMonth() && later.getDate() >= earlier.getDate())
+      later.getFullYear()-earlier.getFullYear()
+    else if (later.getMonth() == earlier.getMonth() && later.getDate() < earlier.getDate())
+      later.getFullYear()-earlier.getFullYear()-1
+    else
+      later.getFullYear()-earlier.getFullYear()
+  monthsDifference: (earlier, later) ->
+    if (later.getDate() >= earlier.getDate())
+      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()
+    else
+      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()-1
+  minutesDifference: (earlier, later) ->
+    Math.floor(((later.getTime()-earlier.getTime())/1000)/60)
+  hoursDifference: (earlier, later) ->
+    Math.floor(@minutesDifference(earlier,later)/60)
+  daysDifference: (earlier, later) ->
+    # have to discard time portion for day difference calculation purposes
+    e = new Date(earlier.getFullYear(), earlier.getMonth(), earlier.getDate())
+    e.setUTCHours(0)
+    l = new Date(later.getFullYear(), later.getMonth(), later.getDate())
+    l.setUTCHours(0)
+    Math.floor(@hoursDifference(e,l)/24)
+  weeksDifference: (earlier, later) ->
+    Math.floor(@daysDifference(earlier,later)/7)
   asDate: ->
     @date
   before: (other) -> 

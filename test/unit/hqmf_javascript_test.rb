@@ -174,6 +174,57 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("#{ts}.after(#{ts3})")
     assert @context.eval("#{ts}.beforeOrConcurrent(#{ts})")
     assert @context.eval("#{ts}.afterOrConcurrent(#{ts})")
+    ts4 = 'new TS("20000310")'
+    ts5 = 'new TS("20110405")'
+    ts6 = 'new TS("20000229")'
+    ts7 = 'new TS("20110228")'
+    ts8 = 'new TS("20120228")'
+    assert_equal 11, @context.eval("#{ts4}.difference(#{ts5},'a')")
+    assert_equal 11, @context.eval("#{ts5}.difference(#{ts4},'a')")
+    assert_equal 10, @context.eval("#{ts6}.difference(#{ts7},'a')")
+    assert_equal 10, @context.eval("#{ts7}.difference(#{ts6},'a')")
+    assert_equal 1, @context.eval("#{ts7}.difference(#{ts8},'a')")
+    assert_equal 1, @context.eval("#{ts8}.difference(#{ts7},'a')")
+    ts9 = 'new TS("20000229")'
+    ts10 = 'new TS("20010330")'
+    ts11 = 'new TS("20101228")'
+    ts12 = 'new TS("20110217")'
+    ts13 = 'new TS("20080320")'
+    ts14 = 'new TS("20080401")'
+    assert_equal 13, @context.eval("#{ts9}.difference(#{ts10},'mo')")
+    assert_equal 1, @context.eval("#{ts11}.difference(#{ts12},'mo')")
+    assert_equal 0, @context.eval("#{ts13}.difference(#{ts14},'mo')")
+    ts15 = 'new TS("201203010310")'
+    ts16 = 'new TS("201203010520")'
+    ts17 = 'new TS("201202292310")'
+    ts18 = 'new TS("201203010020")'
+    assert_equal 130, @context.eval("#{ts15}.difference(#{ts16},'min')")
+    assert_equal 70, @context.eval("#{ts17}.difference(#{ts18},'min')")
+    ts19 = 'new TS("201203010310")'
+    ts20 = 'new TS("201203010520")'
+    ts21 = 'new TS("201202292310")'
+    ts22 = 'new TS("201203010010")'
+    ts23 = 'new TS("201203010310")'
+    ts24 = 'new TS("201203010400")'
+    assert_equal 2, @context.eval("#{ts19}.difference(#{ts20},'h')")
+    assert_equal 1, @context.eval("#{ts21}.difference(#{ts22},'h')")
+    assert_equal 0, @context.eval("#{ts23}.difference(#{ts24},'h')")
+    ts25 = 'new TS("200002280900")'
+    ts26 = 'new TS("200002292359")'
+    ts27 = 'new TS("200012282300")'
+    ts28 = 'new TS("200101010800")'
+    ts29 = 'new TS("200002280900")'
+    ts30 = 'new TS("200002282359")'
+    assert_equal 1, @context.eval("#{ts25}.difference(#{ts26},'d')")
+    assert_equal 4, @context.eval("#{ts27}.difference(#{ts28},'d')")
+    assert_equal 0, @context.eval("#{ts29}.difference(#{ts30},'d')")
+    ts31 = 'new TS("20120403")'
+    ts32 = 'new TS("20120410")'
+    ts33 = 'new TS("20120229")'
+    ts34 = 'new TS("20120328")'
+    assert_equal 0, @context.eval("#{ts31}.difference(#{ts31},'wk')")
+    assert_equal 1, @context.eval("#{ts31}.difference(#{ts32},'wk')")
+    assert_equal 4, @context.eval("#{ts33}.difference(#{ts34},'wk')")
     
     # CD - Code
     cd = "new CD('M')"
