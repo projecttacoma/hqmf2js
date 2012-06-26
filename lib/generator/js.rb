@@ -100,14 +100,7 @@ module HQMF2JS
       end
       
       def conjunction_code_for(precondition)
-        case precondition.conjunction_code
-        when 'allTrue', 'atLeastOneTrue'
-          precondition.conjunction_code
-        else
-          # TODO: by default return allTrue.  We will also need to be able to handle QDM operators like COUNT, etc.
-          Kernel.warn("defaulting conjunction code to allTrue... need to check other options")
-          'allTrue'
-        end
+        precondition.conjunction_code
       end
       
       # Returns a Javascript compatable name based on an entity's identifier
@@ -127,7 +120,9 @@ module HQMF2JS
         @doc = doc
       end
       
-      def to_js(codes)
+      def to_js(codes, population_index=0)
+        population_index ||= 0
+        population = @doc.populations[population_index]
         "
         // #########################
         // ##### DATA ELEMENTS #####
@@ -141,28 +136,31 @@ module HQMF2JS
         // #########################
 
         // INITIAL PATIENT POPULATION
-        #{js_for('IPP', true)}
+        #{js_for(population['IPP'], 'IPP', true)}
         // DENOMINATOR
-        #{js_for('DENOM', true)}
+        #{js_for(population['DENOM'], 'DENOM', true)}
         // NUMERATOR
-        #{js_for('NUMER')}
-        #{js_for('DENEXCEP')}
+        #{js_for(population['NUMER'], 'NUMER')}
+        #{js_for(population['EXCL'], 'EXCL')}
+        #{js_for(population['DENEXCEP'], 'DENEXCEP')}
         "
       end
       
       
       
       # Generate JS for a HQMF2::PopulationCriteria
-      def js_for(criteria_code, when_not_found=false)
+      def js_for(criteria_code, type=nil, when_not_found=false)
+        # for multiple populations, criteria code will be something like IPP_1 and type will be IPP
+        type ||= criteria_code
         template_str = File.read(File.expand_path("../population_criteria.js.erb", __FILE__))
         template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
         criteria = @doc.population_criteria(criteria_code)
-        if criteria
-          params = {'doc' => @doc, 'criteria' => criteria}
+        if criteria && criteria.preconditions && criteria.preconditions.length > 0
+          params = {'doc' => @doc, 'criteria' => criteria, 'type'=>type}
           context = ErbContext.new(params)
           template.result(context.get_binding)
         else
-          "hqmfjs.#{criteria_code} = function(patient) { return #{when_not_found}; }"
+          "hqmfjs.#{type} = function(patient) { return #{when_not_found}; }"
         end
       end
       
