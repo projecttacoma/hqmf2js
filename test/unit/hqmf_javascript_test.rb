@@ -29,7 +29,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
       #{@converter.js_for('NUMER')}
       #{@converter.js_for('DENEXCEP')}
       #{@converter.js_for('DUMMY')}"
-    
+
     # Now we can wrap and compile all of our code as one little JavaScript context for all of the tests below
     patient_api = File.open('test/fixtures/patient_api.js').read
     fixture_json = File.read('test/fixtures/patients/larry_vanderman.json')
@@ -249,7 +249,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     ivl1 = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
     ivl2 = 'new IVL_TS(new TS("20120312"), new TS("20120320"))'
     assert @context.eval("#{ivl2}.DURING(#{ivl1})")
-    assert_equal 2010, @context.eval('getTS(new Date(2010,1,1)).low.asDate().getFullYear()')
+    assert_equal 2010, @context.eval('getIVL(new Date(2010,1,1)).low.asDate().getFullYear()')
     
     # atLeastOneTrue
     assert !@context.eval("atLeastOneTrue()")
@@ -347,8 +347,8 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     @context.eval('var bound3 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120103"), new TS("20120107"));}}]')
     @context.eval('var bound4 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120106"), new TS("20120107"));}}]')
     @context.eval('var bound5 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120106"), new TS("20120107"));}}')
-    @context.eval('var offset1 = new PQ(1, "a")')
-    @context.eval('var offset2 = new PQ(-1, "a")')
+    @context.eval('var range1 = new IVL_PQ(null, new PQ(1, "d"))')
+    @context.eval('var range2 = new IVL_PQ(new PQ(1, "d"), null)')
     
     # DURING
     assert_equal 1, @context.eval('DURING(events1, bound1)').count
@@ -376,15 +376,15 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     
     # SBS
     assert_equal 0, @context.eval('SBS(events1, bound1)').count
-    assert_equal 1, @context.eval('SBS(events2, bound1, offset1)').count
+    assert_equal 0, @context.eval('SBS(events2, bound1, range1)').count
     assert_equal 1, @context.eval('SBS(events2, bound1)').count
-    assert_equal 0, @context.eval('SBS(events2, bound1, offset2)').count
+    assert_equal 1, @context.eval('SBS(events2, bound1, range2)').count
     
     # SAS
     assert_equal 0, @context.eval('SAS(events1, bound1)').count
-    assert_equal 0, @context.eval('SAS(events2, bound1, offset1)').count
+    assert_equal 0, @context.eval('SAS(events2, bound1, range1)').count
     assert_equal 0, @context.eval('SAS(events2, bound1)').count
-    assert_equal 1, @context.eval('SAS(events2, bound1, offset2)').count
+    assert_equal 0, @context.eval('SAS(events2, bound1, range2)').count
     
     # SBE
     assert_equal 0, @context.eval('SBE(events1, bound1)').count

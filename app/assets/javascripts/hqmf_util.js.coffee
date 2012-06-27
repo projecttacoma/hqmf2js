@@ -103,11 +103,17 @@ class CD
 @CD = CD
 	
 class PQ
-	constructor: (@value, @unit, @inclusive=false) ->
+	constructor: (@value, @unit, @inclusive=true) ->
 	lessThan: (val) ->
-	  @value<val
+	  if @inclusive
+	    @lessThanOrEqual(val)
+	  else
+	    @value<val
 	greaterThan: (val) ->
-	  @value>val
+	  if @inclusive
+	    @greaterThanOrEqual(val)
+	  else
+  	  @value>val
 	lessThanOrEqual: (val) ->
 	  @value<=val
 	greaterThanOrEqual: (val) ->
@@ -118,10 +124,17 @@ class PQ
 	
 class IVL_PQ
   constructor: (@low_pq, @high_pq) ->
+    if !@low_pq && !@high_pq
+      throw "Must have a lower or upper bound"
+    if @low_pq && @low_pq.unit && @high_pq && @high_pq.unit && @low_pq.unit != @high_pq.unit
+      throw "Mismatched low and high units: "+@low_pq.unit+", "+@high_pq.unit
+  unit: ->
+    if @low_pq
+      @low_pq.unit
+    else
+      @high_pq.unit
   match: (val) ->
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
-  matchInclusive: (val) ->
-    (!@low_pq? || @low_pq.lessThanOrEqual(val)) && (!@high_pq? || @high_pq.greaterThanOrEqual(val))
 @IVL_PQ = IVL_PQ
     
 class IVL_TS
@@ -222,23 +235,66 @@ UNION = (eventLists...) ->
 
 COUNT = (events, range) ->
   count = events.length
-  range.matchInclusive(count)
+  range.match(count)
 @COUNT = COUNT
 
 PREVSUM = (eventList) ->
   eventList
 @PREVSUM = PREVSUM
 
-getTS = (eventOrTimeStamp) ->
+getIVL = (eventOrTimeStamp) ->
   if eventOrTimeStamp.asIVL_TS
     eventOrTimeStamp.asIVL_TS()
   else
     ts = new TS()
     ts.date = eventOrTimeStamp
     new IVL_TS(ts, ts)
+@getIVL = getIVL
     
-eventMatchesBounds = (event, bounds, methodName, offset) ->
-  eventTS = getTS(event)
+# should DURING and CONCURRENT be an error ?
+eventAccessor = {  
+  'DURING': 'low',
+  'SBS': 'low',
+  'SAS': 'low',
+  'SBE': 'low',
+  'SAE': 'low',
+  'EBS': 'high',
+  'EAS': 'high',
+  'EBE': 'high',
+  'EAE': 'high',
+  'SDU': 'low',
+  'EDU': 'high',
+  'ECW': 'high'
+  'SCW': 'low',
+  'CONCURRENT': 'low'
+}
+
+# should DURING SDU, EDU, ECW, SCW and CONCURRENT be an error ?
+boundAccessor = {  
+  'DURING': 'low',
+  'SBS': 'low',
+  'SAS': 'low',
+  'SBE': 'high',
+  'SAE': 'high',
+  'EBS': 'low',
+  'EAS': 'low',
+  'EBE': 'high',
+  'EAE': 'high',
+  'SDU': 'low',
+  'EDU': 'low',
+  'ECW': 'low'
+  'SCW': 'low',
+  'CONCURRENT': 'low'
+}
+    
+withinRange = (method, eventIVL, boundIVL, range) ->
+  eventTS = eventIVL[eventAccessor[method]]
+  boundTS = boundIVL[boundAccessor[method]]
+  range.match(eventTS.difference(boundTS, range.unit()))
+@withinRange = withinRange
+    
+eventMatchesBounds = (event, bounds, methodName, range) ->
+  eventIVL = getIVL(event)
   matchingBounds = []
   if bounds.iterator
     iterator = bounds.iterator()
@@ -246,30 +302,31 @@ eventMatchesBounds = (event, bounds, methodName, offset) ->
       boundList = iterator.next()
       matchesAllInBoundList = true
       for bound in boundList
-        boundTS = getTS(bound)
-        if offset
-          boundTS.add(offset)
-        if !eventTS[methodName](boundTS)
+        boundIVL = getIVL(bound)
+        if !eventIVL[methodName](boundIVL)
           matchesAllInBoundList = false
+        if matchesAllInBoundList && range
+          matchesAllInBoundList = withinRange(methodName, eventIVL, boundIVL, range)
       if matchesAllInBoundList
         matchingBounds.push(boundList)
   else
     matchingBounds = (bound for bound in bounds when (
-      boundTS = getTS(bound)
-      if offset
-        boundTS.add(offset)
-      eventTS[methodName](boundTS)
+      boundIVL = getIVL(bound)
+      result = eventIVL[methodName](boundIVL)
+      if range
+        result &&= withinRange(methodName, eventIVL, boundIVL, range)
+      result
     ))
   matchingBounds && matchingBounds.length>0
 @eventMatchesBounds = eventMatchesBounds
   
-eventsMatchBounds = (events, bounds, methodName, offset) ->
+eventsMatchBounds = (events, bounds, methodName, range) ->
   if (bounds.length==undefined)
     bounds = [bounds]
   if (events.length==undefined)
     events = [events]
   matchingEvents = (event for event in events when (
-    eventMatchesBounds(event, bounds, methodName, offset)
+    eventMatchesBounds(event, bounds, methodName, range)
   ))
   matchingEvents
 @eventsMatchBounds = eventsMatchBounds
@@ -412,14 +469,14 @@ MIN = (events, range) ->
   minValue = Infinity
   if (events.length > 0)
     minValue = events.sort(valueSortAscending)[0].value()["scalar"]
-  range.matchInclusive(minValue)
+  range.match(minValue)
 @MIN = MIN
 
 MAX = (events, range) ->
   maxValue = -Infinity
   if (events.length > 0)
     maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
-  range.matchInclusive(maxValue)
+  range.match(maxValue)
 @MAX = MAX
 
 @OidDictionary = {};

@@ -27,7 +27,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   var events = [value];
       <%- if criteria.temporal_references -%>
         <%- criteria.temporal_references.each do |temporal_reference| -%>
-  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_value(temporal_reference.offset)}" if temporal_reference.offset %>);
+  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
         <%- end -%>
       <%- end -%>
   return events;
@@ -58,7 +58,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- end -%>
   <%- if criteria.temporal_references -%>
   <%- criteria.temporal_references.each do |temporal_reference| -%>
-  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_value(temporal_reference.offset)}" if temporal_reference.offset %>);
+  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
   <%- end -%>
   <%- end -%>
   <%- if criteria.subset_operators -%>

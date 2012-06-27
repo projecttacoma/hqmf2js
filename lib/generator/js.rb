@@ -26,7 +26,9 @@ module HQMF2JS
             if value.type=='TS'
               "new TS(\"#{value.value}\")"
             elsif value.unit != nil
-              "new #{value.type}(#{value.value}, \"#{value.unit}\")"
+              "new #{value.type}(#{value.value}, \"#{value.unit}\", #{value.inclusive?})"
+            elsif value.respond_to?(:inclusive?)
+              "new #{value.type}(\"#{value.value}\", null, #{value.inclusive?})"
             else
               "new #{value.type}(\"#{value.value}\")"
             end
