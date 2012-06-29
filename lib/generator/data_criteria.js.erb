@@ -36,15 +36,19 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
     <%- end -%>
   <%- else -%>
   <%- if criteria.type != :derived -%>
+  var events = patient.<%= patient_api_method(criteria) %>();
+  <%- if criteria.status -%>
+  events = events.withStatuses(["<%= criteria.status %>"]);
+  <%- end -%>
   var codes = <%= js_for_code_list(criteria) %>;
     <%- if criteria.effective_time -%>
   <%- startExp = js_for_value(criteria.effective_time.low) -%>
   var start = <%= startExp %><%= '.asDate()' if startExp != 'null' %>;
   <%- endExp = js_for_value(criteria.effective_time.high) -%>
   var end = <%= endExp %><%= '.asDate()' if endExp != 'null' %>;
-  var events = patient.<%= patient_api_method(criteria) %>().match(codes, start, end);
+  events = events.match(codes, start, end);
     <%- else # no effective time -%>
-  var events = patient.<%= patient_api_method(criteria) %>().match(codes);
+  events = events.match(codes);
     <%- end -%>
   <%- else # derived criteria -%>
   var events = <%= criteria.derivation_operator %>(

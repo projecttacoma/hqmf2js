@@ -559,7 +559,7 @@
         <localVariableName>HasDiabetes</localVariableName>
         <observationCriteria>
           <id root="0" extension="HasDiabetes"/>
-          <statusCode code="completed"/>
+          <statusCode code="active"/>
           <value xsi:type="CD" valueSet="2.16.840.1.113883.3.464.1.37"/>
           <definition>
             <observationReference moodCode="DEF">
