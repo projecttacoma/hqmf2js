@@ -40,16 +40,17 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- if criteria.status -%>
   events = events.withStatuses(["<%= criteria.status %>"]);
   <%- end -%>
+  events = events.withNegation(<%= criteria.negation %>);
   var codes = <%= js_for_code_list(criteria) %>;
+  var start = null;
+  var end = null;
     <%- if criteria.effective_time -%>
   <%- startExp = js_for_value(criteria.effective_time.low) -%>
-  var start = <%= startExp %><%= '.asDate()' if startExp != 'null' %>;
+  start = <%= startExp %><%= '.asDate()' if startExp != 'null' %>;
   <%- endExp = js_for_value(criteria.effective_time.high) -%>
-  var end = <%= endExp %><%= '.asDate()' if endExp != 'null' %>;
-  events = events.match(codes, start, end);
-    <%- else # no effective time -%>
-  events = events.match(codes);
+  end = <%= endExp %><%= '.asDate()' if endExp != 'null' %>;
     <%- end -%>
+  events = events.match(codes, start, end, true);
   <%- else # derived criteria -%>
   var events = <%= criteria.derivation_operator %>(
     <%- criteria.children_criteria.each_with_index do |child, index| -%>

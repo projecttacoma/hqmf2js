@@ -105,29 +105,29 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("hqmfjs.genderFemale(numeratorPatient)")
     
     # Be sure the actual mechanic of code lists being returned works correctly - Using HasDiabetes as an example
-    results = @context.eval("hqmfjs.HasDiabetes(numeratorPatient)").first['json']
+    results = @context.eval("hqmfjs.HasDiabetes(numeratorPatient)[0]")['json']
     assert_equal 3, results['codes'].count
     assert_equal '250', results['codes']['ICD-9-CM'].first
     assert_equal 1270094400, results['time']
     
     # Encounters
-    assert_equal 0, @context.eval("hqmfjs.EDorInpatientEncounter(numeratorPatient)").count
-    assert_equal 0, @context.eval("hqmfjs.AmbulatoryEncounter(numeratorPatient)").count
+    assert_equal 0, @context.eval("hqmfjs.EDorInpatientEncounter(numeratorPatient).length")
+    assert_equal 0, @context.eval("hqmfjs.AmbulatoryEncounter(numeratorPatient).length")
     
     # Conditions
-    assert_equal 1, @context.eval("hqmfjs.HasDiabetes(numeratorPatient)").count
-    assert_equal 0, @context.eval("hqmfjs.HasGestationalDiabetes(numeratorPatient)").count
-    assert_equal 0, @context.eval("hqmfjs.HasPolycysticOvaries(numeratorPatient)").count
-    assert_equal 0, @context.eval("hqmfjs.HasSteroidInducedDiabetes(numeratorPatient)").count
+    assert_equal 1, @context.eval("hqmfjs.HasDiabetes(numeratorPatient).length")
+    assert_equal 0, @context.eval("hqmfjs.HasGestationalDiabetes(numeratorPatient).length")
+    assert_equal 0, @context.eval("hqmfjs.HasPolycysticOvaries(numeratorPatient).length")
+    assert_equal 0, @context.eval("hqmfjs.HasSteroidInducedDiabetes(numeratorPatient).length")
     
     # Results
-    assert_equal 2, @context.eval("hqmfjs.HbA1C(numeratorPatient)").count
+    assert_equal 2, @context.eval("hqmfjs.HbA1C(numeratorPatient).length")
     
     # Medications
-    assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministered(numeratorPatient)").count
-    assert_equal 0, @context.eval("hqmfjs.DiabetesMedIntended(numeratorPatient)").count
-    assert_equal 0, @context.eval("hqmfjs.DiabetesMedSupplied(numeratorPatient)").count
-    assert_equal 0, @context.eval("hqmfjs.DiabetesMedOrdered(numeratorPatient)").count
+    assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministered(numeratorPatient).length")
+    assert_equal 0, @context.eval("hqmfjs.DiabetesMedIntended(numeratorPatient).length")
+    assert_equal 0, @context.eval("hqmfjs.DiabetesMedSupplied(numeratorPatient).length")
+    assert_equal 0, @context.eval("hqmfjs.DiabetesMedOrdered(numeratorPatient).length")
     
     # Standard population health query buckets
     assert @context.eval("hqmfjs.IPP(numeratorPatient)")
@@ -521,7 +521,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_missing_id
     
     context = HQMF2JS::Generator::ErbContext.new({})
-    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
+    criteria = HQMF::DataCriteria.new(nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil)
     
     exception = assert_raise RuntimeError do
       n = context.js_name(criteria)
