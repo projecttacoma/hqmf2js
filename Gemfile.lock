@@ -1,6 +1,6 @@
 GIT
   remote: http://github.com/pophealth/patientapi.git
-  revision: 8261ff0411064f0700e48c0238b82b207852ab4f
+  revision: 5875cf8b8a23d135db3385c1fc1870214dbc279c
   branch: develop
   specs:
     hquery-patient-api (0.1.0)

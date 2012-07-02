@@ -40,7 +40,11 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- if criteria.status -%>
   events = events.withStatuses(["<%= criteria.status %>"]);
   <%- end -%>
-  events = events.withNegation(<%= criteria.negation %>);
+  <%- if criteria.negation -%>
+  events = events.withNegation(<%= "getCodes(\"#{criteria.negation_code_list_id}\")" if criteria.negation_code_list_id %>);
+  <%- else -%>
+  events = events.withoutNegation();
+  <%- end -%>
   var codes = <%= js_for_code_list(criteria) %>;
   var start = null;
   var end = null;
