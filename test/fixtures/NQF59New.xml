@@ -133,6 +133,27 @@
         </observationCriteria>
       </entry>
       <entry>
+        <localVariableName>ageFiftyBeforeMeasurementPeriod</localVariableName>
+        <observationCriteria>
+          <id root="0" extension="ageFiftyBeforeMeasurementPeriod"/>
+          <code code="424144002" codeSystem="2.16.840.1.113883.6.96"
+            displayName="Age"/>
+          <value xsi:type="IVL_PQ">
+            <low value="50" unit="a"/>
+          </value>
+          <definition>
+            <observationReference moodCode="DEF">
+              <id root="0" extension="Demographics"/>
+            </observationReference>
+          </definition>
+          <temporallyRelatedInformation typeCode="SBS">
+            <observationReference moodCode="EVN">
+              <id root="0" extension="MeasurePeriod"/>
+            </observationReference>
+          </temporallyRelatedInformation>
+        </observationCriteria>
+      </entry>
+      <entry>
         <localVariableName>ageBetween17and64</localVariableName>
         <observationCriteria>
           <id root="0" extension="ageBetween17and64"/>
@@ -652,6 +673,20 @@
           <value xsi:type="IVL_PQ">
             <low value="9" unit="%"/>
           </value>
+          <definition>
+            <observationReference moodCode="DEF">
+              <id root="0" extension="Results"/>
+            </observationReference>
+          </definition>
+        </observationCriteria>
+      </entry>
+      <entry>
+        <localVariableName>DummyCodedResult</localVariableName>
+        <observationCriteria>
+          <id root="0" extension="DummyCodedResult"/>
+          <code valueSet="2.16.840.1.113883.3.464.1.72"/>
+          <statusCode code="completed"/>
+          <value xsi:type="CD" code="xyzzy" codeSystem="1.2.3.4"/>
           <definition>
             <observationReference moodCode="DEF">
               <id root="0" extension="Results"/>

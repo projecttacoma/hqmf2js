@@ -23,8 +23,8 @@ module HQMF2JS
           if value.derived?
             value.expression
           else
-            if value.type=='TS'
-              "new TS(\"#{value.value}\")"
+            if value.type=='CD'
+              "new CD(\"#{value.code}\")"
             elsif value.unit != nil
               "new #{value.type}(#{value.value}, \"#{value.unit}\", #{value.inclusive?})"
             elsif value.respond_to?(:inclusive?)
