@@ -630,8 +630,21 @@
         </observationCriteria>
       </entry>
       <entry>
+        <localVariableName>HbA1CNotDone</localVariableName>
+        <observationCriteria actionNegationInd="true">
+          <id root="0" extension="HbA1CNotDone"/>
+          <code valueSet="2.16.840.1.113883.3.464.1.72"/>
+          <statusCode code="completed"/>
+          <reasonCode valueSet="1.2.3.4"/>
+          <definition>
+            <observationReference moodCode="DEF">
+              <id root="0" extension="Results"/>
+            </observationReference>
+          </definition>
+        </observationCriteria>
+      </entry>
+      <entry>
         <localVariableName>HbA1C</localVariableName>
-        <subsetCode code="RECENT"/>
         <observationCriteria>
           <id root="0" extension="HbA1C"/>
           <code valueSet="2.16.840.1.113883.3.464.1.72"/>

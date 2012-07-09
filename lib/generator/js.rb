@@ -102,7 +102,7 @@ module HQMF2JS
       end
       
       def conjunction_code_for(precondition)
-        precondition.conjunction_code
+        precondition.conjunction_code_with_negation
       end
       
       # Returns a Javascript compatable name based on an entity's identifier

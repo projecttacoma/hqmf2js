@@ -1932,4 +1932,10 @@
             displayName="Poisoning by adrenal cortical steroid" codeSystemVersion="07/2009"/>
       </ConceptList>
    </ValueSet>
+   <ValueSet id="1.2.3.4" displayName="Made up value set used for negation reason">
+      <ConceptList xml:lang="en-US">
+         <Concept code="1234567890" codeSystemName="SNOMED-CT" codeSystem="2.16.840.1.113883.6.96" displayName="polycystic ovaries"
+            codeSystemVersion="07/2009"/>
+      </ConceptList>
+   </ValueSet>
 </CodeSystems>
