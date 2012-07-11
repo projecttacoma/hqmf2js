@@ -24,7 +24,11 @@ module HQMF2JS
             value.expression
           else
             if value.type=='CD'
-              "new CD(\"#{value.code}\")"
+              if value.code_list_id
+                "new CodeList(getCodes(#{value.code_list_id}))"
+              else
+                "new CD(\"#{value.code}\")"
+              end
             elsif value.unit != nil
               "new #{value.type}(#{value.value}, \"#{value.unit}\", #{value.inclusive?})"
             elsif value.respond_to?(:inclusive?)

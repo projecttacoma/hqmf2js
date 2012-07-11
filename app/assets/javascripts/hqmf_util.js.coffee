@@ -93,35 +93,56 @@ class TS
   beforeOrConcurrent: (other) ->  @date.getTime() <= other.date.getTime()
   afterOrConcurrent: (other) -> @date.getTime() >= other.date.getTime()
 @TS = TS
+
+extractScalarValue = (value) ->
+  value.scalar || value
+@extractScalarValue = extractScalarValue
+
+extractCodeValue = (value) ->
+  value.code || value
+@extractCodeValue = extractCodeValue
   
 class CD
-	constructor: (@code) ->
-	code: ->
-	  @code
-	match: (val) ->
-	  @code==val
+  constructor: (@code) ->
+  code: ->
+    @code
+  match: (codeOrHash) ->
+    val = extractCodeValue(codeOrHash)
+    @code==val
 @CD = CD
-	
+    
+class CodeList
+  constructor: (@codes) ->
+  match: (codeOrHash) ->
+    val = extractCodeValue(CodeOrHash)
+    for codeSystemName, codeList of @codes
+      for code in codeList
+        if code==val
+          return true
+    false
+@CodeList = CodeList
+    
 class PQ
-	constructor: (@value, @unit, @inclusive=true) ->
-	lessThan: (val) ->
-	  if @inclusive
-	    @lessThanOrEqual(val)
-	  else
-	    @value<val
-	greaterThan: (val) ->
-	  if @inclusive
-	    @greaterThanOrEqual(val)
-	  else
-  	  @value>val
-	lessThanOrEqual: (val) ->
-	  @value<=val
-	greaterThanOrEqual: (val) ->
-	  @value>=val
-	match: (val) ->
-	  @value==val
+  constructor: (@value, @unit, @inclusive=true) ->
+  lessThan: (val) ->
+    if @inclusive
+      @lessThanOrEqual(val)
+    else
+      @value<val
+  greaterThan: (val) ->
+    if @inclusive
+      @greaterThanOrEqual(val)
+    else
+      @value>val
+  lessThanOrEqual: (val) ->
+    @value<=val
+  greaterThanOrEqual: (val) ->
+    @value>=val
+  match: (scalarOrHash) ->
+    val = extractScalarValue(scalarOrHash)
+    @value==val
 @PQ = PQ
-	
+  
 class IVL_PQ
   constructor: (@low_pq, @high_pq) ->
     if !@low_pq && !@high_pq
@@ -133,7 +154,8 @@ class IVL_PQ
       @low_pq.unit
     else
       @high_pq.unit
-  match: (val) ->
+  match: (scalarOrHash) ->
+    val = extractScalarValue(scalarOrHash)
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
 @IVL_PQ = IVL_PQ
     
@@ -158,7 +180,7 @@ class IVL_TS
   SCW: (other) -> @low.asDate().getTime() == other.low.asDate().getTime()
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
 @IVL_TS = IVL_TS
-	
+  
 atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && (value==true || value.length!=0))
   trueValues.length>0
@@ -174,7 +196,7 @@ matchingValue = (value, compareTo) ->
 @matchingValue = matchingValue
 
 filterEventsByValue = (events, value) ->
-  matchingValues = (event for event in events when (event.value && value.match(event.value().scalar)))
+  matchingValues = (event for event in events when (event.value && value.match(event.value())))
   matchingValues
 @filterEventsByValue = filterEventsByValue
 

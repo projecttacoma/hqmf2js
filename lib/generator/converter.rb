@@ -10,18 +10,26 @@ module HQMF2JS
 
       # Convert the HQMF document included as a fixture into JavaScript
       converter = HQMF2JS::Generator::JS.new(hqmf_contents)
-      converted_hqmf = "#{converter.js_for_data_criteria}\n#{converter.js_for('IPP')}\n#{converter.js_for('DENOM')}\n#{converter.js_for('NUMER')}\n#{converter.js_for('DENEXCEP')}"
+      converted_hqmf = [
+        "#{converter.js_for_data_criteria}",
+        "#{converter.js_for('IPP')}",
+        "#{converter.js_for('DENOM')}",
+        "#{converter.js_for('NUMER')}",
+        "#{converter.js_for('DENEXCEP')}",
+        "#{converter.js_for('EXCL')}"].join("\n")
       
       # Pretty stock map/reduce functions that call out to our converted HQMF code stored in the functions variable
       map = "function map(patient) {
   if (typeof(hqmfjs.IPP)==='function' && hqmfjs.IPP(patient)) {
     emit('ipp', 1);
-    if (typeof(hqmfjs.DENOM)==='function' && hqmfjs.DENOM(patient)) {
+    if (typeof(hqmfjs.DENEXCEP)==='function' && hqmfjs.DENEXCEP(patient)) {
+        emit('denexcep', 1);    
+    } else if (typeof(hqmfjs.DENOM)==='function' && hqmfjs.DENOM(patient)) {
       if (typeof(hqmfjs.NUMER)==='function' && hqmfjs.NUMER(patient)) {
         emit('denom', 1);
         emit('numer', 1);
-      } else if (typeof(hqmfjs.DENEXCEP)==='function' && hqmfjs.DENEXCEP(patient)) {
-        emit('denexcep', 1);
+      } else if (typeof(hqmfjs.EXCL)==='function' && hqmfjs.EXCL(patient)) {
+        emit('excl', 1);
       } else {
         emit('denom', 1);
         emit('antinum', 1);
