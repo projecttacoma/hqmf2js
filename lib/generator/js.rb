@@ -31,7 +31,7 @@ module HQMF2JS
               end
             elsif value.unit != nil
               "new #{value.type}(#{value.value}, \"#{value.unit}\", #{value.inclusive?})"
-            elsif value.respond_to?(:inclusive?)
+            elsif value.respond_to?(:inclusive?) and !value.inclusive?.nil?
               "new #{value.type}(\"#{value.value}\", null, #{value.inclusive?})"
             else
               "new #{value.type}(\"#{value.value}\")"
@@ -98,11 +98,7 @@ module HQMF2JS
       end
       
       def patient_api_method(criteria)
-        method = criteria.type.to_s
-        if criteria.type == :medication_supply
-          method = 'medications'
-        end
-        method
+        criteria.patient_api_function
       end
       
       def conjunction_code_for(precondition)

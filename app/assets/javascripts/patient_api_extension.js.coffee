@@ -1,4 +1,5 @@
 hQuery.Patient::procedureResults = -> this.results().concat(this.vitalSigns()).concat(this.procedures())
+hQuery.Patient::allProcedures = -> this.procedures().concat(this.immunizations()).concat(this.medications())
 hQuery.Patient::laboratoryTests = -> this.results().concat(this.vitalSigns())
 hQuery.Patient::allMedications = -> this.medications().concat(this.immunizations())
 hQuery.Patient::allProblems = -> this.conditions().concat(this.socialHistories())

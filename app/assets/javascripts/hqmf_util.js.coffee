@@ -114,7 +114,7 @@ class CD
 class CodeList
   constructor: (@codes) ->
   match: (codeOrHash) ->
-    val = extractCodeValue(CodeOrHash)
+    val = extractCodeValue(codeOrHash)
     for codeSystemName, codeList of @codes
       for code in codeList
         if code==val
