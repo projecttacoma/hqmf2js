@@ -14,9 +14,9 @@ class CodesToJsonTest < Test::Unit::TestCase
     
     @context = get_js_context("var dictionary = #{codes_json}")
     
-    @context.eval("dictionary").keys.length.must_equal 18
-    @context.eval("dictionary['2.16.840.1.113883.3.464.1.42']").keys.first.must_equal "CPT"
-    @context.eval("dictionary['2.16.840.1.113883.3.464.1.42']").values.first.length.must_equal 19
+    @context.eval("dictionary").entries.length.must_equal 18
+    @context.eval("dictionary['2.16.840.1.113883.3.464.1.42']").entries.first[0].must_equal "CPT"
+    @context.eval("dictionary['2.16.840.1.113883.3.464.1.42']").entries.first[1].length.must_equal 19
     
   end
 
@@ -27,9 +27,9 @@ class CodesToJsonTest < Test::Unit::TestCase
     codes_json = HQMF2JS::Generator::CodesToJson.hash_to_js(HQMF2JS::Generator::CodesToJson.from_xls(codes_file_path))
 
     @context = get_js_context("var dictionary = #{codes_json}")
-    @context.eval("dictionary").keys.length.must_equal 12
-    @context.eval("dictionary['2.16.840.1.113883.3.464.0001.430']").keys.first.must_equal "RxNorm"
-    @context.eval("dictionary['2.16.840.1.113883.3.464.0001.430']").values.first.length.must_equal 24
+    @context.eval("dictionary").entries.length.must_equal 12
+    @context.eval("dictionary['2.16.840.1.113883.3.464.0001.430']").entries.first[0].must_equal "RxNorm"
+    @context.eval("dictionary['2.16.840.1.113883.3.464.0001.430']").entries.first[1].length.must_equal 24
     
   end
   

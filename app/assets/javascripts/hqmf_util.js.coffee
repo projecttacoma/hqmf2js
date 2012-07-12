@@ -191,6 +191,16 @@ allTrue = (values...) ->
   trueValues.length>0 && trueValues.length==values.length
 @allTrue = allTrue
   
+atLeastOneFalse = (values...) ->
+  falseValues = (value for value in values when (value==false || value.length==0))
+  falseValues.length>0
+@atLeastOneFalse = atLeastOneFalse
+  
+allFalse = (values...) ->
+  falseValues = (value for value in values when (value==false || value.length==0))
+  falseValues.length>0 && falseValues.length==values.length
+@allFalse = allFalse
+  
 matchingValue = (value, compareTo) ->
   compareTo.match(value)
 @matchingValue = matchingValue

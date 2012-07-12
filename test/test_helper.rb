@@ -22,5 +22,11 @@ PROJECT_ROOT = File.expand_path("../../", __FILE__)
 require File.join(PROJECT_ROOT, 'lib', 'hqmf2js')
 
 def get_js_context(javascript)
-  @context = ExecJS.compile(javascript)
+  if RUBY_PLATFORM=='java'
+    @context = Rhino::Context.new
+  else
+    @context = V8::Context.new
+  end
+  @context.eval(javascript)
+  @context
 end
