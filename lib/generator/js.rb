@@ -25,7 +25,7 @@ module HQMF2JS
           else
             if value.type=='CD'
               if value.code_list_id
-                "new CodeList(getCodes(#{value.code_list_id}))"
+                "new CodeList(getCodes(\"#{value.code_list_id}\"))"
               else
                 "new CD(\"#{value.code}\")"
               end
