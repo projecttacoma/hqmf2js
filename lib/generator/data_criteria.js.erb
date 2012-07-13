@@ -38,7 +38,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- if criteria.type != :derived -%>
   var events = patient.<%= patient_api_method(criteria) %>();
   <%- if criteria.status -%>
-  events = events.withStatuses(["<%= criteria.status %>"]);
+  events = events.withStatuses(["<%= criteria.status %>"]<%= ", false" if criteria.hard_status %>);
   <%- end -%>
   <%- if criteria.negation -%>
   events = events.withNegation(<%= "getCodes(\"#{criteria.negation_code_list_id}\")" if criteria.negation_code_list_id %>);
