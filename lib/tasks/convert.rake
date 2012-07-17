@@ -34,6 +34,8 @@ namespace :hqmf do
       f.write(gen.js_for('DENOM'))
       f.write("// NUMERATOR\n")
       f.write(gen.js_for('NUMER'))
+      f.write("// EXCLUSIONS\n")
+      f.write(gen.js_for('EXCL'))
       f.write("// DENOMINATOR EXCEPTIONS\n")
       f.write(gen.js_for('DENEXCEP'))
     end
