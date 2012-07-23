@@ -17,10 +17,8 @@ GIT
       nokogiri (>= 1.4.4)
       uuid (~> 2.3.4)
 
-GIT
-  remote: https://github.com/pophealth/hqmf-parser.git
-  revision: 85fadf6c46d65e5cadb0e89310e7e642966e8ea5
-  branch: develop
+PATH
+  remote: ../hqmf-parser
   specs:
     hqmf-parser (0.0.1)
       google-spreadsheet-ruby (= 0.1.8)

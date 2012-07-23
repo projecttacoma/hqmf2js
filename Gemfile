@@ -10,8 +10,8 @@ end
 
 gem "hquery-patient-api", :git => 'http://github.com/pophealth/patientapi.git', :branch => 'develop'
 #gem 'hquery-patient-api', :path => '../patientapi'
-gem 'hqmf-parser', :git => 'https://github.com/pophealth/hqmf-parser.git', :branch => 'develop'
-#gem 'hqmf-parser', :path => '../hqmf-parser'
+#gem 'hqmf-parser', :git => 'https://github.com/pophealth/hqmf-parser.git', :branch => 'develop'
+gem 'hqmf-parser', :path => '../hqmf-parser'
 gem "health-data-standards", :git => 'http://github.com/projectcypress/health-data-standards.git', :branch => 'develop'
 
 gem 'nokogiri'
