@@ -65,6 +65,9 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- if criteria.value -%>
   events = filterEventsByValue(events, <%= js_for_bounds(criteria.value) %>);
   <%- end -%>
+  <%- if criteria.specific_occurrence -%>
+  events.specific_occurrence = '<%= criteria.source_data_criteria %>'
+  <%- end -%>
   <%- if criteria.temporal_references -%>
   <%- criteria.temporal_references.each do |temporal_reference| -%>
   events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);

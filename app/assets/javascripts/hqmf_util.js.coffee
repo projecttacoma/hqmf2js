@@ -349,7 +349,7 @@ eventMatchesBounds = (event, bounds, methodName, range) ->
         result &&= withinRange(methodName, eventIVL, boundIVL, range)
       result
     ))
-  matchingBounds && matchingBounds.length>0
+  matchingBounds
 @eventMatchesBounds = eventMatchesBounds
   
 eventsMatchBounds = (events, bounds, methodName, range) ->
@@ -357,9 +357,25 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
     bounds = [bounds]
   if (events.length==undefined)
     events = [events]
-  matchingEvents = (event for event in events when (
-    eventMatchesBounds(event, bounds, methodName, range)
-  ))
+  
+  specificContext = new Specifics()
+  hasSpecificOccurrence = (events.specific_occurrence? || bounds.specific_occurrence?)
+  matchingEvents = []
+  #matchingPairs = []
+  for event in events
+    matchingBounds=eventMatchesBounds(event, bounds, methodName, range)
+    matchingEvents.push(event) if matchingBounds.length > 0
+
+    if hasSpecificOccurrence
+      # TODO: we'll need a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
+      specificContext.addRows(Row.buildRows(events.specific_occurrence, event, bounds.specific_occurrence, matchingBounds))
+    else
+      # add all stars
+      specificContext.addRows([new Row()])
+      
+  if hasSpecificOccurrence
+    matchingEvents.specificContext = specificContext.finalizeEvents(events.specificContext, bounds.specificContext)
+  
   matchingEvents
 @eventsMatchBounds = eventsMatchBounds
   

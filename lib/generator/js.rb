@@ -180,14 +180,16 @@ module HQMF2JS
         Tilt::CoffeeScriptTemplate.default_bare = true 
         ctx.append_path "app/assets/javascripts"
         
-        ["// #########################\n// ###### PATIENT API ######\n// #########################\n",
+        ["// #########################\n// ###### PATIENT API #######\n// #########################\n",
          HqueryPatientApi::Generator.patient_api_javascript.to_s,
-         "// #########################\n// ### LIBRARY FUNCTIONS ###\n// #########################\n",
+         "// #########################\n// ### LIBRARY FUNCTIONS ####\n// #########################\n",
          ctx.find_asset('hqmf_util').to_s, 
-         "// #########################\n// ### PATIENT EXTENSION ###\n// #########################\n",
+         "// #########################\n// ### PATIENT EXTENSION ####\n// #########################\n",
          ctx.find_asset('patient_api_extension').to_s,
-         "// #########################\n// ##### LOGGING UTILS #####\n// #########################\n",
-         ctx.find_asset('logging_utils').to_s].join("\n")
+         "// #########################\n// ##### LOGGING UTILS ######\n// #########################\n",
+         ctx.find_asset('logging_utils').to_s,
+         "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
+         ctx.find_asset('specifics').to_s].join("\n")
       end
   
     end
