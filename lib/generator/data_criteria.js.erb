@@ -30,13 +30,23 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
         <%- end -%>
       <%- end -%>
+  events.specificContext=new Specifics([new Row()])
   return events;
+    <%- elsif criteria.property == :expired or criteria.property == :clinicalTrialParticipant -%>
+  matching = matchingValue(value, 'true');
+  matching.specificContext=new Specifics([new Row()])
+  return matching
     <%- else -%>
-  return matchingValue(value, <%= js_for_bounds(criteria.value) %>);
+  matching = matchingValue(value, <%= js_for_bounds(criteria.value) %>);
+  matching.specificContext=new Specifics([new Row()]);
+  return matching;
     <%- end -%>
   <%- else -%>
   <%- if criteria.type != :derived -%>
   var events = patient.<%= patient_api_method(criteria) %>();
+  <%- if criteria.specific_occurrence -%>
+  events.specific_occurrence = '<%= criteria.source_data_criteria %>'
+  <%- end -%>
   <%- if criteria.status -%>
   events = events.withStatuses(["<%= criteria.status %>"]<%= ", false" if criteria.hard_status %>);
   <%- end -%>
@@ -65,13 +75,16 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   <%- if criteria.value -%>
   events = filterEventsByValue(events, <%= js_for_bounds(criteria.value) %>);
   <%- end -%>
-  <%- if criteria.specific_occurrence -%>
-  events.specific_occurrence = '<%= criteria.source_data_criteria %>'
-  <%- end -%>
   <%- if criteria.temporal_references -%>
   <%- criteria.temporal_references.each do |temporal_reference| -%>
   events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
   <%- end -%>
+  <%- else -%>
+    <%- if criteria.specific_occurrence -%>
+  events.specificContext=new Specifics(Row.buildForDataCriteria(events.specific_occurrence, events))
+    <%- else -%>
+  events.specificContext=new Specifics([new Row()])
+    <%- end -%>
   <%- end -%>
   <%- if criteria.subset_operators -%>
   <%- criteria.subset_operators.select {|subset_operator| subset_operator.type}.each do |subset_operator| -%>

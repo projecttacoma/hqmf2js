@@ -180,29 +180,30 @@ class IVL_TS
   SCW: (other) -> @low.asDate().getTime() == other.low.asDate().getTime()
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
 @IVL_TS = IVL_TS
-  
+
 atLeastOneTrue = (values...) ->
-  trueValues = (value for value in values when value && (value==true || value.length!=0))
+  trueValues = (value for value in values when value && value.isTrue())
   trueValues.length>0
+  Specifics.unionAll(new Boolean(trueValues.length>0), values)
 @atLeastOneTrue = atLeastOneTrue
   
 allTrue = (values...) ->
-  trueValues = (value for value in values when value && (value==true || value.length!=0))
-  trueValues.length>0 && trueValues.length==values.length
+  trueValues = (value for value in values when value && value.isTrue())
+  Specifics.intersectAll(new Boolean(trueValues.length>0 && trueValues.length==values.length), values)
 @allTrue = allTrue
   
 atLeastOneFalse = (values...) ->
-  falseValues = (value for value in values when (value==false || value.length==0))
-  falseValues.length>0
+  falseValues = (value for value in values when value.isFalse())
+  result = Specifics.unionAll(new Boolean(falseValues.length>0), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 allFalse = (values...) ->
-  falseValues = (value for value in values when (value==false || value.length==0))
-  falseValues.length>0 && falseValues.length==values.length
+  falseValues = (value for value in values when value.isFalse())
+  Specifics.intersectAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse
   
 matchingValue = (value, compareTo) ->
-  compareTo.match(value)
+  new Boolean(compareTo.match(value))
 @matchingValue = matchingValue
 
 filterEventsByValue = (events, value) ->
@@ -254,7 +255,7 @@ class CrossProduct extends Array
     new CrossProductIterator(this)
 
 XPRODUCT = (eventLists...) ->
-  new CrossProduct(eventLists)
+  Specifics.intersectAll(new CrossProduct(eventLists), eventLists)
 @XPRODUCT = XPRODUCT
 
 UNION = (eventLists...) ->
@@ -262,12 +263,12 @@ UNION = (eventLists...) ->
   for eventList in eventLists
     for event in eventList
       union.push(event)
-  union
+  Specifics.unionAll(union, eventLists)
 @UNION = UNION
 
 COUNT = (events, range) ->
   count = events.length
-  range.match(count)
+  Specifics.maintainSpecifics(new Boolean(range.match(count)), events)
 @COUNT = COUNT
 
 PREVSUM = (eventList) ->
@@ -361,20 +362,20 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
   specificContext = new Specifics()
   hasSpecificOccurrence = (events.specific_occurrence? || bounds.specific_occurrence?)
   matchingEvents = []
-  #matchingPairs = []
+  matchingEvents.specific_occurrence = events.specific_occurrence
   for event in events
     matchingBounds=eventMatchesBounds(event, bounds, methodName, range)
     matchingEvents.push(event) if matchingBounds.length > 0
 
     if hasSpecificOccurrence
+      matchingEvents.specific_occurrence = events.specific_occurrence
       # TODO: we'll need a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
-      specificContext.addRows(Row.buildRows(events.specific_occurrence, event, bounds.specific_occurrence, matchingBounds))
+      specificContext.addRows(Row.buildRowsForMatching(events.specific_occurrence, event, bounds.specific_occurrence, matchingBounds))
     else
       # add all stars
       specificContext.addRows([new Row()])
-      
-  if hasSpecificOccurrence
-    matchingEvents.specificContext = specificContext.finalizeEvents(events.specificContext, bounds.specificContext)
+  
+  matchingEvents.specificContext = specificContext.finalizeEvents(events.specificContext, bounds.specificContext)
   
   matchingEvents
 @eventsMatchBounds = eventsMatchBounds
@@ -444,45 +445,39 @@ dateSortAscending = (a, b) ->
 @dateSortAscending = dateSortAscending
 
 FIRST = (events) ->
-  if (events.length > 0)
-    [events.sort(dateSortAscending)[0]]
-  else
-    []
+  result = []
+  result = [events.sort(dateSortAscending)[0]] if (events.length > 0)
+  Specifics.maintainSpecifics(result, events)
 @FIRST = FIRST
 
 SECOND = (events) ->
-  if (events.length > 1)
-    [events.sort(dateSortAscending)[1]]
-  else
-    []
+  result = []
+  result = [events.sort(dateSortAscending)[1]] if (events.length > 1)
+  Specifics.maintainSpecifics(result, events)
 @SECOND = SECOND
 
 THIRD = (events) ->
-  if (events.length > 2)
-    [events.sort(dateSortAscending)[2]]
-  else
-    []
+  result = []
+  result = [events.sort(dateSortAscending)[2]] if (events.length > 2)
+  Specifics.maintainSpecifics(result, events)
 @THIRD = THIRD
 
 FOURTH = (events) ->
-  if (events.length > 3)
-    [events.sort(dateSortAscending)[3]]
-  else
-    []
+  result = []
+  result = [events.sort(dateSortAscending)[3]] if (events.length > 3)
+  Specifics.maintainSpecifics(result, events)
 @FOURTH = FOURTH
 
 FIFTH = (events) ->
-  if (events.length > 4)
-    [events.sort(dateSortAscending)[4]]
-  else
-    []
+  result = []
+  result = [events.sort(dateSortAscending)[4]] if (events.length > 4)
+  Specifics.maintainSpecifics(result, events)
 @FIFTH = FIFTH
 
 RECENT = (events) ->
-  if (events.length > 0)
-    [events.sort(dateSortDescending)[0]]
-  else
-    []
+  result = []
+  result = [events.sort(dateSortDescending)[0]] if (events.length > 0)
+  Specifics.maintainSpecifics(result, events)
 @RECENT = RECENT
   
 LAST = (events) ->
@@ -517,14 +512,14 @@ MIN = (events, range) ->
   minValue = Infinity
   if (events.length > 0)
     minValue = events.sort(valueSortAscending)[0].value()["scalar"]
-  range.match(minValue)
+  Specifics.maintainSpecifics(new Boolean(range.match(minValue)), events)
 @MIN = MIN
 
 MAX = (events, range) ->
   maxValue = -Infinity
   if (events.length > 0)
     maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
-  range.match(maxValue)
+  Specifics.maintainSpecifics(new Boolean(range.match(maxValue)), events)
 @MAX = MAX
 
 @OidDictionary = {};

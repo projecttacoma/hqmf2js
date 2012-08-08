@@ -45,6 +45,8 @@ class HqmfJavascriptTest < Test::Unit::TestCase
       #{converted_hqmf}
       var larry = #{fixture_json};
       #{initialize_patient}")
+    @context.eval("Specifics.initialize()")
+    
   end
   
   def test_codes
@@ -88,21 +90,21 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getMonth()")
   
     # Age functions - Fixture is 37.1
-    assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient)")
-    assert @context.eval("hqmfjs.ageBetween30and39(numeratorPatient)")
-    assert !@context.eval("hqmfjs.ageBetween17and21(numeratorPatient)")
-    assert !@context.eval("hqmfjs.ageBetween22and29(numeratorPatient)")
-    assert !@context.eval("hqmfjs.ageBetween40and49(numeratorPatient)")
-    assert !@context.eval("hqmfjs.ageBetween50and59(numeratorPatient)")
-    assert !@context.eval("hqmfjs.ageBetween60and64(numeratorPatient)")
+    assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient).isTrue()")
+    assert @context.eval("hqmfjs.ageBetween30and39(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.ageBetween17and21(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.ageBetween22and29(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.ageBetween40and49(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.ageBetween50and59(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.ageBetween60and64(numeratorPatient).isTrue()")
     
     # Birthdate function
     assert_equal 1, @context.eval("hqmfjs.birthdateThirtyYearsBeforeMeasurementPeriod(numeratorPatient)").count
     assert_equal 0, @context.eval("hqmfjs.birthdateFiftyYearsBeforeMeasurementPeriod(numeratorPatient)").count
 
     # Gender functions - Fixture is male
-    assert @context.eval("hqmfjs.genderMale(numeratorPatient)")
-    assert !@context.eval("hqmfjs.genderFemale(numeratorPatient)")
+    assert @context.eval("hqmfjs.genderMale(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.genderFemale(numeratorPatient).isTrue()")
     
     # Be sure the actual mechanic of code lists being returned works correctly - Using HasDiabetes as an example
     results = @context.eval("hqmfjs.HasDiabetes(numeratorPatient)[0]")['json']
@@ -136,8 +138,8 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("hqmfjs.DENEXCEP(numeratorPatient)")
     
     # COUNTing
-    assert @context.eval("hqmfjs.moreThanTwoHbA1CTests(numeratorPatient)")
-    assert !@context.eval("hqmfjs.moreThanFourHbA1CTests(numeratorPatient)")
+    assert @context.eval("hqmfjs.moreThanTwoHbA1CTests(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.moreThanFourHbA1CTests(numeratorPatient).isTrue()")
 
     # UNIONing
     assert_equal 1, @context.eval("hqmfjs.anyDiabetes(numeratorPatient).length")

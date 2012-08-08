@@ -5,6 +5,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
   
   def setup
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
+    @context.eval("Specifics.initialize()")
   end
 
 
@@ -16,31 +17,31 @@ class LibraryFunctionTest < Test::Unit::TestCase
   end
   
   def test_all_true
-    @context.eval('allTrue(false,false,false)').must_equal false
-    @context.eval('allTrue(false,true,false)').must_equal false
-    @context.eval('allTrue(true,true,true)').must_equal true
-    @context.eval('allTrue()').must_equal false
+    @context.eval('allTrue(new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal false
+    @context.eval('allTrue(new Boolean(false),new Boolean(true),new Boolean(false)).isTrue()').must_equal false
+    @context.eval('allTrue(new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal true
+    @context.eval('allTrue().isTrue()').must_equal false
   end
   
   def test_at_least_one_true
-    @context.eval('atLeastOneTrue(true,false,false)').must_equal true
-    @context.eval('atLeastOneTrue(true,true,true)').must_equal true
-    @context.eval('atLeastOneTrue(false,false,false)').must_equal false
-    @context.eval('atLeastOneTrue()').must_equal false
+    @context.eval('atLeastOneTrue(new Boolean(true),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
+    @context.eval('atLeastOneTrue(new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal true
+    @context.eval('atLeastOneTrue(new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal false
+    @context.eval('atLeastOneTrue().isTrue()').must_equal false
   end
   
   def test_all_false
-    @context.eval('allFalse(false,false,false)').must_equal true
-    @context.eval('allFalse(false,true,false)').must_equal false
-    @context.eval('allFalse(true,true,true)').must_equal false
-    @context.eval('allFalse()').must_equal false
+    @context.eval('allFalse(new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
+    @context.eval('allFalse(new Boolean(false),new Boolean(true),new Boolean(false)).isTrue()').must_equal false
+    @context.eval('allFalse(new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal false
+    @context.eval('allFalse().isTrue()').must_equal false
   end
   
   def test_at_least_one_false
-    @context.eval('atLeastOneFalse(true,false,false)').must_equal true
-    @context.eval('atLeastOneFalse(true,true,true)').must_equal false
-    @context.eval('atLeastOneFalse(false,false,false)').must_equal true
-    @context.eval('atLeastOneFalse()').must_equal false
+    @context.eval('atLeastOneFalse(new Boolean(true),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
+    @context.eval('atLeastOneFalse(new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal false
+    @context.eval('atLeastOneFalse(new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
+    @context.eval('atLeastOneFalse().isTrue()').must_equal false
   end
   
   def test_patient_extensions
@@ -176,8 +177,8 @@ class LibraryFunctionTest < Test::Unit::TestCase
   
   def test_matching_value
     # Matching value
-    assert @context.eval("matchingValue(5, new IVL_PQ(PQ(3, 'mo'), new PQ(9, 'mo')))")
-    assert !@context.eval("matchingValue(12, new IVL_PQ(PQ(3, 'mo'), new PQ(9, 'mo')))")
+    assert @context.eval("matchingValue(5, new IVL_PQ(PQ(3, 'mo'), new PQ(9, 'mo'))).isTrue()")
+    assert !@context.eval("matchingValue(12, new IVL_PQ(PQ(3, 'mo'), new PQ(9, 'mo'))).isTrue()")
   end
   
   def test_count
@@ -189,18 +190,18 @@ class LibraryFunctionTest < Test::Unit::TestCase
     exactly1 = 'new IVL_PQ(new PQ(1), new PQ(1))'
     moreThanZero = 'new IVL_PQ(new PQ(1))'
     lessThanTwo = 'new IVL_PQ(null, new PQ(1))'
-    assert @context.eval("COUNT(#{events0}, #{exactly0})")
-    assert !@context.eval("COUNT(#{events0}, #{exactly1})")
-    assert !@context.eval("COUNT(#{events0}, #{moreThanZero})")
-    assert @context.eval("COUNT(#{events0}, #{lessThanTwo})")
-    assert !@context.eval("COUNT(#{events1}, #{exactly0})")
-    assert @context.eval("COUNT(#{events1}, #{exactly1})")
-    assert @context.eval("COUNT(#{events1}, #{moreThanZero})")
-    assert @context.eval("COUNT(#{events1}, #{lessThanTwo})")
-    assert !@context.eval("COUNT(#{events2}, #{exactly0})")
-    assert !@context.eval("COUNT(#{events2}, #{exactly1})")
-    assert @context.eval("COUNT(#{events2}, #{moreThanZero})")
-    assert !@context.eval("COUNT(#{events2}, #{lessThanTwo})")
+    assert @context.eval("COUNT(#{events0}, #{exactly0}).isTrue()")
+    assert !@context.eval("COUNT(#{events0}, #{exactly1}).isTrue()")
+    assert !@context.eval("COUNT(#{events0}, #{moreThanZero}).isTrue()")
+    assert @context.eval("COUNT(#{events0}, #{lessThanTwo}).isTrue()")
+    assert !@context.eval("COUNT(#{events1}, #{exactly0}).isTrue()")
+    assert @context.eval("COUNT(#{events1}, #{exactly1}).isTrue()")
+    assert @context.eval("COUNT(#{events1}, #{moreThanZero}).isTrue()")
+    assert @context.eval("COUNT(#{events1}, #{lessThanTwo}).isTrue()")
+    assert !@context.eval("COUNT(#{events2}, #{exactly0}).isTrue()")
+    assert !@context.eval("COUNT(#{events2}, #{exactly1}).isTrue()")
+    assert @context.eval("COUNT(#{events2}, #{moreThanZero}).isTrue()")
+    assert !@context.eval("COUNT(#{events2}, #{lessThanTwo}).isTrue()")
   end
   
   def test_union
@@ -402,19 +403,19 @@ class LibraryFunctionTest < Test::Unit::TestCase
     moreThan10 = 'new IVL_PQ(new PQ(11))'
     lessThan20 = 'new IVL_PQ(null, new PQ(19))'
     between15and25 = 'new IVL_PQ(new PQ(15), new PQ(25))'
-    assert !@context.eval("MIN(#{events0},#{exactly10})")
-    assert !@context.eval("MAX(#{events0},#{exactly10})")
-    assert !@context.eval("MIN(#{events0},#{exactly20})")
-    assert !@context.eval("MAX(#{events0},#{exactly20})")
-    assert @context.eval("MIN(#{events2},#{exactly10})")
-    assert !@context.eval("MAX(#{events2},#{exactly10})")
-    assert !@context.eval("MIN(#{events2},#{exactly20})")
-    assert @context.eval("MAX(#{events2},#{exactly20})")
-    assert !@context.eval("MIN(#{events2},#{moreThan10})")
-    assert @context.eval("MAX(#{events2},#{moreThan10})")
-    assert @context.eval("MIN(#{events2},#{lessThan20})")
-    assert !@context.eval("MAX(#{events2},#{lessThan20})")
-    assert !@context.eval("MIN(#{events2},#{between15and25})")
-    assert @context.eval("MAX(#{events2},#{between15and25})")
+    assert !@context.eval("MIN(#{events0},#{exactly10}).isTrue()")
+    assert !@context.eval("MAX(#{events0},#{exactly10}).isTrue()")
+    assert !@context.eval("MIN(#{events0},#{exactly20}).isTrue()")
+    assert !@context.eval("MAX(#{events0},#{exactly20}).isTrue()")
+    assert @context.eval("MIN(#{events2},#{exactly10}).isTrue()")
+    assert !@context.eval("MAX(#{events2},#{exactly10}).isTrue()")
+    assert !@context.eval("MIN(#{events2},#{exactly20}).isTrue()")
+    assert @context.eval("MAX(#{events2},#{exactly20}).isTrue()")
+    assert !@context.eval("MIN(#{events2},#{moreThan10}).isTrue()")
+    assert @context.eval("MAX(#{events2},#{moreThan10}).isTrue()")
+    assert @context.eval("MIN(#{events2},#{lessThan20}).isTrue()")
+    assert !@context.eval("MAX(#{events2},#{lessThan20}).isTrue()")
+    assert !@context.eval("MIN(#{events2},#{between15and25}).isTrue()")
+    assert @context.eval("MAX(#{events2},#{between15and25}).isTrue()")
   end
 end

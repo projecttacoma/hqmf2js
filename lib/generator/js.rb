@@ -136,6 +136,8 @@ module HQMF2JS
         // #########################
         // ##### MEASURE LOGIC #####
         // #########################
+        
+        #{js_initialize_specifics(@doc.source_data_criteria)}
 
         // INITIAL PATIENT POPULATION
         #{js_for(population['IPP'], 'IPP', true)}
@@ -148,7 +150,16 @@ module HQMF2JS
         "
       end
       
-      
+      def js_initialize_specifics(data_criteria)
+        specific_occurrences = []
+        data_criteria.each do |criteria|
+          if (criteria.specific_occurrence)
+            specific_occurrences << {id: "#{criteria.id}", type: "#{criteria.specific_occurrence_const}", function: "#{criteria.source_data_criteria}"}
+          end
+        end
+        json_list = specific_occurrences.map {|occurrence| occurrence.to_json}
+        "Specifics.initialize(#{json_list.join(',')})"
+      end
       
       # Generate JS for a HQMF2::PopulationCriteria
       def js_for(criteria_code, type=nil, when_not_found=false)

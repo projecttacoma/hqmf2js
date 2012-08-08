@@ -5,12 +5,12 @@ class @Logger
   @enabled: true
   @initialized: false
   @stringify: (object) ->
-    if !_.isUndefined(object.length)
+    if !_.isUndefined(object) and !_.isUndefined(object.length)
       "#{object.length} entries" 
     else
       "#{object}"
   @asBoolean: (object) ->
-    if !_.isUndefined(object.length)
+    if !_.isUndefined(object) and !_.isUndefined(object.length)
       object.length>0 
     else
       object

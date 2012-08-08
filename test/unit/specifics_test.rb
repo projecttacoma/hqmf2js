@@ -7,7 +7,14 @@ class SpecificsTest < Test::Unit::TestCase
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
     test_initialize_js = 
     "
-      Specifics.initialize('OccurrenceAEncounter','OccurrenceBEncounter')
+      Specifics.initialize({'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'})
+      var patient = {}
+      hqmfjs.SourceOccurrenceAEncounter = function(patient) {
+        return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
+      }
+      hqmfjs.SourceOccurrenceBEncounter = function(patient) {
+        return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
+      }
     "
     @context.eval(test_initialize_js)
   end
@@ -17,7 +24,11 @@ class SpecificsTest < Test::Unit::TestCase
     
     @context.eval('Specifics.KEY_LOOKUP[0]').must_equal 'OccurrenceAEncounter'
     @context.eval('Specifics.KEY_LOOKUP[1]').must_equal 'OccurrenceBEncounter'
-    
+    @context.eval('Specifics.FUNCTION_LOOKUP[0]').must_equal 'SourceOccurrenceAEncounter'
+    @context.eval('Specifics.FUNCTION_LOOKUP[1]').must_equal 'SourceOccurrenceBEncounter'
+    @context.eval("Specifics.TYPE_LOOKUP['Encounter'].length").must_equal 2
+    @context.eval("Specifics.TYPE_LOOKUP['Encounter'][0]").must_equal 0
+    @context.eval("Specifics.TYPE_LOOKUP['Encounter'][1]").must_equal 1
   end
   
   def test_specifics_row_union
@@ -151,6 +162,74 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("specific4.intersect(specific5).rows.length").must_equal 1
     @context.eval("specific4.intersect(specific5).rows[0].values[0].id").must_equal 1
     @context.eval("specific4.intersect(specific5).rows[0].values[1].id").must_equal 3
+    
+  end
+  
+  def test_negation
+    rows = "
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':3}});
+      var row5 = new Row({'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':4}});
+      var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
+
+      var specific1 = new Specifics([row1]);
+      var specific2 = new Specifics([row2]);
+      var specific3 = new Specifics([row3,row4]);
+      var specific4 = new Specifics([row3,row6]);
+      var specific5 = new Specifics([row5,row6]);
+      var specific6 = new Specifics([row1,row2])
+    "
+    
+    # test negation single specific
+    # test negation multiple specifics
+    
+    @context.eval(rows)
+    
+    # has row checks
+    @context.eval('specific1.hasRow(row1)').must_equal true
+    @context.eval('specific1.hasRow(row2)').must_equal true
+    @context.eval('specific1.hasRow(row3)').must_equal true
+    @context.eval('specific1.hasRow(row4)').must_equal false
+    @context.eval('specific1.hasRow(row5)').must_equal false
+    
+    # cartesian checks
+    @context.eval('Specifics._generateCartisian([[1,2,3]]).length').must_equal 3
+    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]]).length').must_equal 6
+    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[0][0]').must_equal 1
+    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[0][1]').must_equal 5
+    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[1][0]').must_equal 1
+    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[1][1]').must_equal 6
+    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[2][0]').must_equal 2
+    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[2][1]').must_equal 5
+    
+    # specificsWithValue on Row
+    @context.eval('row1.specificsWithValues()[0]').must_equal 0
+    @context.eval('row2.specificsWithValues()[0]').must_equal 1
+    @context.eval('row3.specificsWithValues()[0]').must_equal 0
+    @context.eval('row3.specificsWithValues()[1]').must_equal 1
+
+    # specificsWithValue on Specific
+    @context.eval('specific1.specificsWithValues()[0]').must_equal 0
+    @context.eval('specific2.specificsWithValues()[0]').must_equal 1
+    @context.eval('specific3.specificsWithValues()[0]').must_equal 0
+    @context.eval('specific3.specificsWithValues()[1]').must_equal 1
+    @context.eval('specific6.specificsWithValues()[0]').must_equal 0
+    @context.eval('specific6.specificsWithValues()[1]').must_equal 1
+    
+    @context.eval('specific1.negate().rows.length').must_equal 4
+    @context.eval('specific1.negate().rows[0].values[0].id').must_equal 2
+    @context.eval('specific1.negate().rows[1].values[0].id').must_equal 3
+    @context.eval('specific1.negate().rows[2].values[0].id').must_equal 4
+    @context.eval('specific1.negate().rows[3].values[0].id').must_equal 5
+    
+    # 5*5 values = 25 in the cartesian - 2 in the non-negated = 23 negated - 5 rows with OccurrA and OccurrB equal = 18!
+    @context.eval('specific5.negate().rows.length').must_equal 18
+    
+  end
+  
+  def test_remove_reused_specifics
     
   end
   

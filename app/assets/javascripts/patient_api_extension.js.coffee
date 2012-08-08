@@ -13,3 +13,21 @@ hQuery.CodedEntry::asIVL_TS = ->
   tsHigh = new TS()
   tsHigh.date = this.endDate() || this.timeStamp()
   new IVL_TS(tsLow, tsHigh)
+
+hQuery.CodedEntryList::isTrue = ->
+  @length != 0
+
+hQuery.CodedEntryList::isFalse = ->
+  @length == 0
+
+Array::isTrue = ->
+  @length != 0
+
+Array::isFalse = ->
+  @length == 0
+
+Boolean::isTrue = =>
+  `this == true`
+  
+Boolean::isFalse = =>
+  `this == false`
