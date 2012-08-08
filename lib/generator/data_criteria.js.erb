@@ -13,6 +13,11 @@ hqmfjs.MeasurePeriod = function(patient) {
     }
   )];
 }
+if (typeof effective_date === 'number') {
+  MeasurePeriod.high.date = new Date(1000*effective_date);
+  MeasurePeriod.low.date = new Date(1000*effective_date);
+  MeasurePeriod.low.date.setFullYear(MeasurePeriod.low.date.getFullYear()-1);
+}
 <%- end -%>
 <%- all_criteria.select {|c| c.type == :variable}.each do |criteria| -%>
 var <%=  js_name(criteria) %> = <%= js_for_value(criteria.value) %>;
