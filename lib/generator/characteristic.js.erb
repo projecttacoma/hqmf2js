@@ -1,0 +1,12 @@
+  var value = patient.<%= criteria.property %>(<%= js_for_date_bound(criteria) if criteria.property == :age %>);
+<%- if criteria.property == :birthtime -%>
+  var events = [value];
+  <%- if criteria.temporal_references -%>
+    <%- criteria.temporal_references.each do |temporal_reference| -%>
+  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
+    <%- end -%>
+  <%- end -%>
+  return events;
+<%- else -%>
+  return matchingValue(value, <%= js_for_bounds(criteria.value) %>);
+<%- end -%>

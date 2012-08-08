@@ -1,0 +1,19 @@
+  var events = patient.<%= patient_api_method(criteria) %>();
+<%- if criteria.status -%>
+  events = events.withStatuses(["<%= criteria.status %>"]<%= ", false" if criteria.hard_status %>);
+<%- end -%>
+<%- if criteria.negation -%>
+  events = events.withNegation(<%= "getCodes(\"#{criteria.negation_code_list_id}\")" if criteria.negation_code_list_id %>);
+<%- else -%>
+  events = events.withoutNegation();
+<%- end -%>
+  var codes = <%= js_for_code_list(criteria) %>;
+  var start = null;
+  var end = null;
+<%- if criteria.effective_time -%>
+  <%- startExp = js_for_value(criteria.effective_time.low) -%>
+  start = <%= startExp %><%= '.asDate()' if startExp != 'null' %>;
+  <%- endExp = js_for_value(criteria.effective_time.high) -%>
+  end = <%= endExp %><%= '.asDate()' if endExp != 'null' %>;
+<%- end -%>
+  events = events.match(codes, start, end, true);
