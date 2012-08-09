@@ -1,0 +1,18 @@
+var MeasurePeriod = {
+  "low": <%= js_for_value(measure_period.low) %>,
+  "high": <%= js_for_value(measure_period.high) %>
+}
+hqmfjs.MeasurePeriod = function(patient) {
+  return [new hQuery.CodedEntry(
+    {
+      "start_time": MeasurePeriod.low.asDate().getTime()/1000,
+      "end_time": MeasurePeriod.high.asDate().getTime()/1000,
+      "codes": {}
+    }
+  )];
+}
+if (typeof effective_date === 'number') {
+  MeasurePeriod.high.date = new Date(1000*effective_date);
+  MeasurePeriod.low.date = new Date(1000*effective_date);
+  MeasurePeriod.low.date.setFullYear(MeasurePeriod.low.date.getFullYear()-1);
+}

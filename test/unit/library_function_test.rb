@@ -221,35 +221,15 @@ class LibraryFunctionTest < Test::Unit::TestCase
     events0 = '[]'
     events1 = '[1]'
     events2 = '[2,3]'
-    assert @context.eval("XPRODUCT().length===0")
-    assert @context.eval("XPRODUCT(#{events0}).length===0")
-    assert !@context.eval("XPRODUCT(#{events0}).iterator().hasNext()")
-    assert @context.eval("XPRODUCT(#{events1}).length===1")
-    assert @context.eval("XPRODUCT(#{events1}).iterator().hasNext()")
-    assert @context.eval("XPRODUCT(#{events1}).iterator().next().length===1")
-    assert @context.eval("XPRODUCT(#{events1}).iterator().next()[0]===1")
-    assert @context.eval("XPRODUCT(#{events1},#{events2}).length===3")
-    assert @context.eval("XPRODUCT(#{events0},#{events2}).length===2")
-    assert @context.eval("XPRODUCT(#{events0},#{events2}).iterator().hasNext()")
-    assert @context.eval("XPRODUCT(#{events0},#{events2}).iterator().next().length===1")
-    assert @context.eval("XPRODUCT(#{events0},#{events2}).iterator().next()[0]===2")
-    @context.eval("var iterator = XPRODUCT(#{events1},#{events2}).iterator()")
-    assert @context.eval("iterator.hasNext()")
-    @context.eval('var combo1 = iterator.next()')
-    assert @context.eval('combo1.length===2')
-    assert @context.eval("combo1[0]===1")
-    assert @context.eval("combo1[1]===2")
-    assert @context.eval("iterator.hasNext()")
-    @context.eval('var combo2 = iterator.next()')
-    assert @context.eval('combo2.length===2')
-    assert @context.eval("combo2[0]===1")
-    assert @context.eval("combo2[1]===3")
-    assert !@context.eval("iterator.hasNext()")
-    if RUBY_PLATFORM!='java'
-      assert_raise V8::JSError, "No more entries" do
-        @context.eval('var combo3 = iterator.next()')
-      end
-    end
+    assert_equal 0, @context.eval("XPRODUCT().length")
+    assert_equal 0, @context.eval("XPRODUCT(#{events0}).length")
+    assert_equal 1, @context.eval("XPRODUCT(#{events0}).eventLists.length")
+    assert_equal 1, @context.eval("XPRODUCT(#{events1}).length")
+    assert_equal 1, @context.eval("XPRODUCT(#{events1}).eventLists.length")
+    assert_equal 3, @context.eval("XPRODUCT(#{events1},#{events2}).length")
+    assert_equal 2, @context.eval("XPRODUCT(#{events1},#{events2}).eventLists.length")
+    assert_equal 2, @context.eval("XPRODUCT(#{events0},#{events2}).length")
+    assert_equal 2, @context.eval("XPRODUCT(#{events0},#{events2}).eventLists.length")
   end
   
   def test_temporal_operators

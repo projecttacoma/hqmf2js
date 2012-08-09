@@ -215,44 +215,16 @@ getCodes = (oid) ->
   OidDictionary[oid]
 @getCodes = getCodes
 
-class CrossProductIterator
-  constructor: (@crossProduct) ->
-    @positions = []
-    for eventList in @crossProduct.eventLists
-      @positions.push(0)
-  hasNext: ->
-    if @positions.length==0
-      return false
-    available = true
-    for position, i in @positions
-      if position >= @crossProduct.eventLists[i].length
-        available = false
-    available
-  next: ->
-    throw "No more entries" if !this.hasNext()
-    combination = []
-    moved = false
-    for position, i in @positions
-      combination.push @crossProduct.eventLists[i][position]
-      if !moved && position < @crossProduct.eventLists[i].length-1
-        @positions[i] = position+1
-        moved = true
-    # if we weren't able to move to a new valid position then move off end
-    if !moved
-      @positions[0] = @positions[0] + 1
-    combination
-
+# Used for representing XPRODUCTs of arrays, holds both a flattened array that contains
+# all the elements of the compoent arrays and the component arrays themselves
 class CrossProduct extends Array
-  constructor: (eventLists) ->
+  constructor: (allEventLists) ->
     super()
     @eventLists = []
-    for eventList in eventLists
-      if eventList.length > 0
-        @eventLists.push eventList
-        for event in eventList
-          this.push(event)
-  iterator: ->
-    new CrossProductIterator(this)
+    for eventList in allEventLists
+      @eventLists.push eventList
+      for event in eventList
+        this.push(event)
 
 XPRODUCT = (eventLists...) ->
   Specifics.intersectAll(new CrossProduct(eventLists), eventLists)
@@ -327,22 +299,16 @@ withinRange = (method, eventIVL, boundIVL, range) ->
 @withinRange = withinRange
     
 eventMatchesBounds = (event, bounds, methodName, range) ->
-  eventIVL = getIVL(event)
-  matchingBounds = []
-  if bounds.iterator
-    iterator = bounds.iterator()
-    while iterator.hasNext()
-      boundList = iterator.next()
-      matchesAllInBoundList = true
-      for bound in boundList
-        boundIVL = getIVL(bound)
-        if !eventIVL[methodName](boundIVL)
-          matchesAllInBoundList = false
-        if matchesAllInBoundList && range
-          matchesAllInBoundList = withinRange(methodName, eventIVL, boundIVL, range)
-      if matchesAllInBoundList
-        matchingBounds.push(boundList)
+  if bounds.eventLists
+    # XPRODUCT set of bounds - event must match at least one bound in all members
+    matchingBounds = []
+    for boundList in bounds.eventLists
+      currentMatches = eventMatchesBounds(event, boundList, methodName, range)
+      return [] if (currentMatches.length == 0)
+      matchingBounds = matchingBounds.concat(currentMatches)
+    return Specifics.maintainSpecifics(matchingBounds,bounds)
   else
+    eventIVL = getIVL(event)
     matchingBounds = (bound for bound in bounds when (
       boundIVL = getIVL(bound)
       result = eventIVL[methodName](boundIVL)
@@ -350,7 +316,7 @@ eventMatchesBounds = (event, bounds, methodName, range) ->
         result &&= withinRange(methodName, eventIVL, boundIVL, range)
       result
     ))
-  matchingBounds
+    Specifics.maintainSpecifics(matchingBounds, bounds)
 @eventMatchesBounds = eventMatchesBounds
   
 eventsMatchBounds = (events, bounds, methodName, range) ->

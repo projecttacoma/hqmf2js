@@ -18,6 +18,38 @@ module HQMF2JS
         binding
       end
       
+      def js_for_measure_period(measure_period)
+        template_str = File.read(File.expand_path("../measure_period.js.erb", __FILE__))
+        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
+        params = {'measure_period' => measure_period}
+        context = ErbContext.new(params)
+        template.result(context.get_binding)
+      end
+      
+      def js_for_characteristic(criteria)
+        template_str = File.read(File.expand_path("../characteristic.js.erb", __FILE__))
+        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
+        params = {'criteria' => criteria}
+        context = ErbContext.new(params)
+        template.result(context.get_binding)
+      end
+      
+      def js_for_patient_data(criteria)
+        template_str = File.read(File.expand_path("../patient_data.js.erb", __FILE__))
+        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
+        params = {'criteria' => criteria}
+        context = ErbContext.new(params)
+        template.result(context.get_binding)
+      end
+      
+      def js_for_derived_data(criteria)
+        template_str = File.read(File.expand_path("../derived_data.js.erb", __FILE__))
+        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
+        params = {'criteria' => criteria}
+        context = ErbContext.new(params)
+        template.result(context.get_binding)
+      end
+      
       def js_for_value(value)
         if value
           if value.derived?
