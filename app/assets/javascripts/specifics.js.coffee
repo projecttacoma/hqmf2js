@@ -9,7 +9,7 @@ bind = (func, context) ->
   return Function::bind.apply(func, Array::slice.call(arguments, 1)) if (func.bind == Function::bind && Function::bind)
   throw new TypeError if (!_.isFunction(func)) 
   args = Array::slice.call(arguments, 2)
-  ->
+  return bound = ->
     ctor = ->
     return func.apply(context, args.concat(Array::slice.call(arguments))) if (!(this instanceof bound)) 
     ctor.prototype = func.prototype
@@ -22,6 +22,28 @@ Array::unique = ->
   output = {}
   output[@[key]] = @[key] for key in [0...@length]
   value for key, value of output
+
+Array::reduce = (accumulator) ->
+  throw new TypeError("Object is null or undefined") if (this==null or this==undefined) 
+  i = 0
+  l = this.length >> 0
+  curr=undefined
+  
+  throw new TypeError("First argument is not callable") if(typeof accumulator != "function")
+  
+  if(arguments.length < 2) 
+    throw new TypeError("Array length is 0 and no second argument") if (l == 0) 
+    curr = this[0]
+    i = 1
+  else
+    curr = arguments[1]
+
+  while (i < l) 
+    curr = accumulator.call(undefined, curr, this[i], i, this) if(`i in this`) 
+    ++i
+    
+  
+  return curr
 
 ###
   {
