@@ -136,10 +136,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval("hqmfjs.DiabetesMedOrdered(numeratorPatient).length")
     
     # Standard population health query buckets
-    assert @context.eval("hqmfjs.IPP(numeratorPatient)")
-    assert @context.eval("hqmfjs.DENOM(numeratorPatient)")
-    assert @context.eval("hqmfjs.NUMER(numeratorPatient)")
-    assert !@context.eval("hqmfjs.DENEXCEP(numeratorPatient)")
+    assert @context.eval("hqmfjs.IPP(numeratorPatient).isTrue()")
+    assert @context.eval("hqmfjs.DENOM(numeratorPatient).isTrue()")
+    assert @context.eval("hqmfjs.NUMER(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.DENEXCEP(numeratorPatient).isTrue()")
     
     # COUNTing
     assert @context.eval("hqmfjs.moreThanTwoHbA1CTests(numeratorPatient).isTrue()")

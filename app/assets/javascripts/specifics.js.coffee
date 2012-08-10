@@ -135,7 +135,9 @@ class Specifics
       result = myRow.intersect(row)
       return true if result?
     return false
-    
+  
+  hasRows: ->
+    @rows.length > 0
   
   specificsWithValues: ->
     foundSpecificIndexes = []
@@ -154,7 +156,11 @@ class Specifics
     result = result.intersect(eventsContext) if (eventsContext?)
     result = result.intersect(boundsContext) if (boundsContext?)
     result.compactReusedEvents()
-    
+  
+  @validate: (populations...) ->
+    value = Specifics.intersectAll(new Boolean(populations[0].isTrue()), populations)
+    value.isTrue() and value.specificContext.hasRows()
+  
   @intersectAll: (boolVal, values, negate=false) ->
     result = new Specifics()
     # add identity row
