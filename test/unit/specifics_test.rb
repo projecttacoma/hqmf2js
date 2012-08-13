@@ -229,9 +229,75 @@ class SpecificsTest < Test::Unit::TestCase
     
   end
   
-  def test_remove_reused_specifics
+  def test_finalize_events
     
   end
   
+  def test_add_rows_has_rows_has_specifics
+    rows = "
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
+      var row3 = new Row({});
+
+      var specific1 = new Specifics();
+      var specific2 = new Specifics([row2]);
+    "
+    
+    # test negation single specific
+    # test negation multiple specifics
+    
+    @context.eval(rows)
+    
+    @context.eval('specific1.hasRows()').must_equal false
+    @context.eval('specific2.hasRows()').must_equal true
+    @context.eval('specific1.hasSpecifics()').must_equal false
+    @context.eval('specific2.hasSpecifics()').must_equal true
+    @context.eval('row3.hasSpecifics()').must_equal false
+    @context.eval('row2.hasSpecifics()').must_equal true
+    
+    @context.eval('specific1.rows.length').must_equal 0
+    @context.eval('specific1.addRows([row2])')
+    @context.eval('specific1.rows.length').must_equal 1
+    @context.eval('specific2.rows.length').must_equal 1
+    @context.eval('specific2.addRows([row3])')
+    @context.eval('specific2.rows.length').must_equal 2
+    
+  end
+
+  def test_maintain_specfics
+    @context.eval('var x = new Boolean(true)')
+    @context.eval("x.specificContext = 'specificContext'")
+    @context.eval("x.specific_occurrence = 'specific_occurrence'")
+    @context.eval('var a = new Boolean(true)')
+    @context.eval("a = Specifics.maintainSpecifics(a,x)")
+    @context.eval("typeof(a.specificContext) != 'undefined'").must_equal true
+    @context.eval("typeof(a.specific_occurrence) != 'undefined'").must_equal true
+    
+  end
+  
+  def test_compact_reused_events
+    
+  end
+  
+  def test_validate
+    
+  end
+  
+  def test_intersect_all
+    
+  end
+  
+  def test_union_all
+    
+  end
+  
+  def test_row_build_rows_for_matching
+    
+  end
+  
+  def test_row_build_for_data_criteria
+    
+  end
   
 end
