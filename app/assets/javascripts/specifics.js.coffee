@@ -168,7 +168,13 @@ class Specifics
     for value in values
       if value.specificContext?
         result = result.intersect(value.specificContext)
-    result = result.negate() if negate
+    if negate and result.hasSpecifics()
+      result = result.negate()
+      result = result.compactReusedEvents()
+      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.
+      # the reason we do this is because we may get too many negated values.  Values that may be culled later via other specific occurrences.  Thus we don't want to return 
+      # false out of a negation because the values we are evaluating as false may be dropped.
+      boolVal = new Boolean(true)
     boolVal.specificContext = result.compactReusedEvents()
     boolVal
 
@@ -177,7 +183,11 @@ class Specifics
     for value in values
       if value.specificContext? and (value.isTrue() or negate)
         result = result.union(value.specificContext) if value.specificContext?
-    result = result.negate() if negate
+    
+    if negate and result.hasSpecifics()
+      result = result.negate() 
+      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.  See comment in intersectAll.
+      boolVal = new Boolean(true)
     boolVal.specificContext = result
     boolVal
   
@@ -211,7 +221,7 @@ class Row
     @length = Specifics.OCCURRENCES.length
     foundSpecificIndexes = []
     for i in [0...@length]
-      foundSpecificIndexes.push(i) if @values[i] != Specifics.ANY
+      foundSpecificIndexes.push(i) if @values[i]? and @values[i] != Specifics.ANY
     foundSpecificIndexes
 
   intersect: (other) ->

@@ -194,7 +194,7 @@ allTrue = (values...) ->
   
 atLeastOneFalse = (values...) ->
   falseValues = (value for value in values when value.isFalse())
-  result = Specifics.intersectAll(new Boolean(falseValues.length>0), values, true)
+  Specifics.intersectAll(new Boolean(falseValues.length>0), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 allFalse = (values...) ->
