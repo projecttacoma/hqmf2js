@@ -165,20 +165,19 @@ class Specifics
     result = new Specifics()
     # add identity row
     result.addRows([new Row()])
-    if (boolVal.isTrue())
-      for value in values
-        if value.specificContext?
-          result = result.intersect(value.specificContext)
+    for value in values
+      if value.specificContext?
+        result = result.intersect(value.specificContext)
     result = result.negate() if negate
-    boolVal.specificContext = result
+    boolVal.specificContext = result.compactReusedEvents()
     boolVal
 
   @unionAll: (boolVal, values,negate=false) ->
     result = new Specifics()
-    if (boolVal.isTrue())
-      for value in values
+    for value in values
+      if value.specificContext? and (value.isTrue() or negate)
         result = result.union(value.specificContext) if value.specificContext?
-        result = result.negate() if negate
+    result = result.negate() if negate
     boolVal.specificContext = result
     boolVal
   

@@ -194,12 +194,12 @@ allTrue = (values...) ->
   
 atLeastOneFalse = (values...) ->
   falseValues = (value for value in values when value.isFalse())
-  result = Specifics.unionAll(new Boolean(falseValues.length>0), values, true)
+  result = Specifics.intersectAll(new Boolean(falseValues.length>0), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 allFalse = (values...) ->
   falseValues = (value for value in values when value.isFalse())
-  Specifics.intersectAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
+  Specifics.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse
   
 matchingValue = (value, compareTo) ->

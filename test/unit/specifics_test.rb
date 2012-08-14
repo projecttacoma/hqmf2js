@@ -229,10 +229,6 @@ class SpecificsTest < Test::Unit::TestCase
     
   end
   
-  def test_finalize_events
-    
-  end
-  
   def test_add_rows_has_rows_has_specifics
     rows = "
       var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
@@ -275,29 +271,246 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("typeof(a.specific_occurrence) != 'undefined'").must_equal true
     
   end
-  
+
   def test_compact_reused_events
+    rows = "
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':2}});
+      var row5 = new Row({'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':3}});
+      var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
+      
+      var specific1 = new Specifics([row1,row2,row3,row4,row5,row6]);
+    "
+    
+    @context.eval(rows)
+    
+    @context.eval('specific1.rows.length').must_equal 6
+    @context.eval('specific1.compactReusedEvents().rows.length').must_equal 4
     
   end
-  
-  def test_validate
-    
-  end
-  
-  def test_intersect_all
-    
-  end
-  
-  def test_union_all
-    
-  end
-  
+
   def test_row_build_rows_for_matching
+    
+    events = "
+      var entryKey = 'OccurrenceAEncounter';
+      var boundsKey = 'OccurrenceBEncounter';
+      var entry = {'id':3};
+      var bounds = [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5},{'id':6},{'id':7},{'id':8}];
+    "
+
+    @context.eval(events)
+    @context.eval('var rows = Row.buildRowsForMatching(entryKey,entry,boundsKey,bounds)')
+    @context.eval('rows.length').must_equal 8
+    @context.eval('rows[0].values.length').must_equal 2
+    @context.eval('rows[0].values[0].id').must_equal 3
+    @context.eval('rows[0].values[1].id').must_equal 1
+    @context.eval('rows[7].values[0].id').must_equal 3
+    @context.eval('rows[7].values[1].id').must_equal 8
+    @context.eval('var specific = new Specifics(rows)')
+    @context.eval('specific.rows.length').must_equal 8
+    @context.eval('specific.compactReusedEvents().rows.length').must_equal 7
     
   end
   
   def test_row_build_for_data_criteria
+
+    events = "
+      var entryKey = 'OccurrenceAEncounter';
+      var entries = [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5},{'id':6},{'id':7},{'id':8}];
+    "
+
+    @context.eval(events)
+    @context.eval('var rows = Row.buildForDataCriteria(entryKey,entries)')
+    @context.eval('rows.length').must_equal 8
+    @context.eval('rows[0].values.length').must_equal 2
+    @context.eval('rows[0].values[0].id').must_equal 1
+    @context.eval('rows[0].values[1]').must_equal '*'
+    @context.eval('rows[7].values[0].id').must_equal 8
+    @context.eval('rows[7].values[1]').must_equal '*'
     
   end
+  
+  def test_finalize_events
+    rows = "
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceAEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row({'OccurrenceBEncounter':{'id':4}});
+      var row5 = new Row({'OccurrenceBEncounter':{'id':5}});
+      var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
+      var row7 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
+      var row8 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
+      
+      var specific1 = new Specifics([row1,row2]);
+      var specific2 = new Specifics([row3,row4,row5]);
+      var specific3 = new Specifics([row6,row7,row8]);
+    "
+    @context.eval(rows)
+    @context.eval('var result = specific1.finalizeEvents(specific2,specific3)')
+    @context.eval('result.rows.length').must_equal 3
+    @context.eval('result.rows[0].values[0].id').must_equal 1
+    @context.eval('result.rows[0].values[1].id').must_equal 4
+    @context.eval('result.rows[1].values[0].id').must_equal 1
+    @context.eval('result.rows[1].values[1].id').must_equal 5
+    @context.eval('result.rows[2].values[0].id').must_equal 2
+    @context.eval('result.rows[2].values[1].id').must_equal 4
+
+    @context.eval('var result = specific2.finalizeEvents(specific1,specific3)')
+    @context.eval('result.rows.length').must_equal 3
+
+    @context.eval('var result = specific1.finalizeEvents(null,specific3)')
+    @context.eval('result.rows.length').must_equal 3
+    
+    # result if 5 and not 6 becasue the 2/2 row gets dropped
+    @context.eval('var result = specific1.finalizeEvents(specific2, null)')
+    @context.eval('result.rows.length').must_equal 5
+    
+  end
+  
+  def test_validate
+    rows = "
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceAEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row({'OccurrenceBEncounter':{'id':4}});
+      var row5 = new Row({'OccurrenceBEncounter':{'id':5}});
+      var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
+      var row7 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
+      var row8 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
+
+      var row9 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':6}});
+      
+      var specific1 = new Specifics([row1,row2]);
+      var specific2 = new Specifics([row3,row4,row5]);
+      var specific3 = new Specifics([row6,row7,row8]);
+      var specific4 = new Specifics([row9]);
+      var specific5 = new Specifics();
+      
+      var pop1 = new Boolean(true)
+      pop1.specificContext = specific1
+
+      var pop2 = new Boolean(true)
+      pop2.specificContext = specific2
+
+      var pop3 = new Boolean(true)
+      pop3.specificContext = specific3
+
+      var pop4 = new Boolean(true)
+      pop4.specificContext = specific4
+
+      var pop5 = new Boolean(true)
+      pop5.specificContext = specific5
+      
+      var pop3f = new Boolean(false)
+      pop3f.specificContext = specific3
+            
+    "
+    @context.eval(rows)
+    
+    @context.eval('Specifics.validate(pop1,pop2,pop3)').must_equal true
+    @context.eval('Specifics.validate(pop1,pop2,pop4)').must_equal false
+    @context.eval('Specifics.validate(pop1,pop2,pop5)').must_equal false
+    @context.eval('Specifics.validate(pop3f,pop1,pop2)').must_equal false
+    
+  end
+  
+  def test_intersect_all
+
+    rows = "
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceAEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row({'OccurrenceBEncounter':{'id':4}});
+      var row5 = new Row({'OccurrenceBEncounter':{'id':5}});
+      var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
+      var row7 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
+      var row8 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
+      
+      var specific1 = new Specifics([row1,row2]);
+      var specific2 = new Specifics([row3,row4,row5]);
+      var specific3 = new Specifics([row6,row7,row8]);
+      
+      var pop1 = new Boolean(true)
+      pop1.specificContext = specific1
+
+      var pop2 = new Boolean(true)
+      pop2.specificContext = specific2
+
+      var pop3 = new Boolean(true)
+      pop3.specificContext = specific3
+      
+            
+    "
+    @context.eval(rows)
+    
+    @context.eval('var intersection = Specifics.intersectAll(new Boolean(true), [pop1,pop2,pop3])')
+    assert @context.eval('intersection.isTrue()')
+    @context.eval('var result = intersection.specificContext')
+    
+    @context.eval('result.rows.length').must_equal 3
+
+    @context.eval('result.rows[0].values[0].id').must_equal 1
+    @context.eval('result.rows[0].values[1].id').must_equal 4
+    @context.eval('result.rows[1].values[0].id').must_equal 1
+    @context.eval('result.rows[1].values[1].id').must_equal 5
+    @context.eval('result.rows[2].values[0].id').must_equal 2
+    @context.eval('result.rows[2].values[1].id').must_equal 4
+
+    @context.eval('var intersection = Specifics.intersectAll(new Boolean(true), [pop1,pop2,pop3], true)')
+    @context.eval('var result = intersection.specificContext')
+    
+    # 5*5 = 25 - 5 equal rows - 3 non-negated = 17
+    @context.eval('result.rows.length').must_equal 17
+    
+  end
+  
+  def test_union_all
+
+    rows = "
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceAEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row({'OccurrenceBEncounter':{'id':4}});
+      var row5 = new Row({'OccurrenceBEncounter':{'id':5}});
+      var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
+      var row7 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
+      var row8 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
+      
+      var specific1 = new Specifics([row1,row2]);
+      var specific2 = new Specifics([row3,row4,row5]);
+      var specific3 = new Specifics([row6,row7,row8]);
+      
+      var pop1 = new Boolean(true)
+      pop1.specificContext = specific1
+
+      var pop2 = new Boolean(true)
+      pop2.specificContext = specific2
+
+      var pop3 = new Boolean(true)
+      pop3.specificContext = specific3
+      
+            
+    "
+    @context.eval(rows)
+    
+    @context.eval('var union = Specifics.unionAll(new Boolean(true), [pop1,pop2,pop3])')
+    assert @context.eval('union.isTrue()')
+    @context.eval('var result = union.specificContext')
+    
+    @context.eval('result.rows.length').must_equal 8
+
+    @context.eval('var union = Specifics.unionAll(new Boolean(true), [pop1,pop2,pop3], true)')
+    assert @context.eval('union.isTrue()')
+    @context.eval('var result = union.specificContext')
+    
+    # originally 5*5, but we remove 1,2 from the left and 2,4,5 from the right
+    # that leaves [3,4,5] x [1,3] which is 6 rows... minus the 3,3 row we get 5 rows
+    
+    @context.eval('result.rows.length').must_equal 5
+
+  end
+  
   
 end
