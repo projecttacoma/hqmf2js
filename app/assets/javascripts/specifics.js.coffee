@@ -124,7 +124,7 @@ class Specifics
       for type,indexes of Specifics.TYPE_LOOKUP
         ids = []
         for index in indexes
-          ids.push(myRow.values[index].id) 
+          ids.push(myRow.values[index].id) if myRow.values[index] != Specifics.ANY
         goodRow &&= ids.length == ids.unique().length
       newRows.push(myRow) if goodRow
     new Specifics(newRows)
@@ -156,6 +156,13 @@ class Specifics
     result = result.intersect(eventsContext) if (eventsContext?)
     result = result.intersect(boundsContext) if (boundsContext?)
     result.compactReusedEvents()
+  
+  group: (key) ->
+    groupedRows = []
+    for row in @rows
+      groupedRows[row.groupKey(key)] = row
+    groupedRows
+    
   
   @validate: (populations...) ->
     value = Specifics.intersectAll(new Boolean(populations[0].isTrue()), populations)
@@ -234,6 +241,12 @@ class Row
       else
         return undefined
     intersectedRow
+  
+  groupKey: (key) ->
+    keyForGroup = ''
+    for i in [0...@length]
+      keyForGroup += "#{@values[i].id}_" unless Specifics.KEY_LOOKUP[i] == key
+    
   
   @match: (left, right) ->
     return right if left == Specifics.ANY
