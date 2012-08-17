@@ -59,13 +59,16 @@ class Specifics
   @KEY_LOOKUP
   @TYPE_LOOKUP
   @INITIALIZED: false
+  @PATIENT: null
   @ANY = '*'
   
-  @initialize: (occurrences...)->
+  @initialize: (patient, hqmfjs, occurrences...)->
     Specifics.OCCURRENCES = occurrences
     Specifics.KEY_LOOKUP = {}
     Specifics.TYPE_LOOKUP = {}
     Specifics.FUNCTION_LOOKUP = {}
+    Specifics.PATIENT = patient
+    Specifics.HQMFJS = hqmfjs
     for occurrenceKey,i in occurrences
       Specifics.KEY_LOOKUP[i] = occurrenceKey.id
       Specifics.FUNCTION_LOOKUP[i] = occurrenceKey.function
@@ -97,7 +100,7 @@ class Specifics
     allValues = []
     for index in @specificsWithValues()
       keys.push(Specifics.KEY_LOOKUP[index])
-      allValues.push(hqmfjs[Specifics.FUNCTION_LOOKUP[index]](patient))
+      allValues.push(Specifics.HQMFJS[Specifics.FUNCTION_LOOKUP[index]](Specifics.PATIENT))
     cartesian = Specifics._generateCartisian(allValues)
     for values in cartesian
       occurrences = {}
@@ -175,7 +178,7 @@ class Specifics
     for value in values
       if value.specificContext?
         result = result.intersect(value.specificContext)
-    if negate and result.hasSpecifics()
+    if negate and (!result.hasRows() or result.hasSpecifics())
       result = result.negate()
       result = result.compactReusedEvents()
       # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.

@@ -7,8 +7,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
     test_initialize_js = 
     "
-      Specifics.initialize({'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'})
-      var patient = {}
+      Specifics.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'})
       hqmfjs.SourceOccurrenceAEncounter = function(patient) {
         return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
       }
@@ -70,7 +69,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("row4.values[1]").must_equal '*'
   end
     
-
+  
   def test_row_match
     rows = "
       var row1 = new Row({});
@@ -140,17 +139,17 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("specific1.intersect(specific2).rows.length").must_equal 1
     @context.eval("specific1.intersect(specific2).rows[0].values[0].id").must_equal 1
     @context.eval("specific1.intersect(specific2).rows[0].values[1].id").must_equal 2
-
+  
     @context.eval("specific1.intersect(specific3).rows.length").must_equal 1
     @context.eval("specific1.intersect(specific3).rows[0].values[0].id").must_equal 1
     @context.eval("specific1.intersect(specific3).rows[0].values[1].id").must_equal 2
-
+  
     @context.eval("specific1.intersect(specific4).rows.length").must_equal 2
     @context.eval("specific1.intersect(specific4).rows[0].values[0].id").must_equal 1
     @context.eval("specific1.intersect(specific4).rows[0].values[1].id").must_equal 2
     @context.eval("specific1.intersect(specific4).rows[1].values[0].id").must_equal 1
     @context.eval("specific1.intersect(specific4).rows[1].values[1].id").must_equal 3
-
+  
     @context.eval("specific2.intersect(specific3).rows.length").must_equal 2
     @context.eval("specific2.intersect(specific3).rows[0].values[0].id").must_equal 1
     @context.eval("specific2.intersect(specific3).rows[0].values[1].id").must_equal 2
@@ -173,7 +172,7 @@ class SpecificsTest < Test::Unit::TestCase
       var row4 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':3}});
       var row5 = new Row({'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':4}});
       var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
-
+  
       var specific1 = new Specifics([row1]);
       var specific2 = new Specifics([row2]);
       var specific3 = new Specifics([row3,row4]);
@@ -209,7 +208,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('row2.specificsWithValues()[0]').must_equal 1
     @context.eval('row3.specificsWithValues()[0]').must_equal 0
     @context.eval('row3.specificsWithValues()[1]').must_equal 1
-
+  
     # specificsWithValue on Specific
     @context.eval('specific1.specificsWithValues()[0]').must_equal 0
     @context.eval('specific2.specificsWithValues()[0]').must_equal 1
@@ -235,7 +234,7 @@ class SpecificsTest < Test::Unit::TestCase
       var row2 = new Row({'OccurrenceBEncounter':{'id':2}});
       var row3 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
       var row3 = new Row({});
-
+  
       var specific1 = new Specifics();
       var specific2 = new Specifics([row2]);
     "
@@ -260,7 +259,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('specific2.rows.length').must_equal 2
     
   end
-
+  
   def test_maintain_specfics
     @context.eval('var x = new Boolean(true)')
     @context.eval("x.specificContext = 'specificContext'")
@@ -271,7 +270,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("typeof(a.specific_occurrence) != 'undefined'").must_equal true
     
   end
-
+  
   def test_compact_reused_events
     rows = "
       var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
@@ -290,7 +289,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('specific1.compactReusedEvents().rows.length').must_equal 4
     
   end
-
+  
   def test_row_build_rows_for_matching
     
     events = "
@@ -299,7 +298,7 @@ class SpecificsTest < Test::Unit::TestCase
       var entry = {'id':3};
       var bounds = [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5},{'id':6},{'id':7},{'id':8}];
     "
-
+  
     @context.eval(events)
     @context.eval('var rows = Row.buildRowsForMatching(entryKey,entry,boundsKey,bounds)')
     @context.eval('rows.length').must_equal 8
@@ -315,12 +314,12 @@ class SpecificsTest < Test::Unit::TestCase
   end
   
   def test_row_build_for_data_criteria
-
+  
     events = "
       var entryKey = 'OccurrenceAEncounter';
       var entries = [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5},{'id':6},{'id':7},{'id':8}];
     "
-
+  
     @context.eval(events)
     @context.eval('var rows = Row.buildForDataCriteria(entryKey,entries)')
     @context.eval('rows.length').must_equal 8
@@ -356,10 +355,10 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('result.rows[1].values[1].id').must_equal 5
     @context.eval('result.rows[2].values[0].id').must_equal 2
     @context.eval('result.rows[2].values[1].id').must_equal 4
-
+  
     @context.eval('var result = specific2.finalizeEvents(specific1,specific3)')
     @context.eval('result.rows.length').must_equal 3
-
+  
     @context.eval('var result = specific1.finalizeEvents(null,specific3)')
     @context.eval('result.rows.length').must_equal 3
     
@@ -379,7 +378,7 @@ class SpecificsTest < Test::Unit::TestCase
       var row6 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
       var row7 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
       var row8 = new Row({'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
-
+  
       var row9 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':6}});
       
       var specific1 = new Specifics([row1,row2]);
@@ -390,16 +389,16 @@ class SpecificsTest < Test::Unit::TestCase
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
-
+  
       var pop2 = new Boolean(true)
       pop2.specificContext = specific2
-
+  
       var pop3 = new Boolean(true)
       pop3.specificContext = specific3
-
+  
       var pop4 = new Boolean(true)
       pop4.specificContext = specific4
-
+  
       var pop5 = new Boolean(true)
       pop5.specificContext = specific5
       
@@ -417,7 +416,7 @@ class SpecificsTest < Test::Unit::TestCase
   end
   
   def test_intersect_all
-
+  
     rows = "
       var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
       var row2 = new Row({'OccurrenceAEncounter':{'id':2}});
@@ -434,10 +433,10 @@ class SpecificsTest < Test::Unit::TestCase
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
-
+  
       var pop2 = new Boolean(true)
       pop2.specificContext = specific2
-
+  
       var pop3 = new Boolean(true)
       pop3.specificContext = specific3
       
@@ -450,14 +449,14 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('var result = intersection.specificContext')
     
     @context.eval('result.rows.length').must_equal 3
-
+  
     @context.eval('result.rows[0].values[0].id').must_equal 1
     @context.eval('result.rows[0].values[1].id').must_equal 4
     @context.eval('result.rows[1].values[0].id').must_equal 1
     @context.eval('result.rows[1].values[1].id').must_equal 5
     @context.eval('result.rows[2].values[0].id').must_equal 2
     @context.eval('result.rows[2].values[1].id').must_equal 4
-
+  
     @context.eval('var intersection = Specifics.intersectAll(new Boolean(true), [pop1,pop2,pop3], true)')
     @context.eval('var result = intersection.specificContext')
     
@@ -467,7 +466,7 @@ class SpecificsTest < Test::Unit::TestCase
   end
   
   def test_union_all
-
+  
     rows = "
       var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
       var row2 = new Row({'OccurrenceAEncounter':{'id':2}});
@@ -484,10 +483,10 @@ class SpecificsTest < Test::Unit::TestCase
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
-
+  
       var pop2 = new Boolean(true)
       pop2.specificContext = specific2
-
+  
       var pop3 = new Boolean(true)
       pop3.specificContext = specific3
       
@@ -500,7 +499,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('var result = union.specificContext')
     
     @context.eval('result.rows.length').must_equal 8
-
+  
     @context.eval('var union = Specifics.unionAll(new Boolean(true), [pop1,pop2,pop3], true)')
     assert @context.eval('union.isTrue()')
     @context.eval('var result = union.specificContext')
@@ -509,8 +508,24 @@ class SpecificsTest < Test::Unit::TestCase
     # that leaves [3,4,5] x [1,3] which is 6 rows... minus the 3,3 row we get 5 rows
     
     @context.eval('result.rows.length').must_equal 5
-
+  
   end
+
+  # def test_row_grouping_key
+  # 
+  #   rows = "
+  #     var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+  #     var row2 = new Row({'OccurrenceBEncounter':{'id':2}});
+  #     var row3 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
+  #     var row4 = new Row({});
+  #     
+  #   "
+  #   @context.eval(rows)
+  # 
+  #   @context.eval("")
+  #   
+  # 
+  # end
   
   
 end

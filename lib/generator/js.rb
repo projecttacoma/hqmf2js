@@ -190,7 +190,9 @@ module HQMF2JS
           end
         end
         json_list = specific_occurrences.map {|occurrence| occurrence.to_json}
-        "Specifics.initialize(#{json_list.join(',')})"
+        specifics_list = json_list.join(',')
+        specifics_list = ",#{specifics_list}" unless specifics_list.empty?
+        "hqmfjs.initializeSpecifics = function(patient_api, hqmfjs) { Specifics.initialize(patient_api,hqmfjs#{specifics_list}) }"
       end
       
       # Generate JS for a HQMF2::PopulationCriteria
