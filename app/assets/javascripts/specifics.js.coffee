@@ -42,8 +42,8 @@ Array::reduce = (accumulator) ->
     curr = accumulator.call(undefined, curr, this[i], i, this) if(`i in this`) 
     ++i
     
-  
   return curr
+  
 
 ###
   {
@@ -65,12 +65,14 @@ class Specifics
   @initialize: (patient, hqmfjs, occurrences...)->
     Specifics.OCCURRENCES = occurrences
     Specifics.KEY_LOOKUP = {}
+    Specifics.INDEX_LOOKUP = {}
     Specifics.TYPE_LOOKUP = {}
     Specifics.FUNCTION_LOOKUP = {}
     Specifics.PATIENT = patient
     Specifics.HQMFJS = hqmfjs
     for occurrenceKey,i in occurrences
       Specifics.KEY_LOOKUP[i] = occurrenceKey.id
+      Specifics.INDEX_LOOKUP[occurrenceKey.id] = i
       Specifics.FUNCTION_LOOKUP[i] = occurrenceKey.function
       Specifics.TYPE_LOOKUP[occurrenceKey.type] ||= []
       Specifics.TYPE_LOOKUP[occurrenceKey.type].push(i)
@@ -160,12 +162,51 @@ class Specifics
     result = result.intersect(boundsContext) if (boundsContext?)
     result.compactReusedEvents()
   
-  group: (key) ->
-    groupedRows = []
+  group: (key=null) ->
+    groupedRows = {}
     for row in @rows
-      groupedRows[row.groupKey(key)] = row
+      groupedRows[row.groupKey(key)] ||= []
+      groupedRows[row.groupKey(key)].push(row)
     groupedRows
     
+  COUNT: (key, range) ->
+    return this if !@hasSpecifics()
+    resultRows = []
+    groupedRows = @group(key)
+    for groupKey, group of groupedRows
+      if COUNT(Specifics.extractEvents(key, group), range).isTrue()
+        resultRows = resultRows.concat(group)
+    new Specifics(resultRows)
+
+  FIRST: (key) ->
+    return this if !@hasSpecifics()
+    @applySubset(key, FIRST)
+
+  RECENT: (key) ->
+    return this if !@hasSpecifics()
+    @applySubset(key, RECENT)
+    
+  applySubset: (key, func) ->
+    resultRows = []
+    groupedRows = @group(key)
+    for groupKey, group of groupedRows
+      entries = func(Specifics.extractEvents(key, group))
+      if entries.length > 0
+        resultRows.push(entries[0].specificRow)
+    new Specifics(resultRows)
+  
+  @extractEvents: (key, rows) ->
+    events = []
+    index = Specifics.INDEX_LOOKUP[key]
+    for row in rows
+      if index?
+        entry = row.values[index]
+      else
+        entry = row.tempValue
+      entry = new hQuery.CodedEntry(entry.json)
+      entry.specificRow = row
+      events.push(entry)
+    events
   
   @validate: (populations...) ->
     value = Specifics.intersectAll(new Boolean(populations[0].isTrue()), populations)
@@ -245,11 +286,13 @@ class Row
         return undefined
     intersectedRow
   
-  groupKey: (key) ->
+  groupKey: (key=null) ->
     keyForGroup = ''
     for i in [0...@length]
-      keyForGroup += "#{@values[i].id}_" unless Specifics.KEY_LOOKUP[i] == key
-    
+      value = Specifics.ANY
+      value = @values[i].id if @values[i] != Specifics.ANY 
+      keyForGroup += "#{value}_" unless Specifics.KEY_LOOKUP[i] == key
+    keyForGroup
   
   @match: (left, right) ->
     return right if left == Specifics.ANY

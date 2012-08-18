@@ -23,6 +23,8 @@ class SpecificsTest < Test::Unit::TestCase
     
     @context.eval('Specifics.KEY_LOOKUP[0]').must_equal 'OccurrenceAEncounter'
     @context.eval('Specifics.KEY_LOOKUP[1]').must_equal 'OccurrenceBEncounter'
+    @context.eval("Specifics.INDEX_LOOKUP['OccurrenceAEncounter']").must_equal 0
+    @context.eval("Specifics.INDEX_LOOKUP['OccurrenceBEncounter']").must_equal 1
     @context.eval('Specifics.FUNCTION_LOOKUP[0]').must_equal 'SourceOccurrenceAEncounter'
     @context.eval('Specifics.FUNCTION_LOOKUP[1]').must_equal 'SourceOccurrenceBEncounter'
     @context.eval("Specifics.TYPE_LOOKUP['Encounter'].length").must_equal 2
@@ -310,7 +312,13 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('var specific = new Specifics(rows)')
     @context.eval('specific.rows.length').must_equal 8
     @context.eval('specific.compactReusedEvents().rows.length').must_equal 7
-    
+    @context.eval('var rows = Row.buildRowsForMatching(undefined,entry,boundsKey,bounds)')
+    @context.eval('rows.length').must_equal 8
+    @context.eval("rows[0].tempValue.id").must_equal 3
+    @context.eval("rows[5].tempValue.id").must_equal 3
+    @context.eval("rows[0].tempValue.id").must_equal 3
+    @context.eval("rows[0].values[1].id").must_equal 1
+    @context.eval("rows[5].values[1].id").must_equal 6
   end
   
   def test_row_build_for_data_criteria
@@ -511,21 +519,207 @@ class SpecificsTest < Test::Unit::TestCase
   
   end
 
-  # def test_row_grouping_key
-  # 
-  #   rows = "
-  #     var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
-  #     var row2 = new Row({'OccurrenceBEncounter':{'id':2}});
-  #     var row3 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
-  #     var row4 = new Row({});
-  #     
-  #   "
-  #   @context.eval(rows)
-  # 
-  #   @context.eval("")
-  #   
-  # 
-  # end
+  def test_row_grouping_key
   
+    rows = "
+      Specifics.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'},{'id':'OccurrenceAProcedure', 'type':'Procedure', 'function':'SourceOccurrenceAProcedure'})
+      
+      var row1 = new Row({'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row({'OccurrenceBEncounter':{'id':2}});
+      var row3 = new Row({'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
+      var row4 = new Row({});
+      
+    "
+    @context.eval(rows)
+    
+    @context.eval("row1.groupKey()").must_equal "1_*_*_"
+    @context.eval("row1.groupKey('OccurrenceAEncounter')").must_equal "*_*_"
+    @context.eval("row1.groupKey('OccurrenceAProcedure')").must_equal "1_*_"
+    @context.eval("row2.groupKey()").must_equal "*_2_*_"
+    @context.eval("row2.groupKey('OccurrenceAProcedure')").must_equal "*_2_"
+    @context.eval("row3.groupKey()").must_equal "1_4_*_"
+    @context.eval("row3.groupKey('OccurrenceAEncounter')").must_equal "4_*_"
+    @context.eval("row3.groupKey('OccurrenceBEncounter')").must_equal "1_*_"
+    @context.eval("row3.groupKey('OccurrenceAProcedure')").must_equal "1_4_"
+    @context.eval("row4.groupKey()").must_equal "*_*_*_"
+    @context.eval("row4.groupKey('OccurrenceBEncounter')").must_equal "*_*_"
+    
+  end
+  
+  def test_group_specifics
+  
+    rows = "
+      var non_specific_rows = [new Row({undefined: {id:10}, 'OccurrenceAEncounter':{'id':1}}),
+                               new Row({undefined: {id:11}, 'OccurrenceAEncounter':{'id':1}}),
+                               new Row({undefined: {id:12}, 'OccurrenceAEncounter':{'id':2}}),
+                               new Row({undefined: {id:13}, 'OccurrenceAEncounter':{'id':2}}),
+                               new Row({undefined: {id:14}, 'OccurrenceAEncounter':{'id':2}}),
+                               new Row({undefined: {id:15}, 'OccurrenceAEncounter':{'id':3}})]
+      
+      var specific_rows = [new Row({OccurrenceAEncounter: {id:10}, 'OccurrenceBEncounter':{'id':1}}),
+                           new Row({OccurrenceAEncounter: {id:11}, 'OccurrenceBEncounter':{'id':1}}),
+                           new Row({OccurrenceAEncounter: {id:12}, 'OccurrenceBEncounter':{'id':2}}),
+                           new Row({OccurrenceAEncounter: {id:13}, 'OccurrenceBEncounter':{'id':2}}),
+                           new Row({OccurrenceAEncounter: {id:14}, 'OccurrenceBEncounter':{'id':2}}),
+                           new Row({OccurrenceAEncounter: {id:15}, 'OccurrenceBEncounter':{'id':3}})]
+      
+      var specific1 = new Specifics(non_specific_rows);
+      var specific2 = new Specifics(specific_rows);
+      
+    "
+    @context.eval(rows)
+    
+    @context.eval("specific1.group()['1_*_'].length").must_equal 2
+    @context.eval("specific1.group()['2_*_'].length").must_equal 3
+    @context.eval("specific1.group()['3_*_'].length").must_equal 1
+
+    @context.eval("specific1.group(undefined)['1_*_'].length").must_equal 2
+    @context.eval("specific1.group(undefined)['2_*_'].length").must_equal 3
+    @context.eval("specific1.group(undefined)['3_*_'].length").must_equal 1
+
+    @context.eval("specific2.group('OccurrenceAEncounter')['1_'].length").must_equal 2
+    @context.eval("specific2.group('OccurrenceAEncounter')['2_'].length").must_equal 3
+    @context.eval("specific2.group('OccurrenceAEncounter')['3_'].length").must_equal 1
+    
+  end
+  
+  def test_extract_events
+    rows = "
+      var non_specific_rows = [new Row({undefined: new hQuery.CodedEntry({_id:10}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':1})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:11}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':1})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:12}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':2})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:13}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':2})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:14}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':2})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:15}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':3})})]
+      
+      var specific_rows = [new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:10}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':1})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:11}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':1})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:12}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:13}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:14}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:15}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':3})})]
+    "
+    @context.eval(rows)
+    @context.eval('Specifics.extractEvents(undefined, non_specific_rows).length').must_equal 6
+    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[0].id').must_equal 10
+    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[1].id').must_equal 11
+    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[2].id').must_equal 12
+    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[3].id').must_equal 13
+    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[4].id').must_equal 14
+    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[5].id').must_equal 15
+    
+    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows).length").must_equal 6
+    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[0].id").must_equal 10
+    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[1].id").must_equal 11
+    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[2].id").must_equal 12
+    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[3].id").must_equal 13
+    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[4].id").must_equal 14
+    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[5].id").must_equal 15
+    
+  end
+
+  def test_specifics_subset_operators
+  
+    rows = "
+    
+      getTime = function(year,month,day) {
+        return (new Date(year,month,day)).getTime()/1000
+      }
+      
+      var non_specific_rows = [new Row({undefined: new hQuery.CodedEntry({_id:10,time:getTime(2010,0,5)}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':1})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:11,time:getTime(2010,0,1)}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':1})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:12,time:getTime(2010,0,1)}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':2})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:13,time:getTime(2010,0,5)}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':2})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:14,time:getTime(2010,0,2)}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':2})}),
+                               new Row({undefined: new hQuery.CodedEntry({_id:15,time:getTime(2010,0,2)}), 'OccurrenceAEncounter':new hQuery.CodedEntry({'_id':3})})]
+    
+      var specific_rows = [new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:10,time:getTime(2010,0,5)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':1})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:11,time:getTime(2010,0,1)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':1})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:12,time:getTime(2010,0,1)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:13,time:getTime(2010,0,5)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:14,time:getTime(2010,0,2)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
+                           new Row({OccurrenceAEncounter: new hQuery.CodedEntry({_id:15,time:getTime(2010,0,2)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':3})})]
+
+      var specific1 = new Specifics(non_specific_rows);
+      var specific2 = new Specifics(specific_rows);
+      var specific3 = new Specifics([new Row()]);
+      var specific4 = new Specifics()
+      
+    "
+    @context.eval(rows)
+    
+    ###
+    ##### COUNT
+    ###
+    
+    moreThanOne = 'new IVL_PQ(new PQ(2))'
+    lessThanThree = 'new IVL_PQ(null, new PQ(2))'
+    exactly1 = 'new IVL_PQ(new PQ(1), new PQ(1))'
+    
+    @context.eval("specific1.COUNT(undefined, #{moreThanOne}).rows.length").must_equal 5
+    @context.eval("specific1.COUNT(undefined, #{moreThanOne}).rows[0].tempValue.id").must_equal 10
+    @context.eval("specific1.COUNT(undefined, #{moreThanOne}).rows[1].tempValue.id").must_equal 11
+    @context.eval("specific1.COUNT(undefined, #{moreThanOne}).rows[2].tempValue.id").must_equal 12
+    @context.eval("specific1.COUNT(undefined, #{moreThanOne}).rows[3].tempValue.id").must_equal 13
+    @context.eval("specific1.COUNT(undefined, #{moreThanOne}).rows[4].tempValue.id").must_equal 14
+    @context.eval("specific1.COUNT(undefined, #{lessThanThree}).rows.length").must_equal 3
+    @context.eval("specific1.COUNT(undefined, #{lessThanThree}).rows[0].tempValue.id").must_equal 10
+    @context.eval("specific1.COUNT(undefined, #{lessThanThree}).rows[1].tempValue.id").must_equal 11
+    @context.eval("specific1.COUNT(undefined, #{lessThanThree}).rows[2].tempValue.id").must_equal 15
+    @context.eval("specific1.COUNT(undefined, #{exactly1}).rows.length").must_equal 1
+    @context.eval("specific1.COUNT(undefined, #{exactly1}).rows[0].tempValue.id").must_equal 15
+    
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{moreThanOne}).rows.length").must_equal 5
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{moreThanOne}).rows[0].values[0].id").must_equal 10
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{moreThanOne}).rows[1].values[0].id").must_equal 11
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{moreThanOne}).rows[2].values[0].id").must_equal 12
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{moreThanOne}).rows[3].values[0].id").must_equal 13
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{moreThanOne}).rows[4].values[0].id").must_equal 14
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{lessThanThree}).rows.length").must_equal 3
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{lessThanThree}).rows[0].values[0].id").must_equal 10
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{lessThanThree}).rows[1].values[0].id").must_equal 11
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{lessThanThree}).rows[2].values[0].id").must_equal 15
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{exactly1}).rows.length").must_equal 1
+    @context.eval("specific2.COUNT('OccurrenceAEncounter', #{exactly1}).rows[0].values[0].id").must_equal 15
+
+    @context.eval("specific3.COUNT(undefined, #{exactly1}).rows.length").must_equal 1
+    @context.eval("specific4.COUNT('OccurrenceAEncounter', #{moreThanOne}).rows.length").must_equal 0
+
+
+    ###
+    ##### FIRST
+    ###
+    @context.eval("specific1.FIRST(undefined).rows.length").must_equal 3
+    @context.eval("specific1.FIRST(undefined).rows[0].tempValue.id").must_equal 11
+    @context.eval("specific1.FIRST(undefined).rows[1].tempValue.id").must_equal 12
+    @context.eval("specific1.FIRST(undefined).rows[2].tempValue.id").must_equal 15
+    
+    @context.eval("specific2.FIRST('OccurrenceAEncounter').rows.length").must_equal 3
+    @context.eval("specific2.FIRST('OccurrenceAEncounter').rows[0].values[0].id").must_equal 11
+    @context.eval("specific2.FIRST('OccurrenceAEncounter').rows[1].values[0].id").must_equal 12
+    @context.eval("specific2.FIRST('OccurrenceAEncounter').rows[2].values[0].id").must_equal 15
+
+    @context.eval("specific3.FIRST(undefined).rows.length").must_equal 1
+    @context.eval("specific4.FIRST('OccurrenceAEncounter').rows.length").must_equal 0
+
+    ###
+    ##### MOST RECENT
+    ###
+
+    @context.eval("specific1.RECENT(undefined).rows.length").must_equal 3
+    @context.eval("specific1.RECENT(undefined).rows[0].tempValue.id").must_equal 10
+    @context.eval("specific1.RECENT(undefined).rows[1].tempValue.id").must_equal 13
+    @context.eval("specific1.RECENT(undefined).rows[2].tempValue.id").must_equal 15
+    
+    @context.eval("specific2.RECENT('OccurrenceAEncounter').rows.length").must_equal 3
+    @context.eval("specific2.RECENT('OccurrenceAEncounter').rows[0].values[0].id").must_equal 10
+    @context.eval("specific2.RECENT('OccurrenceAEncounter').rows[1].values[0].id").must_equal 13
+    @context.eval("specific2.RECENT('OccurrenceAEncounter').rows[2].values[0].id").must_equal 15
+
+    @context.eval("specific3.RECENT(undefined).rows.length").must_equal 1
+    @context.eval("specific4.RECENT('OccurrenceAEncounter').rows.length").must_equal 0
+
+    
+  end
   
 end
