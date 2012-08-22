@@ -96,6 +96,13 @@ class Specifics
         value.rows.push(result) if result?
     value
   
+  getLeftMost: ->
+    leftMost = undefined
+    for row in @rows
+      leftMost = row.leftMost unless leftMost?
+      return undefined if leftMost != row.leftMost
+    leftMost
+  
   negate: ->
     negatedRows = []
     keys = []
@@ -108,7 +115,7 @@ class Specifics
       occurrences = {}
       for key, i in keys
         occurrences[key] = values[i]
-      row = new Row(occurrences)
+      row = new Row(@getLeftMost(), occurrences)
       negatedRows.push(row) if !@hasRow(row)
     (new Specifics(negatedRows)).compactReusedEvents()
 
@@ -162,51 +169,91 @@ class Specifics
     result = result.intersect(boundsContext) if (boundsContext?)
     result.compactReusedEvents()
   
-  group: (key=null) ->
+  group: ->
     groupedRows = {}
     for row in @rows
-      groupedRows[row.groupKey(key)] ||= []
-      groupedRows[row.groupKey(key)].push(row)
+      groupedRows[row.groupKeyForLeftMost()] ||= []
+      groupedRows[row.groupKeyForLeftMost()].push(row)
     groupedRows
     
-  COUNT: (key, range) ->
+  COUNT: (range) ->
+    @applyRangeSubset(COUNT, range)
+
+  MIN: (range) ->
+    @applyRangeSubset(MIN, range)
+
+  MAX: (range) ->
+    @applyRangeSubset(MAX, range)
+    
+  applyRangeSubset: (func, range) ->
     return this if !@hasSpecifics()
     resultRows = []
-    groupedRows = @group(key)
+    groupedRows = @group()
     for groupKey, group of groupedRows
-      if COUNT(Specifics.extractEvents(key, group), range).isTrue()
+      if func(Specifics.extractEventsForLeftMost(group), range).isTrue()
         resultRows = resultRows.concat(group)
     new Specifics(resultRows)
 
-  FIRST: (key) ->
-    return this if !@hasSpecifics()
-    @applySubset(key, FIRST)
+  FIRST: ->
+    @applySubset(FIRST)
 
-  RECENT: (key) ->
-    return this if !@hasSpecifics()
-    @applySubset(key, RECENT)
+  SECOND: ->
+    @applySubset(SECOND)
+
+  THIRD: ->
+    @applySubset(THIRD)
+
+  FOURTH: ->
+    @applySubset(FOURTH)
+
+  FIFTH: ->
+    @applySubset(FIFTH)
+
+  LAST: ->
+    @applySubset(LAST)
+
+  RECENT: ->
+    @applySubset(RECENT)
     
-  applySubset: (key, func) ->
+  applySubset: (func) ->
+    return this if !@hasSpecifics()
     resultRows = []
-    groupedRows = @group(key)
+    groupedRows = @group()
     for groupKey, group of groupedRows
-      entries = func(Specifics.extractEvents(key, group))
+      entries = func(Specifics.extractEventsForLeftMost(group))
       if entries.length > 0
         resultRows.push(entries[0].specificRow)
     new Specifics(resultRows)
   
+  addIdentityRow: ->
+    @addRows(Specifics.identity().rows)
+  
+  @identity: ->
+    new Specifics([new Row(undefined)])
+  
+
+  @extractEventsForLeftMost: (rows) ->
+    events = []
+    for row in rows
+      events.push(Specifics.extractEvent(row.leftMost, row))
+    events
+  
+  
   @extractEvents: (key, rows) ->
     events = []
-    index = Specifics.INDEX_LOOKUP[key]
     for row in rows
-      if index?
-        entry = row.values[index]
-      else
-        entry = row.tempValue
-      entry = new hQuery.CodedEntry(entry.json)
-      entry.specificRow = row
-      events.push(entry)
+      events.push(Specifics.extractEvent(key, row))
     events
+    
+  @extractEvent: (key, row) ->
+    index = Specifics.INDEX_LOOKUP[key]
+    if index?
+      entry = row.values[index]
+    else
+      entry = row.tempValue
+    entry = new hQuery.CodedEntry(entry.json)
+    entry.specificRow = row
+    entry
   
   @validate: (populations...) ->
     value = Specifics.intersectAll(new Boolean(populations[0].isTrue()), populations)
@@ -215,7 +262,7 @@ class Specifics
   @intersectAll: (boolVal, values, negate=false) ->
     result = new Specifics()
     # add identity row
-    result.addRows([new Row()])
+    result.addIdentityRow()
     for value in values
       if value.specificContext?
         result = result.intersect(value.specificContext)
@@ -252,9 +299,11 @@ class Specifics
 
 class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
-  constructor: (occurrences={}) ->
+  constructor: (leftMost, occurrences={}) ->
+    throw "left most key must be a string or undefined was: #{leftMost}" if typeof(leftMost) != 'string' and typeof(leftMost) != 'undefined'
     @length = Specifics.OCCURRENCES.length
     @values = []
+    @leftMost = leftMost
     @tempValue = occurrences[undefined]
     for i in [0...@length]
       key = Specifics.KEY_LOOKUP[i]
@@ -276,7 +325,7 @@ class Row
     foundSpecificIndexes
 
   intersect: (other) ->
-    intersectedRow = new Row({})
+    intersectedRow = new Row(@leftMost, {})
     allMatch = true
     for value,i in @values
       result = Row.match(value, other.values[i])
@@ -286,13 +335,20 @@ class Row
         return undefined
     intersectedRow
   
+  groupKeyForLeftMost: ->
+    @groupKey(@leftMost)
+    
   groupKey: (key=null) ->
     keyForGroup = ''
     for i in [0...@length]
       value = Specifics.ANY
       value = @values[i].id if @values[i] != Specifics.ANY 
-      keyForGroup += "#{value}_" unless Specifics.KEY_LOOKUP[i] == key
+      if Specifics.KEY_LOOKUP[i] == key
+        keyForGroup += "X_"
+      else
+        keyForGroup += "#{value}_"
     keyForGroup
+    
   
   @match: (left, right) ->
     return right if left == Specifics.ANY
@@ -307,7 +363,7 @@ class Row
       occurrences={}
       occurrences[entryKey] = entry
       occurrences[matchesKey] = match
-      rows.push(new Row(occurrences))
+      rows.push(new Row(entryKey, occurrences))
     rows
     
   # build specific for a given entry (there are no temporal references)
@@ -316,7 +372,7 @@ class Row
     for entry in entries
       occurrences={}
       occurrences[entryKey] = entry
-      rows.push(new Row(occurrences))
+      rows.push(new Row(entryKey, occurrences))
     rows
   
 @Row = Row
