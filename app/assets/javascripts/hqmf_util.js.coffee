@@ -165,7 +165,8 @@ class IVL_TS
     @low.add(pq)
     @high.add(pq)
     this
-  DURING: (other) -> this.SDU(other) || this.EDU(other) || (this.SBS(other) && this.EAE(other))
+  DURING: (other) -> this.SDU(other) && this.EDU(other)
+  OVERLAP: (other) -> this.SDU(other) || this.EDU(other) || (this.SBS(other) && this.EAE(other))
   SBS: (other) -> @low.before(other.low)
   SAS: (other) -> @low.after(other.low)
   SBE: (other) -> @low.before(other.high)
@@ -178,6 +179,8 @@ class IVL_TS
   EDU: (other) -> @high.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
   ECW: (other) -> @high.asDate().getTime() == other.high.asDate().getTime()
   SCW: (other) -> @low.asDate().getTime() == other.low.asDate().getTime()
+  ECWS: (other) -> @high.asDate().getTime() == other.low.asDate().getTime()
+  SCWE: (other) -> @low.asDate().getTime() == other.high.asDate().getTime()
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
 @IVL_TS = IVL_TS
 
@@ -350,6 +353,10 @@ DURING = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "DURING", offset)
 @DURING = DURING
 
+OVERLAP = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "OVERLAP", offset)
+@OVERLAP = OVERLAP
+
 SBS = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SBS", offset)
 @SBS = SBS
@@ -397,6 +404,14 @@ ECW = (events, bounds, offset) ->
 SCW = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SCW", offset)
 @SCW = SCW
+
+ECWS = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "ECWS", offset)
+@ECWS = ECWS
+  
+SCWE = (events, bounds, offset) ->
+  eventsMatchBounds(events, bounds, "SCWE", offset)
+@SCWE = SCWE
 
 CONCURRENT = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "CONCURRENT", offset)

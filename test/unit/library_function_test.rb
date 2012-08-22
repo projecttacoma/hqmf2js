@@ -250,10 +250,10 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert_equal 1, @context.eval('DURING(events1, bound3)').count
     assert_equal 0, @context.eval('DURING(events1, bound4)').count
     assert_equal 0, @context.eval('DURING(events1, bound5)').count
-    assert_equal 1, @context.eval('DURING(events2, bound3)').count
+    assert_equal 0, @context.eval('DURING(events2, bound3)').count
     assert_equal 0, @context.eval('DURING(events2, bound4)').count
     assert_equal 0, @context.eval('DURING(events2, bound5)').count
-    assert_equal 1, @context.eval('DURING(events2, bound1)').count
+    assert_equal 0, @context.eval('DURING(events2, bound1)').count
     assert_equal 0, @context.eval('DURING(events2, bound2)').count
     assert_equal 1, @context.eval('DURING(events1, XPRODUCT(bound1))').count
     assert_equal 0, @context.eval('DURING(events1, XPRODUCT(bound2))').count
@@ -262,11 +262,35 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert_equal 1, @context.eval('DURING(events1, XPRODUCT(bound1, bound3))').count
     assert_equal 0, @context.eval('DURING(events1, XPRODUCT(bound4))').count
     assert_equal 0, @context.eval('DURING(events1, XPRODUCT(bound5))').count
-    assert_equal 1, @context.eval('DURING(events2, XPRODUCT(bound3))').count
+    assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound3))').count
     assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound4))').count
     assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound5))').count
-    assert_equal 1, @context.eval('DURING(events2, XPRODUCT(bound1))').count
+    assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound1))').count
     assert_equal 0, @context.eval('DURING(events2, XPRODUCT(bound2))').count
+    
+    # OVERLAP
+    assert_equal 1, @context.eval('OVERLAP(events1, bound1)').count
+    assert_equal 0, @context.eval('OVERLAP(events1, bound2)').count
+    assert_equal 1, @context.eval('OVERLAP(events1, bound3)').count
+    assert_equal 0, @context.eval('OVERLAP(events1, bound4)').count
+    assert_equal 0, @context.eval('OVERLAP(events1, bound5)').count
+    assert_equal 1, @context.eval('OVERLAP(events2, bound3)').count
+    assert_equal 0, @context.eval('OVERLAP(events2, bound4)').count
+    assert_equal 0, @context.eval('OVERLAP(events2, bound5)').count
+    assert_equal 1, @context.eval('OVERLAP(events2, bound1)').count
+    assert_equal 0, @context.eval('OVERLAP(events2, bound2)').count
+    assert_equal 1, @context.eval('OVERLAP(events1, XPRODUCT(bound1))').count
+    assert_equal 0, @context.eval('OVERLAP(events1, XPRODUCT(bound2))').count
+    assert_equal 0, @context.eval('OVERLAP(events1, XPRODUCT(bound1, bound2))').count
+    assert_equal 1, @context.eval('OVERLAP(events1, XPRODUCT(bound3))').count
+    assert_equal 1, @context.eval('OVERLAP(events1, XPRODUCT(bound1, bound3))').count
+    assert_equal 0, @context.eval('OVERLAP(events1, XPRODUCT(bound4))').count
+    assert_equal 0, @context.eval('OVERLAP(events1, XPRODUCT(bound5))').count
+    assert_equal 1, @context.eval('OVERLAP(events2, XPRODUCT(bound3))').count
+    assert_equal 0, @context.eval('OVERLAP(events2, XPRODUCT(bound4))').count
+    assert_equal 0, @context.eval('OVERLAP(events2, XPRODUCT(bound5))').count
+    assert_equal 1, @context.eval('OVERLAP(events2, XPRODUCT(bound1))').count
+    assert_equal 0, @context.eval('OVERLAP(events2, XPRODUCT(bound2))').count
     
     # SBS
     assert_equal 0, @context.eval('SBS(events1, bound1)').count
@@ -317,8 +341,16 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert_equal 0, @context.eval('ECW(events1, bound2)').count
     
     # SCW
-    assert_equal 1, @context.eval('ECW(events1, bound1)').count
-    assert_equal 0, @context.eval('ECW(events1, bound2)').count
+    assert_equal 1, @context.eval('SCW(events1, bound1)').count
+    assert_equal 0, @context.eval('SCW(events1, bound2)').count
+    
+    # ECWS
+    assert_equal 1, @context.eval('ECWS(events1, bound1)').count
+    assert_equal 0, @context.eval('ECWS(events1, bound2)').count
+    
+    # SCWE
+    assert_equal 1, @context.eval('SCWE(events1, bound1)').count
+    assert_equal 0, @context.eval('SCWE(events1, bound2)').count
     
     # CONCURRENT
     assert_equal 1, @context.eval('CONCURRENT(events1, bound1)').count
