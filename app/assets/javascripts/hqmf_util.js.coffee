@@ -243,7 +243,8 @@ UNION = (eventLists...) ->
 
 COUNT = (events, range) ->
   count = events.length
-  Specifics.maintainSpecifics(new Boolean(range.match(count)), events)
+  result = new Boolean(range.match(count))
+  applySpecificOccurrenceSubset('COUNT', Specifics.maintainSpecifics(result, events), range)
 @COUNT = COUNT
 
 PREVSUM = (eventList) ->
@@ -342,7 +343,7 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
       specificContext.addRows(Row.buildRowsForMatching(events.specific_occurrence, event, bounds.specific_occurrence, matchingBounds))
     else
       # add all stars
-      specificContext.addRows([new Row()])
+      specificContext.addIdentityRow()
   
   matchingEvents.specificContext = specificContext.finalizeEvents(events.specificContext, bounds.specificContext)
   
@@ -425,40 +426,50 @@ dateSortAscending = (a, b) ->
   a.timeStamp().getTime() - b.timeStamp().getTime()
 @dateSortAscending = dateSortAscending
 
+applySpecificOccurrenceSubset = (operator, result, range, calculateSpecifics) ->
+  # the subset operators are re-used in the specifics calculation of those operators.  Checking for a specificContext
+  # prevents entering into an infinite loop here.
+  if (result.specificContext?)
+    if (range?)
+      result.specificContext = result.specificContext[operator]()
+    else
+      result.specificContext = result.specificContext[operator](range)
+  result
+
 FIRST = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[0]] if (events.length > 0)
-  Specifics.maintainSpecifics(result, events)
+  applySpecificOccurrenceSubset('FIRST',Specifics.maintainSpecifics(result, events))
 @FIRST = FIRST
 
 SECOND = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[1]] if (events.length > 1)
-  Specifics.maintainSpecifics(result, events)
+  applySpecificOccurrenceSubset('SECOND',Specifics.maintainSpecifics(result, events))
 @SECOND = SECOND
 
 THIRD = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[2]] if (events.length > 2)
-  Specifics.maintainSpecifics(result, events)
+  applySpecificOccurrenceSubset('THIRD',Specifics.maintainSpecifics(result, events))
 @THIRD = THIRD
 
 FOURTH = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[3]] if (events.length > 3)
-  Specifics.maintainSpecifics(result, events)
+  applySpecificOccurrenceSubset('FOURTH',Specifics.maintainSpecifics(result, events))
 @FOURTH = FOURTH
 
 FIFTH = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[4]] if (events.length > 4)
-  Specifics.maintainSpecifics(result, events)
+  applySpecificOccurrenceSubset('FIFTH',Specifics.maintainSpecifics(result, events))
 @FIFTH = FIFTH
 
 RECENT = (events) ->
   result = []
   result = [events.sort(dateSortDescending)[0]] if (events.length > 0)
-  Specifics.maintainSpecifics(result, events)
+  applySpecificOccurrenceSubset('RECENT',Specifics.maintainSpecifics(result, events))
 @RECENT = RECENT
   
 LAST = (events) ->
@@ -493,14 +504,16 @@ MIN = (events, range) ->
   minValue = Infinity
   if (events.length > 0)
     minValue = events.sort(valueSortAscending)[0].value()["scalar"]
-  Specifics.maintainSpecifics(new Boolean(range.match(minValue)), events)
+  result = new Boolean(range.match(minValue))
+  applySpecificOccurrenceSubset('MIN',Specifics.maintainSpecifics(result, events), range)
 @MIN = MIN
 
 MAX = (events, range) ->
   maxValue = -Infinity
   if (events.length > 0)
     maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
-  Specifics.maintainSpecifics(new Boolean(range.match(maxValue)), events)
+  result = new Boolean(range.match(maxValue))
+  applySpecificOccurrenceSubset('MAX',Specifics.maintainSpecifics(result, events), range)
 @MAX = MAX
 
 @OidDictionary = {};
