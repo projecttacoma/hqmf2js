@@ -81,17 +81,27 @@ class TS
   asDate: ->
     @date
   before: (other) -> 
+    if @date==null || other.date==null
+      return false
     if other.inclusive
       beforeOrConcurrent(other)
     else
       @date.getTime() < other.date.getTime()
   after: (other) ->
+    if @date==null || other.date==null
+      return false
     if other.inclusive
       afterOrConcurrent(other)
     else
       @date.getTime() > other.date.getTime()
-  beforeOrConcurrent: (other) ->  @date.getTime() <= other.date.getTime()
-  afterOrConcurrent: (other) -> @date.getTime() >= other.date.getTime()
+  beforeOrConcurrent: (other) ->  
+    if @date==null || other.date==null
+      return false
+    @date.getTime() <= other.date.getTime()
+  afterOrConcurrent: (other) ->
+    if @date==null || other.date==null
+      return false
+    @date.getTime() >= other.date.getTime()
 @TS = TS
 
 extractScalarValue = (value) ->
@@ -177,10 +187,10 @@ class IVL_TS
   EAE: (other) -> @high.after(other.high)
   SDU: (other) -> @low.afterOrConcurrent(other.low) && @low.beforeOrConcurrent(other.high)
   EDU: (other) -> @high.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
-  ECW: (other) -> @high.asDate().getTime() == other.high.asDate().getTime()
-  SCW: (other) -> @low.asDate().getTime() == other.low.asDate().getTime()
-  ECWS: (other) -> @high.asDate().getTime() == other.low.asDate().getTime()
-  SCWE: (other) -> @low.asDate().getTime() == other.high.asDate().getTime()
+  ECW: (other) -> @high.asDate() && other.high.asDate() && @high.asDate().getTime() == other.high.asDate().getTime()
+  SCW: (other) -> @low.asDate() && other.low.asDate() && (@low.asDate().getTime() == other.low.asDate().getTime())
+  ECWS: (other) -> @high.asDate() && other.low.asDate() && (@high.asDate().getTime() == other.low.asDate().getTime())
+  SCWE: (other) -> @low.asDate() && other.high.asDate() && (@low.asDate().getTime() == other.high.asDate().getTime())
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
 @IVL_TS = IVL_TS
 
@@ -263,6 +273,7 @@ getIVL = (eventOrTimeStamp) ->
 # should DURING and CONCURRENT be an error ?
 eventAccessor = {  
   'DURING': 'low',
+  'OVERLAP': 'low',
   'SBS': 'low',
   'SAS': 'low',
   'SBE': 'low',
@@ -275,12 +286,15 @@ eventAccessor = {
   'EDU': 'high',
   'ECW': 'high'
   'SCW': 'low',
+  'ECWS': 'high'
+  'SCWE': 'low',
   'CONCURRENT': 'low'
 }
 
 # should DURING SDU, EDU, ECW, SCW and CONCURRENT be an error ?
 boundAccessor = {  
   'DURING': 'low',
+  'OVERLAP': 'low',
   'SBS': 'low',
   'SAS': 'low',
   'SBE': 'high',
@@ -291,8 +305,10 @@ boundAccessor = {
   'EAE': 'high',
   'SDU': 'low',
   'EDU': 'low',
-  'ECW': 'low'
+  'ECW': 'high'
   'SCW': 'low',
+  'ECWS': 'low'
+  'SCWE': 'high',
   'CONCURRENT': 'low'
 }
     
@@ -316,7 +332,7 @@ eventMatchesBounds = (event, bounds, methodName, range) ->
     matchingBounds = (bound for bound in bounds when (
       boundIVL = getIVL(bound)
       result = eventIVL[methodName](boundIVL)
-      if range
+      if result && range
         result &&= withinRange(methodName, eventIVL, boundIVL, range)
       result
     ))

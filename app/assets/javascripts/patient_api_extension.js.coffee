@@ -7,15 +7,11 @@ hQuery.Patient::allDevices = -> this.conditions().concat(this.procedures()).conc
 hQuery.Patient::activeDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['active'])
 hQuery.Patient::inactiveDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['inactive'])
 hQuery.Patient::resolvedDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['resolved'])
-hQuery.CodedEntry::minDate = ->
-  new Date(1800,0,1)
-hQuery.CodedEntry::maxDate = ->
-  new Date(3000,0,1)
 hQuery.CodedEntry::asIVL_TS = ->
   tsLow = new TS()
-  tsLow.date = this.startDate() || this.date() || this.minDate()
+  tsLow.date = this.startDate() || this.date() || null
   tsHigh = new TS()
-  tsHigh.date = this.endDate() || this.date() || this.maxDate()
+  tsHigh.date = this.endDate() || this.date() || null
   new IVL_TS(tsLow, tsHigh)
 
 hQuery.CodedEntryList::isTrue = ->

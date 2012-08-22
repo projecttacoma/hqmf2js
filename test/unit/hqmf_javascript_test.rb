@@ -79,8 +79,8 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   end
   
   def test_converted_hqmf
-    # Patching of CodedEntry times
-    assert_equal 1800, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().low.asDate().getFullYear()")
+    # Unspecified time bounds should be nil
+    assert_equal nil, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().low.asDate()")
     assert_equal 2010, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().high.asDate().getFullYear()")
 
     # Measure variables
