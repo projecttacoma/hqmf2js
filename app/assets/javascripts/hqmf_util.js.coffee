@@ -431,9 +431,9 @@ applySpecificOccurrenceSubset = (operator, result, range, calculateSpecifics) ->
   # prevents entering into an infinite loop here.
   if (result.specificContext?)
     if (range?)
-      result.specificContext = result.specificContext[operator]()
-    else
       result.specificContext = result.specificContext[operator](range)
+    else
+      result.specificContext = result.specificContext[operator]()
   result
 
 FIRST = (events) ->
