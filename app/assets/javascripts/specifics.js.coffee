@@ -326,6 +326,7 @@ class Row
 
   intersect: (other) ->
     intersectedRow = new Row(@leftMost, {})
+    intersectedRow.tempValue = @tempValue
     allMatch = true
     for value,i in @values
       result = Row.match(value, other.values[i])
