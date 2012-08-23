@@ -38,46 +38,19 @@ class TS
       earlier = @date
       later = ts.asDate()
     if granularity=="a"
-      @yearsDifference(earlier,later)
+      TS.yearsDifference(earlier,later)
     else if granularity=="mo"
-      @monthsDifference(earlier,later)
+      TS.monthsDifference(earlier,later)
     else if granularity=="wk"
-      @weeksDifference(earlier,later)
+      TS.weeksDifference(earlier,later)
     else if granularity=="d"
-      @daysDifference(earlier,later)
+      TS.daysDifference(earlier,later)
     else if granularity=="h"
-      @hoursDifference(earlier,later)
+      TS.hoursDifference(earlier,later)
     else if granularity=="min"
-      @minutesDifference(earlier,later)
+      TS.minutesDifference(earlier,later)
     else
       throw "Unknown time unit: "+granularity
-  yearsDifference: (earlier, later) ->
-    if (later.getMonth() < earlier.getMonth())
-      later.getFullYear()-earlier.getFullYear()-1
-    else if (later.getMonth() == earlier.getMonth() && later.getDate() >= earlier.getDate())
-      later.getFullYear()-earlier.getFullYear()
-    else if (later.getMonth() == earlier.getMonth() && later.getDate() < earlier.getDate())
-      later.getFullYear()-earlier.getFullYear()-1
-    else
-      later.getFullYear()-earlier.getFullYear()
-  monthsDifference: (earlier, later) ->
-    if (later.getDate() >= earlier.getDate())
-      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()
-    else
-      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()-1
-  minutesDifference: (earlier, later) ->
-    Math.floor(((later.getTime()-earlier.getTime())/1000)/60)
-  hoursDifference: (earlier, later) ->
-    Math.floor(@minutesDifference(earlier,later)/60)
-  daysDifference: (earlier, later) ->
-    # have to discard time portion for day difference calculation purposes
-    e = new Date(earlier.getFullYear(), earlier.getMonth(), earlier.getDate())
-    e.setUTCHours(0)
-    l = new Date(later.getFullYear(), later.getMonth(), later.getDate())
-    l.setUTCHours(0)
-    Math.floor(@hoursDifference(e,l)/24)
-  weeksDifference: (earlier, later) ->
-    Math.floor(@daysDifference(earlier,later)/7)
   asDate: ->
     @date
   before: (other) -> 
@@ -86,22 +59,77 @@ class TS
     if other.inclusive
       beforeOrConcurrent(other)
     else
-      @date.getTime() < other.date.getTime()
+      [a,b] = TS.dropSeconds(@date, other.date)
+      a.getTime() < b.getTime()
   after: (other) ->
     if @date==null || other.date==null
       return false
     if other.inclusive
       afterOrConcurrent(other)
     else
-      @date.getTime() > other.date.getTime()
+      [a,b] = TS.dropSeconds(@date, other.date)
+      a.getTime() > b.getTime()
   beforeOrConcurrent: (other) ->  
     if @date==null || other.date==null
       return false
-    @date.getTime() <= other.date.getTime()
+    [a,b] = TS.dropSeconds(@date, other.date)
+    a.getTime() <= b.getTime()
   afterOrConcurrent: (other) ->
     if @date==null || other.date==null
       return false
-    @date.getTime() >= other.date.getTime()
+    [a,b] = TS.dropSeconds(@date, other.date)
+    a.getTime() >= b.getTime()
+  withinSameMinute: (other) ->
+    [a,b] = TS.dropSeconds(@date, other.date)
+    a.getTime()==b.getTime()
+    
+  # Number of whole years between the two time stamps (as Date objects)
+  @yearsDifference: (earlier, later) ->
+    if (later.getMonth() < earlier.getMonth())
+      later.getFullYear()-earlier.getFullYear()-1
+    else if (later.getMonth() == earlier.getMonth() && later.getDate() >= earlier.getDate())
+      later.getFullYear()-earlier.getFullYear()
+    else if (later.getMonth() == earlier.getMonth() && later.getDate() < earlier.getDate())
+      later.getFullYear()-earlier.getFullYear()-1
+    else
+      later.getFullYear()-earlier.getFullYear()
+      
+  # Number of whole months between the two time stamps (as Date objects)
+  @monthsDifference: (earlier, later) ->
+    if (later.getDate() >= earlier.getDate())
+      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()
+    else
+      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()-1
+      
+  # Number of whole minutes between the two time stamps (as Date objects)
+  @minutesDifference: (earlier, later) ->
+    Math.floor(((later.getTime()-earlier.getTime())/1000)/60)
+    
+  # Number of whole hours between the two time stamps (as Date objects)
+  @hoursDifference: (earlier, later) ->
+    Math.floor(TS.minutesDifference(earlier,later)/60)
+  
+  # Number of days betweem the two time stamps (as Date objects)
+  @daysDifference: (earlier, later) ->
+    # have to discard time portion for day difference calculation purposes
+    e = new Date(earlier.getFullYear(), earlier.getMonth(), earlier.getDate())
+    e.setUTCHours(0)
+    l = new Date(later.getFullYear(), later.getMonth(), later.getDate())
+    l.setUTCHours(0)
+    Math.floor(TS.hoursDifference(e,l)/24)
+    
+  # Number of whole weeks between the two time stmaps (as Date objects)
+  @weeksDifference: (earlier, later) ->
+    Math.floor(TS.daysDifference(earlier,later)/7)
+    
+  # Drop the seconds from the supplied timeStamps (as Date objects)
+  # returns the new time stamps with seconds set to 0 as an array
+  @dropSeconds: (timeStamps...) ->
+    timeStampsNoSeconds = for timeStamp in timeStamps
+      noSeconds = new Date(timeStamp.getTime())
+      noSeconds.setSeconds(0)
+      noSeconds
+    timeStampsNoSeconds
 @TS = TS
 
 extractScalarValue = (value) ->
@@ -187,10 +215,10 @@ class IVL_TS
   EAE: (other) -> @high.after(other.high)
   SDU: (other) -> @low.afterOrConcurrent(other.low) && @low.beforeOrConcurrent(other.high)
   EDU: (other) -> @high.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
-  ECW: (other) -> @high.asDate() && other.high.asDate() && @high.asDate().getTime() == other.high.asDate().getTime()
-  SCW: (other) -> @low.asDate() && other.low.asDate() && (@low.asDate().getTime() == other.low.asDate().getTime())
-  ECWS: (other) -> @high.asDate() && other.low.asDate() && (@high.asDate().getTime() == other.low.asDate().getTime())
-  SCWE: (other) -> @low.asDate() && other.high.asDate() && (@low.asDate().getTime() == other.high.asDate().getTime())
+  ECW: (other) -> @high.asDate() && other.high.asDate() && @high.withinSameMinute(other.high)
+  SCW: (other) -> @low.asDate() && other.low.asDate() && @low.withinSameMinute(other.low)
+  ECWS: (other) -> @high.asDate() && other.low.asDate() && @high.withinSameMinute(other.low)
+  SCWE: (other) -> @low.asDate() && other.high.asDate() && @low.withinSameMinute(other.high)
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
 @IVL_TS = IVL_TS
 
