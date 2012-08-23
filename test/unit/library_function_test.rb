@@ -91,6 +91,85 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert !@context.eval("#{ts}.after(#{ts3})")
     assert @context.eval("#{ts}.beforeOrConcurrent(#{ts})")
     assert @context.eval("#{ts}.afterOrConcurrent(#{ts})")
+    
+    # The following tests are taken from the Joint Commission guidance on time difference
+    # calculations
+    
+    # Year difference calculation
+    ts1 = 'new TS("20120310220509")'
+    ts2 = 'new TS("20130218191003")'
+    assert_equal 0, @context.eval("#{ts1}.difference(#{ts2},'a')")
+    
+    ts1 = 'new TS("20120310220509")'
+    ts2 = 'new TS("20130310080159")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'a')")
+    
+    ts1 = 'new TS("20120310220509")'
+    ts2 = 'new TS("20130320040130")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'a')")
+    
+    ts1 = 'new TS("20120229")'
+    ts2 = 'new TS("20140228")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'a')")
+    
+    ts1 = 'new TS("20120310111602")'
+    ts2 = 'new TS("20130815213416")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'a')")
+    
+    ts1 = 'new TS("20120229101856")'
+    ts2 = 'new TS("20140301190234")'
+    assert_equal 2, @context.eval("#{ts1}.difference(#{ts2},'a')")
+    
+    # Month difference calculation
+    ts1 = 'new TS("20120301140545")'
+    ts2 = 'new TS("20120331230149")'
+    assert_equal 0, @context.eval("#{ts1}.difference(#{ts2},'mo')")
+    
+    ts1 = 'new TS("20120310220509")'
+    ts2 = 'new TS("20130630130023")'
+    assert_equal 15, @context.eval("#{ts1}.difference(#{ts2},'mo')")
+    
+    ts1 = 'new TS("20120310220509")'
+    ts2 = 'new TS("20130129071933")'
+    assert_equal 10, @context.eval("#{ts1}.difference(#{ts2},'mo')")
+    
+    # Week difference calculation
+    ts1 = 'new TS("20120310220509")'
+    ts2 = 'new TS("20120320071933")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'wk')")
+    
+    # Day difference calculation
+    ts1 = 'new TS("20120131123000")'
+    ts2 = 'new TS("20120201090000")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'d')")
+    
+    ts1 = 'new TS("20120131123000")'
+    ts2 = 'new TS("20120201140000")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'d')")
+    
+    # Hour difference calculation
+    ts1 = 'new TS("201203010310")'
+    ts2 = 'new TS("201203010510")'
+    assert_equal 2, @context.eval("#{ts1}.difference(#{ts2},'h')")
+    
+    ts1 = 'new TS("201202292310")'
+    ts2 = 'new TS("201203010010")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'h')")
+    
+    ts1 = 'new TS("201203010310")'
+    ts2 = 'new TS("201203010400")'
+    assert_equal 0, @context.eval("#{ts1}.difference(#{ts2},'h')")
+    
+    # Minute difference calculation
+    ts1 = 'new TS("201203010310")'
+    ts2 = 'new TS("201203010520")'
+    assert_equal 130, @context.eval("#{ts1}.difference(#{ts2},'min')")
+
+    ts1 = 'new TS("201202292310")'
+    ts2 = 'new TS("201203010020")'
+    assert_equal 70, @context.eval("#{ts1}.difference(#{ts2},'min')")
+    
+    # Additional tests from previous version of TJC guidance
     ts4 = 'new TS("20000310")'
     ts5 = 'new TS("20110405")'
     ts6 = 'new TS("20000229")'
