@@ -1,6 +1,14 @@
 module HQMF2JS
   module Generator
     
+    def self.render_template(name, params)
+      template_path = File.expand_path(File.join('..', "#{name}.js.erb"), __FILE__)
+      template_str = File.read(template_path)
+      template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
+      context = ErbContext.new(params)
+      template.result(context.get_binding)        
+    end
+  
     # Utility class used to supply a binding to Erb. Contains utility functions used
     # by the erb templates that are used to generate code.
     class ErbContext < OpenStruct
@@ -19,35 +27,19 @@ module HQMF2JS
       end
       
       def js_for_measure_period(measure_period)
-        template_str = File.read(File.expand_path("../measure_period.js.erb", __FILE__))
-        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
-        params = {'measure_period' => measure_period}
-        context = ErbContext.new(params)
-        template.result(context.get_binding)
+        HQMF2JS::Generator.render_template('measure_period', {'measure_period' => measure_period})
       end
       
       def js_for_characteristic(criteria)
-        template_str = File.read(File.expand_path("../characteristic.js.erb", __FILE__))
-        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
-        params = {'criteria' => criteria}
-        context = ErbContext.new(params)
-        template.result(context.get_binding)
+        HQMF2JS::Generator.render_template('characteristic', {'criteria' => criteria})
       end
       
       def js_for_patient_data(criteria)
-        template_str = File.read(File.expand_path("../patient_data.js.erb", __FILE__))
-        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
-        params = {'criteria' => criteria}
-        context = ErbContext.new(params)
-        template.result(context.get_binding)
+        HQMF2JS::Generator.render_template('patient_data', {'criteria' => criteria})
       end
       
       def js_for_derived_data(criteria)
-        template_str = File.read(File.expand_path("../derived_data.js.erb", __FILE__))
-        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
-        params = {'criteria' => criteria}
-        context = ErbContext.new(params)
-        template.result(context.get_binding)
+        HQMF2JS::Generator.render_template('derived_data', {'criteria' => criteria})
       end
       
       def js_for_value(value)
@@ -122,11 +114,7 @@ module HQMF2JS
       
       # Returns the JavaScript generated for a HQMF::Precondition
       def js_for_precondition(precondition, indent)
-        template_str = File.read(File.expand_path("../precondition.js.erb", __FILE__))
-        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
-        params = {'doc' => doc, 'precondition' => precondition, 'indent' => indent}
-        context = ErbContext.new(params)
-        template.result(context.get_binding)
+        HQMF2JS::Generator.render_template('precondition', {'doc' => doc, 'precondition' => precondition, 'indent' => indent})
       end
       
       def patient_api_method(criteria)
@@ -199,13 +187,9 @@ module HQMF2JS
       def js_for(criteria_code, type=nil, when_not_found=false)
         # for multiple populations, criteria code will be something like IPP_1 and type will be IPP
         type ||= criteria_code
-        template_str = File.read(File.expand_path("../population_criteria.js.erb", __FILE__))
-        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
         criteria = @doc.population_criteria(criteria_code)
         if criteria && criteria.preconditions && criteria.preconditions.length > 0
-          params = {'doc' => @doc, 'criteria' => criteria, 'type'=>type}
-          context = ErbContext.new(params)
-          template.result(context.get_binding)
+          HQMF2JS::Generator.render_template('population_criteria', {'doc' => @doc, 'criteria' => criteria, 'type'=>type})
         else
           "hqmfjs.#{type} = function(patient) { return #{when_not_found}; }"
         end
@@ -213,11 +197,7 @@ module HQMF2JS
       
       # Generate JS for a HQMF2::DataCriteria
       def js_for_data_criteria
-        template_str = File.read(File.expand_path("../data_criteria.js.erb", __FILE__))
-        template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
-        params = {'all_criteria' => @doc.specific_occurrence_source_data_criteria.concat(@doc.all_data_criteria), 'measure_period' => @doc.measure_period}
-        context = ErbContext.new(params)
-        template.result(context.get_binding)
+        HQMF2JS::Generator.render_template('data_criteria', {'all_criteria' => @doc.specific_occurrence_source_data_criteria.concat(@doc.all_data_criteria), 'measure_period' => @doc.measure_period})
       end
       
       def self.library_functions
