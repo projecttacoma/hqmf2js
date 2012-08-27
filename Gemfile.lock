@@ -19,7 +19,7 @@ GIT
 
 GIT
   remote: https://github.com/pophealth/hqmf-parser.git
-  revision: 0f740fcc05ad2062401453f0c856a8095aa18650
+  revision: a8aebd01efe03149826da95a26641dd5595fb117
   branch: develop
   specs:
     hqmf-parser (0.0.1)

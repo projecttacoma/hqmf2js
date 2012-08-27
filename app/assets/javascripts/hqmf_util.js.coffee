@@ -132,27 +132,29 @@ class TS
     timeStampsNoSeconds
 @TS = TS
 
-extractScalarValue = (value) ->
-  value.scalar || value
-@extractScalarValue = extractScalarValue
+fieldOrContainerValue = (value, fieldName) ->
+  if value != null
+    if typeof value[fieldName] != 'undefined'
+      value[fieldName]
+    else
+      value
+  else
+    null
+@fieldOrContainerValue = fieldOrContainerValue
 
-extractCodeValue = (value) ->
-  value.code || value
-@extractCodeValue = extractCodeValue
-  
 class CD
   constructor: (@code) ->
   code: ->
     @code
   match: (codeOrHash) ->
-    val = extractCodeValue(codeOrHash)
+    val = fieldOrContainerValue(codeOrHash, 'code')
     @code==val
 @CD = CD
     
 class CodeList
   constructor: (@codes) ->
   match: (codeOrHash) ->
-    val = extractCodeValue(codeOrHash)
+    val = fieldOrContainerValue(codeOrHash, 'code')
     for codeSystemName, codeList of @codes
       for code in codeList
         if code==val
@@ -177,7 +179,7 @@ class PQ
   greaterThanOrEqual: (val) ->
     @value>=val
   match: (scalarOrHash) ->
-    val = extractScalarValue(scalarOrHash)
+    val = fieldOrContainerValue(scalarOrHash, 'scalar')
     @value==val
 @PQ = PQ
   
@@ -193,7 +195,7 @@ class IVL_PQ
     else
       @high_pq.unit
   match: (scalarOrHash) ->
-    val = extractScalarValue(scalarOrHash)
+    val = fieldOrContainerValue(scalarOrHash, 'scalar')
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
 @IVL_PQ = IVL_PQ
     
@@ -221,6 +223,13 @@ class IVL_TS
   SCWE: (other) -> @low.asDate() && other.high.asDate() && @low.withinSameMinute(other.high)
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
 @IVL_TS = IVL_TS
+
+class ANYNonNull
+  constructor: ->
+  match: (scalarOrHash) ->
+    val = fieldOrContainerValue(scalarOrHash, 'scalar')
+    val != null
+@ANYNonNull = ANYNonNull
 
 atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && value.isTrue())

@@ -254,6 +254,18 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert_equal 2010, @context.eval('getIVL(new Date(2010,1,1)).low.asDate().getFullYear()')
   end
   
+  def test_any_non_null
+    # ANYNonNull
+    ann = 'new ANYNonNull()'
+    assert @context.eval("#{ann}.match('foo')")
+    assert @context.eval("#{ann}.match(10)")
+    assert @context.eval("#{ann}.match(0)")
+    assert @context.eval("#{ann}.match({'scalar': 10})")
+    assert @context.eval("#{ann}.match({'scalar': 0})")
+    assert !@context.eval("#{ann}.match(null)")
+    assert !@context.eval("#{ann}.match({'scalar': null})")
+  end
+  
   def test_matching_value
     # Matching value
     assert @context.eval("matchingValue(5, new IVL_PQ(PQ(3, 'mo'), new PQ(9, 'mo'))).isTrue()")

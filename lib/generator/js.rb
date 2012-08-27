@@ -44,7 +44,7 @@ module HQMF2JS
       
       def js_for_value(value)
         if value
-          if value.derived?
+          if value.respond_to?(:derived?) && value.derived?
             value.expression
           else
             if value.type=='CD'
@@ -53,7 +53,9 @@ module HQMF2JS
               else
                 "new CD(\"#{value.code}\")"
               end
-            elsif value.unit != nil
+            elsif value.type=='ANYNonNull'
+              "new #{value.type}()"
+            elsif value.respond_to?(:unit) && value.unit != nil
               "new #{value.type}(#{value.value}, \"#{value.unit}\", #{value.inclusive?})"
             elsif value.respond_to?(:inclusive?) and !value.inclusive?.nil?
               "new #{value.type}(\"#{value.value}\", null, #{value.inclusive?})"
