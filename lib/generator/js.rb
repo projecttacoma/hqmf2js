@@ -51,7 +51,7 @@ module HQMF2JS
               if value.code_list_id
                 "new CodeList(getCodes(\"#{value.code_list_id}\"))"
               else
-                "new CD(\"#{value.code}\")"
+                "new CD(\"#{value.code}\", \"#{value.system}\")"
               end
             elsif value.type=='ANYNonNull'
               "new #{value.type}()"
