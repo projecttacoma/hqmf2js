@@ -7,7 +7,7 @@ wrap = (func, wrapper) ->
 bind = (func, context) ->
   
   return Function::bind.apply(func, Array::slice.call(arguments, 1)) if (func.bind == Function::bind && Function::bind)
-  throw new TypeError if (!_.isFunction(func)) 
+  throw new TypeError if (typeof func != "function") 
   args = Array::slice.call(arguments, 2)
   return bound = ->
     ctor = ->
