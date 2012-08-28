@@ -134,7 +134,9 @@ class TS
 
 fieldOrContainerValue = (value, fieldName) ->
   if value != null
-    if typeof value[fieldName] != 'undefined'
+    if typeof value[fieldName] == 'function'
+      value[fieldName]()
+    else if typeof value[fieldName] != 'undefined'
       value[fieldName]
     else
       value
@@ -256,9 +258,14 @@ matchingValue = (value, compareTo) ->
   new Boolean(compareTo.match(value))
 @matchingValue = matchingValue
 
+anyMatchingValue = (event, valueToMatch) ->
+  matchingValues = (value for value in event.values() when (valueToMatch.match(value)))
+  matchingValues.length > 0
+@anyMatchingValue = anyMatchingValue
+
 filterEventsByValue = (events, value) ->
-  matchingValues = (event for event in events when (event.value && value.match(event.value())))
-  matchingValues
+  matchingEvents = (event for event in events when (anyMatchingValue(event, value)))
+  matchingEvents
 @filterEventsByValue = filterEventsByValue
 
 getCodes = (oid) ->
