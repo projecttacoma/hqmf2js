@@ -1,12 +1,15 @@
 module HQMF2JS
   class Converter
-    def self.generate_map_reduce(hqmf_contents)
+    def self.generate_map_reduce(hqmf_contents, codes=nil)
       # First compile the CoffeeScript that enables our converted HQMF JavaScript
       hqmf_utils = HQMF2JS::Generator::JS.library_functions
 
-      # Parse the code systems that are mapped to the OIDs we support
-      codes_file_path = File.expand_path("../../../test/fixtures/codes/codes.xml", __FILE__)
-      codes_json = HQMF2JS::Generator::CodesToJson.hash_to_js(HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path))
+      if !codes
+        # Parse the code systems that are mapped to the OIDs we support
+        codes_file_path = File.expand_path("../../../test/fixtures/codes/codes.xml", __FILE__)
+        codes = HQMF2JS::Generator::CodesToJson.from_xml(codes_file_path)
+      end
+      codes_json = HQMF2JS::Generator::CodesToJson.hash_to_js(codes)
 
       # Convert the HQMF document included as a fixture into JavaScript
       converter = HQMF2JS::Generator::JS.new(hqmf_contents)
