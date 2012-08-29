@@ -132,34 +132,55 @@ class TS
     timeStampsNoSeconds
 @TS = TS
 
-fieldOrContainerValue = (value, fieldName) ->
+# Utility function used to extract data from a supplied object, hash or simple value
+# First looks for an accessor function, then an object property or hash key. If
+# defaultToValue is specified it will return the supplied value if neither an accessor
+# or hash entry exists, if false it will return null.
+fieldOrContainerValue = (value, fieldName, defaultToValue=true) ->
   if value != null
-    if typeof value[fieldName] != 'undefined'
+    if typeof value[fieldName] == 'function'
+      value[fieldName]()
+    else if typeof value[fieldName] != 'undefined'
       value[fieldName]
-    else
+    else if defaultToValue
       value
+    else
+      null
   else
     null
 @fieldOrContainerValue = fieldOrContainerValue
 
 class CD
-  constructor: (@code) ->
-  code: ->
-    @code
+  constructor: (@code, @system) ->
   match: (codeOrHash) ->
-    val = fieldOrContainerValue(codeOrHash, 'code')
-    @code==val
+    # We might be passed a simple code value like "M" or a CodedEntry
+    # Do our best to get a code value but only get a code system name if one is
+    # supplied
+    codeToMatch = fieldOrContainerValue(codeOrHash, 'code')
+    systemToMatch = fieldOrContainerValue(codeOrHash, 'codeSystemName', false)
+    if @system && systemToMatch
+      @code==codeToMatch && @system==systemToMatch
+    else
+      @code==codeToMatch
 @CD = CD
     
 class CodeList
   constructor: (@codes) ->
   match: (codeOrHash) ->
-    val = fieldOrContainerValue(codeOrHash, 'code')
+    # We might be passed a simple code value like "M" or a CodedEntry
+    # Do our best to get a code value but only get a code system name if one is
+    # supplied
+    codeToMatch = fieldOrContainerValue(codeOrHash, 'code')
+    systemToMatch = fieldOrContainerValue(codeOrHash, 'codeSystemName', false)
+    result = false
     for codeSystemName, codeList of @codes
       for code in codeList
-        if code==val
-          return true
-    false
+        if codeSystemName && systemToMatch # check that code systems match if both specified
+          if code==codeToMatch && codeSystemName==systemToMatch
+            result = true
+        else if code==codeToMatch # no code systems to match to just match codes
+          result = true
+    result
 @CodeList = CodeList
     
 class PQ
@@ -256,9 +277,14 @@ matchingValue = (value, compareTo) ->
   new Boolean(compareTo.match(value))
 @matchingValue = matchingValue
 
+anyMatchingValue = (event, valueToMatch) ->
+  matchingValues = (value for value in event.values() when (valueToMatch.match(value)))
+  matchingValues.length > 0
+@anyMatchingValue = anyMatchingValue
+
 filterEventsByValue = (events, value) ->
-  matchingValues = (event for event in events when (event.value && value.match(event.value())))
-  matchingValues
+  matchingEvents = (event for event in events when (anyMatchingValue(event, value)))
+  matchingEvents
 @filterEventsByValue = filterEventsByValue
 
 getCodes = (oid) ->

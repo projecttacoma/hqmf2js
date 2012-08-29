@@ -1,13 +1,13 @@
 GIT
   remote: http://github.com/pophealth/patientapi.git
-  revision: adc3a8318289f776fd29dca595786e9e7af31c8b
+  revision: a78f30551d64e21e2832109acac19a93cc47cabc
   branch: develop
   specs:
     hquery-patient-api (0.1.0)
 
 GIT
   remote: http://github.com/projectcypress/health-data-standards.git
-  revision: 2b3c4d20a074e2e21c9d1c856d9fc1b5edf142f2
+  revision: 41354a3fb14530ded02f5a35fdefac2aec3fa665
   branch: develop
   specs:
     health-data-standards (1.0.1)
