@@ -20,15 +20,15 @@ module HQMF2JS
       
       # Pretty stock map/reduce functions that call out to our converted HQMF code stored in the functions variable
       map = "function map(patient) {
-  if (typeof(hqmfjs.IPP)==='function' && hqmfjs.IPP(patient)) {
+  if (typeof(hqmfjs.IPP)==='function' && hqmfjs.IPP(patient).isTrue()) {
     emit('ipp', 1);
-    if (typeof(hqmfjs.DENEXCEP)==='function' && hqmfjs.DENEXCEP(patient)) {
+    if (typeof(hqmfjs.DENEXCEP)==='function' && hqmfjs.DENEXCEP(patient).isTrue()) {
         emit('denexcep', 1);    
-    } else if (typeof(hqmfjs.DENOM)==='function' && hqmfjs.DENOM(patient)) {
-      if (typeof(hqmfjs.NUMER)==='function' && hqmfjs.NUMER(patient)) {
+    } else if (typeof(hqmfjs.DENOM)==='function' && hqmfjs.DENOM(patient).isTrue()) {
+      if (typeof(hqmfjs.NUMER)==='function' && hqmfjs.NUMER(patient).isTrue()) {
         emit('denom', 1);
         emit('numer', 1);
-      } else if (typeof(hqmfjs.EXCL)==='function' && hqmfjs.EXCL(patient)) {
+      } else if (typeof(hqmfjs.EXCL)==='function' && hqmfjs.EXCL(patient).isTrue()) {
         emit('excl', 1);
       } else {
         emit('denom', 1);
