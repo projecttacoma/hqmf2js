@@ -15,11 +15,11 @@ module HQMF2JS
       converter = HQMF2JS::Generator::JS.new(hqmf_contents)
       converted_hqmf = [
         "#{converter.js_for_data_criteria}",
-        "#{converter.js_for('IPP')}",
-        "#{converter.js_for('DENOM')}",
-        "#{converter.js_for('NUMER')}",
-        "#{converter.js_for('DENEXCEP')}",
-        "#{converter.js_for('EXCL')}"].join("\n")
+        "#{converter.js_for('IPP', nil, true)}",
+        "#{converter.js_for('DENOM', nil, true)}",
+        "#{converter.js_for('NUMER', nil, true)}",
+        "#{converter.js_for('DENEXCEP', nil, false)}",
+        "#{converter.js_for('EXCL', nil, false)}"].join("\n")
       
       # Pretty stock map/reduce functions that call out to our converted HQMF code stored in the functions variable
       map = "function map(patient) {

@@ -193,7 +193,7 @@ module HQMF2JS
         if criteria && criteria.preconditions && criteria.preconditions.length > 0
           HQMF2JS::Generator.render_template('population_criteria', {'doc' => @doc, 'criteria' => criteria, 'type'=>type})
         else
-          "hqmfjs.#{type} = function(patient) { return #{when_not_found}; }"
+          "hqmfjs.#{type} = function(patient) { return new Boolean(#{when_not_found}); }"
         end
       end
       
