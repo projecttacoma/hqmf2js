@@ -539,5 +539,6 @@ class LibraryFunctionTest < Test::Unit::TestCase
   
   def test_respond_to
     assert @context.eval("(new hQuery.Allergy({})).respondTo('severity')")
+    assert !@context.eval("(new hQuery.Allergy({})).respondTo('canHasCheeseburger')")
   end
 end
