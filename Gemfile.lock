@@ -1,6 +1,6 @@
 GIT
   remote: http://github.com/pophealth/patientapi.git
-  revision: a78f30551d64e21e2832109acac19a93cc47cabc
+  revision: 55a54ba17dd7cf591626fc297bcd584e2f3d6f6b
   branch: develop
   specs:
     hquery-patient-api (0.1.0)
@@ -19,7 +19,7 @@ GIT
 
 GIT
   remote: https://github.com/pophealth/hqmf-parser.git
-  revision: a8aebd01efe03149826da95a26641dd5595fb117
+  revision: d6c60ec21bab09274c78a74a9d55d71754f01601
   branch: develop
   specs:
     hqmf-parser (0.0.1)
