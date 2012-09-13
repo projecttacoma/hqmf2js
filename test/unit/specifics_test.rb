@@ -85,6 +85,29 @@ class SpecificsTest < Test::Unit::TestCase
     
   end
   
+  
+  def test_row_equal
+    
+    rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1}});
+      var row2 = new Row('OccurrenceBEncounter',{'OccurrenceBEncounter':{'id':2}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':3}});
+      var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':3}});
+      var row6 = new Row(undefined,{});
+    "
+    
+    @context.eval(rows)
+    @context.eval("row1.equals(row1)").must_equal true
+    @context.eval("row1.equals(row2)").must_equal false
+    @context.eval("row2.equals(row2)").must_equal true
+    @context.eval("row3.equals(row4)").must_equal false
+    @context.eval("row4.equals(row5)").must_equal true
+    @context.eval("row6.equals(row6)").must_equal true
+    
+  end
+  
+  
   def test_row_intersect
     
     rows = "
@@ -135,6 +158,16 @@ class SpecificsTest < Test::Unit::TestCase
       var specific3 = new Specifics([row3,row4]);
       var specific4 = new Specifics([row3,row6]);
       var specific5 = new Specifics([row5,row6]);
+      
+      var allSpecific1 = new Specifics();
+      allSpecific1.addIdentityRow();
+      allSpecific1.addIdentityRow();
+      allSpecific1.addIdentityRow();
+      var allSpecific2 = new Specifics();
+      allSpecific2.addIdentityRow();
+      allSpecific2.addIdentityRow();
+      allSpecific2.addIdentityRow();
+      
     "
     
     @context.eval(intersect_rows)
@@ -163,6 +196,9 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("specific4.intersect(specific5).rows.length").must_equal 1
     @context.eval("specific4.intersect(specific5).rows[0].values[0].id").must_equal 1
     @context.eval("specific4.intersect(specific5).rows[0].values[1].id").must_equal 3
+
+
+    @context.eval("allSpecific1.intersect(allSpecific2).rows.length").must_equal 1
     
   end
   
