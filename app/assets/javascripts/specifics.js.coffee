@@ -82,11 +82,23 @@ class Specifics
   
   addRows: (rows) ->
     @rows = @rows.concat(rows)
+    
+  removeDuplicateRows: () ->
+    deduped = new Specifics()
+    for row in @rows
+      # this could potentially be hasRow to dump even more rows.
+      deduped.addRows([row]) if !deduped.hasExactRow(row)
+    deduped
+  
+  hasExactRow: (other) ->
+    for row in @rows
+      return true if row.equals(other)
+    return false
   
   union: (other) ->
     value = new Specifics()
     value.rows = @rows.concat(other.rows)
-    value
+    value.removeDuplicateRows()
   
   intersect: (other) ->
     value = new Specifics()
@@ -94,7 +106,7 @@ class Specifics
       for rightRow in other.rows
         result = leftRow.intersect(rightRow)
         value.rows.push(result) if result?
-    value
+    value.removeDuplicateRows()
   
   getLeftMost: ->
     leftMost = undefined
@@ -270,7 +282,7 @@ class Specifics
       result = result.negate()
       result = result.compactReusedEvents()
       # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.
-      # the reason we do this is because we may get too many negated values.  Values that may be culled later via other specific occurrences.  Thus we don't want to return 
+      # the reason we do this is because we may get too many negated values.  Values that may be culled later via other specific occurrences.  Thus we do not want to return 
       # false out of a negation because the values we are evaluating as false may be dropped.
       boolVal = new Boolean(true)
     boolVal.specificContext = result.compactReusedEvents()
@@ -324,6 +336,14 @@ class Row
       foundSpecificIndexes.push(i) if @values[i]? and @values[i] != Specifics.ANY
     foundSpecificIndexes
 
+  equals: (other) ->
+    equal = true;
+    
+    equal &&= Row.valuesEqual(@tempValue, other.tempValue)
+    for value,i in @values
+      equal &&= Row.valuesEqual(value, other.values[i])
+    equal
+
   intersect: (other) ->
     intersectedRow = new Row(@leftMost, {})
     intersectedRow.tempValue = @tempValue
@@ -356,6 +376,14 @@ class Row
     return left if right == Specifics.ANY
     return left if left.id == right.id
     return undefined
+
+  @valuesEqual: (left, right) ->
+    return true if !left? and !right?
+    return false if !left?
+    return false if !right?
+    return true if left == Specifics.ANY and right == Specifics.ANY
+    return true if left.id == right.id
+    return false
   
   # build specific for an entry given matching rows (with temporal references)
   @buildRowsForMatching: (entryKey, entry, matchesKey, matches) ->
