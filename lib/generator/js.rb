@@ -167,7 +167,7 @@ module HQMF2JS
         #{js_for(population['DENOM'], 'DENOM', true)}
         // NUMERATOR
         #{js_for(population['NUMER'], 'NUMER')}
-        #{js_for(population['EXCL'], 'EXCL')}
+        #{js_for(population['DENEX'], 'DENEX')}
         #{js_for(population['DENEXCEP'], 'DENEXCEP')}
         "
       end
