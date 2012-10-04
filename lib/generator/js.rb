@@ -166,13 +166,13 @@ module HQMF2JS
         #{js_initialize_specifics(@doc.source_data_criteria)}
 
         // INITIAL PATIENT POPULATION
-        #{js_for(population['IPP'], 'IPP', true)}
+        #{js_for(population[HQMF::PopulationCriteria::IPP], HQMF::PopulationCriteria::IPP, true)}
         // DENOMINATOR
-        #{js_for(population['DENOM'], 'DENOM', true)}
+        #{js_for(population[HQMF::PopulationCriteria::DENOM], HQMF::PopulationCriteria::DENOM, true)}
         // NUMERATOR
-        #{js_for(population['NUMER'], 'NUMER')}
-        #{js_for(population['DENEX'], 'DENEX')}
-        #{js_for(population['DENEXCEP'], 'DENEXCEP')}
+        #{js_for(population[HQMF::PopulationCriteria::NUMER], HQMF::PopulationCriteria::NUMER)}
+        #{js_for(population[HQMF::PopulationCriteria::DENEX], HQMF::PopulationCriteria::DENEX)}
+        #{js_for(population[HQMF::PopulationCriteria::EXCEP], HQMF::PopulationCriteria::EXCEP)}
         "
       end
       

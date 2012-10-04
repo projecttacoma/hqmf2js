@@ -20,7 +20,7 @@ class EffectiveDateTest < Test::Unit::TestCase
       #{@converter.js_for('IPP')}
       #{@converter.js_for('DENOM')}
       #{@converter.js_for('NUMER')}
-      #{@converter.js_for('DENEXCEP')}
+      #{@converter.js_for('EXCEP')}
       #{@converter.js_for('DUMMY')}"
 
     # Now we can wrap and compile all of our code as one little JavaScript context for all of the tests below

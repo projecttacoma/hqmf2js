@@ -24,7 +24,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
       #{@converter.js_for('IPP')}
       #{@converter.js_for('DENOM')}
       #{@converter.js_for('NUMER')}
-      #{@converter.js_for('DENEXCEP')}
+      #{@converter.js_for('EXCEP')}
       #{@converter.js_for('DUMMY')}"
 
     initialize_javascript_context(hqmf_utils, codes_json, converted_hqmf)
@@ -120,7 +120,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert @context.eval("hqmfjs.IPP(numeratorPatient).isTrue()")
     assert @context.eval("hqmfjs.DENOM(numeratorPatient).isTrue()")
     assert @context.eval("hqmfjs.NUMER(numeratorPatient).isTrue()")
-    assert !@context.eval("hqmfjs.DENEXCEP(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.EXCEP(numeratorPatient).isTrue()")
     
     # COUNTing
     assert @context.eval("hqmfjs.moreThanTwoHbA1CTests(numeratorPatient).isTrue()")

@@ -13,29 +13,30 @@ module HQMF2JS
 
       # Convert the HQMF document included as a fixture into JavaScript
       converter = HQMF2JS::Generator::JS.new(hqmf_contents)
+      data_criteria_code = converter.js_for_data_criteria
+      population_criteria_code = HQMF::PopulationCriteria::ALL_POPULATION_CODES.collect do |code|
+        converter.js_for(code, nil, true)
+      end
       converted_hqmf = [
-        "#{converter.js_for_data_criteria}",
-        "#{converter.js_for('IPP', nil, true)}",
-        "#{converter.js_for('DENOM', nil, true)}",
-        "#{converter.js_for('NUMER', nil, true)}",
-        "#{converter.js_for('DENEXCEP', nil, false)}",
-        "#{converter.js_for('EXCL', nil, false)}"].join("\n")
+        data_criteria_code,
+        population_criteria_code.join("\n")
+      ].join("\n")
       
       # Pretty stock map/reduce functions that call out to our converted HQMF code stored in the functions variable
       map = "function map(patient) {
   var ipp = hqmfjs.IPP(patient);
   if (Specifics.validate(ipp)) {
     emit('ipp', 1);
-    if (Specifics.validate(hqmfjs.DENEXCEP(patient), ipp)) {
-      emit('denexcep', 1);    
+    if (Specifics.validate(hqmfjs.DENEX(patient), ipp)) {
+      emit('denex', 1);    
     } else {
       var denom = hqmfjs.DENOM(patient);
       if (Specifics.validate(denom, ipp)) {
         if (Specifics.validate(hqmfjs.NUMER(patient), denom, ipp)) {
           emit('denom', 1);
           emit('numer', 1);
-        } else if (Specifics.validate(hqmfjs.EXCL(patient), denom, ipp)) {
-          emit('excl', 1);
+        } else if (Specifics.validate(hqmfjs.EXCEP(patient), denom, ipp)) {
+          emit('excep', 1);
         } else {
           emit('denom', 1);
           emit('antinum', 1);
