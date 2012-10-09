@@ -10,12 +10,12 @@ class @Logger
     (indent+=' ' for num in [0..@indentCount*8])
     indent
   @stringify: (object) ->
-    if !_.isUndefined(object) and !_.isUndefined(object.length)
+    if object and !_.isUndefined(object) and !_.isUndefined(object.length)
       "#{object.length} entries" 
     else
       "#{object}"
   @asBoolean: (object) ->
-    if !_.isUndefined(object) and !_.isUndefined(object.length)
+    if object and !_.isUndefined(object) and !_.isUndefined(object.length)
       object.length>0 
     else
       object
