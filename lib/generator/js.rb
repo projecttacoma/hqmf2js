@@ -57,6 +57,12 @@ module HQMF2JS
               else
                 "new CD(\"#{value.code}\", \"#{value.system}\")"
               end
+            elsif value.type=='PQ'
+              if value.unit != nil
+                "new PQ(#{value.value}, \"#{value.unit}\", #{value.inclusive?})"
+              else
+                "new PQ(#{value.value}, null, #{value.inclusive?})"
+              end
             elsif value.type=='ANYNonNull'
               "new #{value.type}()"
             elsif value.respond_to?(:unit) && value.unit != nil
