@@ -154,15 +154,23 @@ module HQMF2JS
         @doc = doc
       end
       
-      def to_js(codes, population_index=0)
+      def to_js(population_index=0, codes=nil)
         population_index ||= 0
         population = @doc.populations[population_index]
+        
+        if codes
+          oid_dictionary = HQMF2JS::Generator::CodesToJson.hash_to_js(codes)
+        else
+          oid_dictionary = "<%= oid_dictionary %>"
+        end
+        
         "
         // #########################
         // ##### DATA ELEMENTS #####
         // #########################
 
-        OidDictionary = #{HQMF2JS::Generator::CodesToJson.hash_to_js(codes)};
+        OidDictionary = #{oid_dictionary};
+        
         #{js_for_data_criteria()}
 
         // #########################

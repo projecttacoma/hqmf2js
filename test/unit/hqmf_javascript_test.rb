@@ -44,7 +44,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   end
   
   def test_to_js_method
-    value = @converter.to_js(@codes_hash)
+    value = @converter.to_js(0,@codes_hash)
     local_context = V8::Context.new
     patient_api = File.open('test/fixtures/patient_api.js').read
     hqmf_utils = HQMF2JS::Generator::JS.library_functions
