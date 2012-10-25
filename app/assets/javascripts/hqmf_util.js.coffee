@@ -1,4 +1,9 @@
+# Represents an HL7 timestamp
 class TS
+  
+  # Create a new TS instance
+  # hl7ts - an HL7 TS value as a string, e.g. 20121023131023 for
+  # Oct 23, 2012 at 13:10:23.
   constructor: (hl7ts, @inclusive=false) ->
     if hl7ts
       year = parseInt(hl7ts.substring(0, 4))
@@ -13,6 +18,10 @@ class TS
       @date = new Date(year, month, day, hour, minute)
     else
       @date = new Date()
+  
+  # Add a time period to th and return it
+  # pq - a time period as an instance of PQ. Supports units of a (year), mo (month),
+  # wk (week), d (day), h (hour) and min (minute).
   add: (pq) ->
     if pq.unit=="a"
       @date.setFullYear(@date.getFullYear()+pq.value)
@@ -29,6 +38,12 @@ class TS
     else
       throw "Unknown time unit: "+pq.unit
     this
+    
+  # Returns the difference between this TS and the supplied TS as an absolute
+  # number using the supplied granularity. E.g. if granularity is specified as year
+  # then it will return the number of years between this TS and the supplied TS.
+  # granularity - specifies the granularity of the difference. Supports units 
+  # of a (year), mo (month), wk (week), d (day), h (hour) and min (minute).
   difference: (ts, granularity) ->
     earlier = later = null
     if @afterOrConcurrent(ts)
@@ -51,8 +66,12 @@ class TS
       TS.minutesDifference(earlier,later)
     else
       throw "Unknown time unit: "+granularity
+  
+  # Get the value of this TS as a JS Date
   asDate: ->
     @date
+    
+  # Returns whether this TS is before the supplied TS ignoring seconds
   before: (other) -> 
     if @date==null || other.date==null
       return false
@@ -61,6 +80,8 @@ class TS
     else
       [a,b] = TS.dropSeconds(@date, other.date)
       a.getTime() < b.getTime()
+
+  # Returns whether this TS is after the supplied TS ignoring seconds
   after: (other) ->
     if @date==null || other.date==null
       return false
@@ -69,16 +90,23 @@ class TS
     else
       [a,b] = TS.dropSeconds(@date, other.date)
       a.getTime() > b.getTime()
+
+  # Returns whether this TS is before or concurrent with the supplied TS ignoring seconds
   beforeOrConcurrent: (other) ->  
     if @date==null || other.date==null
       return false
     [a,b] = TS.dropSeconds(@date, other.date)
     a.getTime() <= b.getTime()
+
+  # Returns whether this TS is after or concurrent with the supplied TS ignoring seconds
   afterOrConcurrent: (other) ->
     if @date==null || other.date==null
       return false
     [a,b] = TS.dropSeconds(@date, other.date)
     a.getTime() >= b.getTime()
+    
+  # Return whether this TS and the supplied TS are within the same minute (i.e.
+  # same timestamp when seconds are ignored)
   withinSameMinute: (other) ->
     [a,b] = TS.dropSeconds(@date, other.date)
     a.getTime()==b.getTime()
@@ -150,8 +178,11 @@ fieldOrContainerValue = (value, fieldName, defaultToValue=true) ->
     null
 @fieldOrContainerValue = fieldOrContainerValue
 
+# Represents an HL7 CD value
 class CD
   constructor: (@code, @system) ->
+  
+  # Returns whether the supplied code matches this one.
   match: (codeOrHash) ->
     # We might be passed a simple code value like "M" or a CodedEntry
     # Do our best to get a code value but only get a code system name if one is
@@ -164,8 +195,11 @@ class CD
       @code==codeToMatch
 @CD = CD
     
+# Represents a list of codes 
 class CodeList
   constructor: (@codes) ->
+  
+  # Returns whether the supplied code matches any of the contained codes
   match: (codeOrHash) ->
     # We might be passed a simple code value like "M" or a CodedEntry
     # Do our best to get a code value but only get a code system name if one is
@@ -183,28 +217,49 @@ class CodeList
     result
 @CodeList = CodeList
     
+# Represents and HL7 physical quantity
 class PQ
   constructor: (@value, @unit, @inclusive=true) ->
-  lessThan: (val) ->
+  
+  # Helper method to make a PQ behave like a patient API value
+  scalar: -> @value
+  
+  # Returns whether this is less than the supplied value
+  lessThan: (scalarOrHash) ->
+    val = fieldOrContainerValue(scalarOrHash, 'scalar')
     if @inclusive
       @lessThanOrEqual(val)
     else
       @value<val
-  greaterThan: (val) ->
+
+  # Returns whether this is greater than the supplied value
+  greaterThan: (scalarOrHash) ->
+    val = fieldOrContainerValue(scalarOrHash, 'scalar')
     if @inclusive
       @greaterThanOrEqual(val)
     else
       @value>val
-  lessThanOrEqual: (val) ->
+
+  # Returns whether this is less than or equal to the supplied value
+  lessThanOrEqual: (scalarOrHash) ->
+    val = fieldOrContainerValue(scalarOrHash, 'scalar')
     @value<=val
-  greaterThanOrEqual: (val) ->
+
+  # Returns whether this is greater than or equal to the supplied value
+  greaterThanOrEqual: (scalarOrHash) ->
+    val = fieldOrContainerValue(scalarOrHash, 'scalar')
     @value>=val
+    
+  # Returns whether this is equal to the supplied value or hash
   match: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
     @value==val
 @PQ = PQ
   
+# Represents an HL7 interval
 class IVL_PQ
+  # Create a new instance, must supply either a lower or upper bound and if both
+  # are supplied the units must match.
   constructor: (@low_pq, @high_pq) ->
     if !@low_pq && !@high_pq
       throw "Must have a lower or upper bound"
@@ -215,36 +270,134 @@ class IVL_PQ
       @low_pq.unit
     else
       @high_pq.unit
+      
+  # Return whether the supplied scalar or patient API hash value is within this range
   match: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
 @IVL_PQ = IVL_PQ
     
+# Represents an HL7 time interval
 class IVL_TS
   constructor: (@low, @high) ->
+  
+  # add an offset to the upper and lower bounds
   add: (pq) ->
-    @low.add(pq)
-    @high.add(pq)
+    if @low
+      @low.add(pq)
+    if @high
+      @high.add(pq)
     this
+  
+  # During: this low is after other low and this high is before other high
   DURING: (other) -> this.SDU(other) && this.EDU(other)
+  
+  # Overlap: this overlaps with other
   OVERLAP: (other) -> this.SDU(other) || this.EDU(other) || (this.SBS(other) && this.EAE(other))
-  SBS: (other) -> @low.before(other.low)
-  SAS: (other) -> @low.after(other.low)
-  SBE: (other) -> @low.before(other.high)
-  SAE: (other) -> @low.after(other.high)
-  EBS: (other) -> @high.before(other.low)
-  EAS: (other) -> @high.after(other.low)
-  EBE: (other) -> @high.before(other.high)
-  EAE: (other) -> @high.after(other.high)
-  SDU: (other) -> @low.afterOrConcurrent(other.low) && @low.beforeOrConcurrent(other.high)
-  EDU: (other) -> @high.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
-  ECW: (other) -> @high.asDate() && other.high.asDate() && @high.withinSameMinute(other.high)
-  SCW: (other) -> @low.asDate() && other.low.asDate() && @low.withinSameMinute(other.low)
-  ECWS: (other) -> @high.asDate() && other.low.asDate() && @high.withinSameMinute(other.low)
-  SCWE: (other) -> @low.asDate() && other.high.asDate() && @low.withinSameMinute(other.high)
+  
+  # Concurrent: this low and high are the same as other low and high
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
+  
+  # Starts Before Start: this low is before other low
+  SBS: (other) -> 
+    if @low && other.low
+      @low.before(other.low)
+    else
+      false
+      
+  # Starts After Start: this low is after other low
+  SAS: (other) -> 
+    if @low && other.low
+      @low.after(other.low)
+    else
+      false
+      
+  # Starts Before End: this low is before other high
+  SBE: (other) ->
+    if @low && other.high
+      @low.before(other.high)
+    else
+      false
+      
+  # Starts After End: this low is after other high
+  SAE: (other) -> 
+    if @low && other.high
+      @low.after(other.high)
+    else
+      false
+      
+  # Ends Before Start: this high is before other low
+  EBS: (other) ->
+    if @high && other.low
+      @high.before(other.low)
+    else
+      false
+      
+  # Ends After Start: this high is after other low
+  EAS: (other) -> 
+    if @high && other.low
+      @high.after(other.low)
+    else
+      false
+      
+  # Ends Before End: this high is before other high
+  EBE: (other) -> 
+    if @high && other.high
+      @high.before(other.high)
+    else
+      false
+      
+  # Ends After End: this high is after other high
+  EAE: (other) ->
+    if @high && other.high
+      @high.after(other.high)
+    else
+      false
+      
+  # Starts During: this low is between other low and high
+  SDU: (other) -> 
+    if @low && other.low && other.high
+      @low.afterOrConcurrent(other.low) && @low.beforeOrConcurrent(other.high)
+    else
+      false
+      
+  # Ends During: this high is between other low and high
+  EDU: (other) -> 
+    if @high && other.low && other.high
+      @high.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
+    else
+      false
+      
+  # Ends Concurrent With: this high is the same as other high ignoring seconds
+  ECW: (other) -> 
+    if @high && other.high
+      @high.asDate() && other.high.asDate() && @high.withinSameMinute(other.high)
+    else
+      false
+      
+  # Starts Concurrent With: this low is the same as other low ignoring seconds
+  SCW: (other) -> 
+    if @low && other.low
+      @low.asDate() && other.low.asDate() && @low.withinSameMinute(other.low)
+    else
+      false
+      
+  # Ends Concurrent With Start: this high is the same as other low ignoring seconds
+  ECWS: (other) ->
+    if @high && other.low
+      @high.asDate() && other.low.asDate() && @high.withinSameMinute(other.low)
+    else
+      false
+      
+  # Starts Concurrent With End: this low is the same as other high ignoring seconds
+  SCWE: (other) -> 
+    if @low && other.high
+      @low.asDate() && other.high.asDate() && @low.withinSameMinute(other.high)
+    else
+      false
 @IVL_TS = IVL_TS
 
+# Used to represent a value that will match any other value that is not null.
 class ANYNonNull
   constructor: ->
   match: (scalarOrHash) ->
@@ -252,46 +405,55 @@ class ANYNonNull
     val != null
 @ANYNonNull = ANYNonNull
 
+# Returns true if one or more of the supplied values is true
 atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && value.isTrue())
   trueValues.length>0
   Specifics.unionAll(new Boolean(trueValues.length>0), values)
 @atLeastOneTrue = atLeastOneTrue
   
+# Returns true if all of the supplied values are true
 allTrue = (values...) ->
   trueValues = (value for value in values when value && value.isTrue())
   Specifics.intersectAll(new Boolean(trueValues.length>0 && trueValues.length==values.length), values)
 @allTrue = allTrue
   
+# Returns true if one or more of the supplied values is false
 atLeastOneFalse = (values...) ->
   falseValues = (value for value in values when value.isFalse())
   Specifics.intersectAll(new Boolean(falseValues.length>0), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
+# Returns true if all of the supplied values are false
 allFalse = (values...) ->
   falseValues = (value for value in values when value.isFalse())
   Specifics.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse
   
+# Return true if compareTo matches value
 matchingValue = (value, compareTo) ->
   new Boolean(compareTo.match(value))
 @matchingValue = matchingValue
 
+# Return true if valueToMatch matches any event value
 anyMatchingValue = (event, valueToMatch) ->
   matchingValues = (value for value in event.values() when (valueToMatch.match(value)))
   matchingValues.length > 0
 @anyMatchingValue = anyMatchingValue
 
+# Return only those events whose value matches the supplied value
 filterEventsByValue = (events, value) ->
   matchingEvents = (event for event in events when (anyMatchingValue(event, value)))
   matchingEvents
 @filterEventsByValue = filterEventsByValue
 
+# Return only those events with a field that matches the supplied value
 filterEventsByField = (events, field, value) ->
   respondingEvents = (event for event in events when event.respondTo(field))
   event for event in respondingEvents when value.match(event[field]())
 @filterEventsByField = filterEventsByField
 
+# Utility method to obtain the value set for an OID
 getCodes = (oid) ->
   OidDictionary[oid]
 @getCodes = getCodes
@@ -307,10 +469,12 @@ class CrossProduct extends Array
       for event in eventList
         this.push(event)
 
+# Create a CrossProduct of the supplied event lists.
 XPRODUCT = (eventLists...) ->
   Specifics.intersectAll(new CrossProduct(eventLists), eventLists)
 @XPRODUCT = XPRODUCT
 
+# Create a new list containing all the events from the supplied event lists
 UNION = (eventLists...) ->
   union = []
   for eventList in eventLists
@@ -319,6 +483,7 @@ UNION = (eventLists...) ->
   Specifics.unionAll(union, eventLists)
 @UNION = UNION
 
+# Return true if the number of events matches the supplied range
 COUNT = (events, range) ->
   count = events.length
   result = new Boolean(range.match(count))
