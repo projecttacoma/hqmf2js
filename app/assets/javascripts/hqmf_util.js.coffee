@@ -189,10 +189,12 @@ class CD
     # supplied
     codeToMatch = fieldOrContainerValue(codeOrHash, 'code')
     systemToMatch = fieldOrContainerValue(codeOrHash, 'codeSystemName', false)
+    c1 = hQuery.CodedValue.normalize(codeToMatch)
+    c2 = hQuery.CodedValue.normalize(@code)
     if @system && systemToMatch
-      @code==codeToMatch && @system==systemToMatch
+      c1==c2 && @system==systemToMatch
     else
-      @code==codeToMatch
+      c1==c2
 @CD = CD
     
 # Represents a list of codes 
@@ -205,14 +207,16 @@ class CodeList
     # Do our best to get a code value but only get a code system name if one is
     # supplied
     codeToMatch = fieldOrContainerValue(codeOrHash, 'code')
+    c1 = hQuery.CodedValue.normalize(codeToMatch)
     systemToMatch = fieldOrContainerValue(codeOrHash, 'codeSystemName', false)
     result = false
     for codeSystemName, codeList of @codes
       for code in codeList
+        c2 = hQuery.CodedValue.normalize(code)
         if codeSystemName && systemToMatch # check that code systems match if both specified
-          if code==codeToMatch && codeSystemName==systemToMatch
+          if c1==c2 && codeSystemName==systemToMatch
             result = true
-        else if code==codeToMatch # no code systems to match to just match codes
+        else if c1==c2 # no code systems to match to just match codes
           result = true
     result
 @CodeList = CodeList
@@ -490,10 +494,7 @@ COUNT = (events, range) ->
   applySpecificOccurrenceSubset('COUNT', Specifics.maintainSpecifics(result, events), range)
 @COUNT = COUNT
 
-PREVSUM = (eventList) ->
-  eventList
-@PREVSUM = PREVSUM
-
+# Convert an hQuery.CodedEntry or JS Date into an IVL_TS
 getIVL = (eventOrTimeStamp) ->
   if eventOrTimeStamp.asIVL_TS
     eventOrTimeStamp.asIVL_TS()
@@ -503,7 +504,6 @@ getIVL = (eventOrTimeStamp) ->
     new IVL_TS(ts, ts)
 @getIVL = getIVL
     
-# should DURING and CONCURRENT be an error ?
 eventAccessor = {  
   'DURING': 'low',
   'OVERLAP': 'low',
@@ -524,7 +524,6 @@ eventAccessor = {
   'CONCURRENT': 'low'
 }
 
-# should DURING SDU, EDU, ECW, SCW and CONCURRENT be an error ?
 boundAccessor = {  
   'DURING': 'low',
   'OVERLAP': 'low',
@@ -545,12 +544,17 @@ boundAccessor = {
   'CONCURRENT': 'low'
 }
     
+# Determine whether the supplied event falls within range of the supplied bound
+# using the method to determine which property of the event and bound to use in
+# the comparison. E.g. if method is SBS then check whether the start of the event
+# is within range of the start of the bound.
 withinRange = (method, eventIVL, boundIVL, range) ->
   eventTS = eventIVL[eventAccessor[method]]
   boundTS = boundIVL[boundAccessor[method]]
   range.match(eventTS.difference(boundTS, range.unit()))
 @withinRange = withinRange
     
+# Determine which bounds an event matches
 eventMatchesBounds = (event, bounds, methodName, range) ->
   if bounds.eventLists
     # XPRODUCT set of bounds - event must match at least one bound in all members
@@ -572,6 +576,7 @@ eventMatchesBounds = (event, bounds, methodName, range) ->
     Specifics.maintainSpecifics(matchingBounds, bounds)
 @eventMatchesBounds = eventMatchesBounds
   
+# Determine which event match one of the supplied bounds
 eventsMatchBounds = (events, bounds, methodName, range) ->
   if (bounds.length==undefined)
     bounds = [bounds]
