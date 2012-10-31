@@ -29,7 +29,7 @@ class CodesToJsonTest < Test::Unit::TestCase
     @context = get_js_context("var dictionary = #{codes_json}")
     @context.eval("dictionary").entries.length.must_equal 12
     @context.eval("dictionary['2.16.840.1.113883.3.464.0001.430']").entries.first[0].must_equal "RxNorm"
-    @context.eval("dictionary['2.16.840.1.113883.3.464.0001.430']").entries.first[1].length.must_equal 24
+    @context.eval("dictionary['2.16.840.1.113883.3.464.0001.430']").entries.first[1].length.must_equal 25
     
   end
   

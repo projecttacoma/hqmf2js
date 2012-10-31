@@ -17,7 +17,8 @@ module HQMF2JS
         value_sets.each do |value_set|
           code_sets = {}
           value_set["code_sets"].each do |code_set|
-            code_sets[code_set["code_set"]] = code_set["codes"]
+            code_sets[code_set["code_set"]] ||= []
+            code_sets[code_set["code_set"]].concat(code_set["codes"])
           end
           
           translation[value_set["oid"]] = code_sets
