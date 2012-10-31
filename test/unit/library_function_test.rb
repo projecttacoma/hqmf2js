@@ -64,11 +64,20 @@ class LibraryFunctionTest < Test::Unit::TestCase
   
   def test_pq
     pq = "new PQ(1, 'mo')"
+    pq2 = "new PQ(2, 'mo')"
+    val = "{'scalar': 0}"
+    val1 = "{'scalar': 1}"
+    val2 = "{'scalar': 2}"
     assert_equal 1, @context.eval("#{pq}.value")
     assert_equal "mo", @context.eval("#{pq}.unit")
     assert @context.eval("#{pq}.lessThan(3)")
     assert @context.eval("#{pq}.greaterThan(0)")
     assert @context.eval("#{pq}.match(1)")
+    assert @context.eval("#{pq}.lessThan(#{pq2})")
+    assert @context.eval("#{pq2}.greaterThan(#{pq})")
+    assert @context.eval("#{pq}.match(#{val1})")
+    assert @context.eval("#{pq}.lessThan(#{val2})")
+    assert @context.eval("#{pq}.greaterThan(#{val})")
   end
   
   def test_ts
