@@ -225,7 +225,9 @@ module HQMF2JS
         Tilt::CoffeeScriptTemplate.default_bare = true 
         ctx.append_path "app/assets/javascripts"
         
-        ["// #########################\n// ###### PATIENT API #######\n// #########################\n",
+        ["// #########################\n// ###### Underscore.js #######\n// #######################\n",
+         ctx.find_asset('underscore').to_s,
+         "// #########################\n// ###### PATIENT API #######\n// #########################\n",
          HqueryPatientApi::Generator.patient_api_javascript.to_s,
          "// #########################\n// ### LIBRARY FUNCTIONS ####\n// #########################\n",
          ctx.find_asset('hqmf_util').to_s, 

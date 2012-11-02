@@ -1,50 +1,3 @@
-
-wrap = (func, wrapper) ->
-  () ->
-    args = [func].concat(Array::slice.call(arguments, 0));
-    wrapper.apply(this, args);
-
-bind = (func, context) ->
-  
-  return Function::bind.apply(func, Array::slice.call(arguments, 1)) if (func.bind == Function::bind && Function::bind)
-  throw new TypeError if (typeof func != "function") 
-  args = Array::slice.call(arguments, 2)
-  return bound = ->
-    ctor = ->
-    return func.apply(context, args.concat(Array::slice.call(arguments))) if (!(this instanceof bound)) 
-    ctor.prototype = func.prototype
-    self = new ctor
-    result = func.apply(self, args.concat(Array::slice.call(arguments)))
-    return result if (Object(result) == result) 
-    self
-
-Array::unique = ->
-  output = {}
-  output[@[key]] = @[key] for key in [0...@length]
-  value for key, value of output
-
-Array::reduce = (accumulator) ->
-  throw new TypeError("Object is null or undefined") if (this==null or this==undefined) 
-  i = 0
-  l = this.length >> 0
-  curr=undefined
-  
-  throw new TypeError("First argument is not callable") if(typeof accumulator != "function")
-  
-  if(arguments.length < 2) 
-    throw new TypeError("Array length is 0 and no second argument") if (l == 0) 
-    curr = this[0]
-    i = 1
-  else
-    curr = arguments[1]
-
-  while (i < l) 
-    curr = accumulator.call(undefined, curr, this[i], i, this) if(`i in this`) 
-    ++i
-    
-  return curr
-  
-
 ###
   {
     rows: [
@@ -140,7 +93,7 @@ class Specifics
       product
     , [[]])
 
-  # removes any rows that have the save value for OccurrenceA and OccurrenceB
+  # removes any rows that have the same value for OccurrenceA and OccurrenceB
   compactReusedEvents: ->
     newRows = []
     for myRow in @rows
@@ -149,7 +102,7 @@ class Specifics
         ids = []
         for index in indexes
           ids.push(myRow.values[index].id) if myRow.values[index] != Specifics.ANY
-        goodRow &&= ids.length == ids.unique().length
+        goodRow &&= ids.length == _.unique(ids).length
       newRows.push(myRow) if goodRow
     new Specifics(newRows)
   
@@ -167,7 +120,7 @@ class Specifics
     foundSpecificIndexes = []
     for row in @rows
       foundSpecificIndexes = foundSpecificIndexes.concat(row.specificsWithValues())
-    foundSpecificIndexes.unique()
+    _.unique(foundSpecificIndexes)
   
   hasSpecifics: ->
     anyHaveSpecifics = false
@@ -410,50 +363,50 @@ class Row
   Wrap methods to maintain specificContext and specific_occurrence
 ###
 
-hQuery.CodedEntryList::withStatuses = wrap(hQuery.CodedEntryList::withStatuses, (func, statuses, includeUndefined=true) ->
+hQuery.CodedEntryList::withStatuses = _.wrap(hQuery.CodedEntryList::withStatuses, (func, statuses, includeUndefined=true) ->
   context = this.specificContext
   occurrence = this.specific_occurrence
-  func = bind(func, this)
+  func = _.bind(func, this)
   result = func(statuses,includeUndefined)
   result.specificContext = context
   result.specific_occurrence = occurrence
   return result;
 );
 
-hQuery.CodedEntryList::withNegation = wrap(hQuery.CodedEntryList::withNegation, (func, codeSet) ->
+hQuery.CodedEntryList::withNegation = _.wrap(hQuery.CodedEntryList::withNegation, (func, codeSet) ->
   context = this.specificContext
   occurrence = this.specific_occurrence
-  func = bind(func, this)
+  func = _.bind(func, this)
   result = func(codeSet)
   result.specificContext = context
   result.specific_occurrence = occurrence
   return result;
 );
 
-hQuery.CodedEntryList::withoutNegation = wrap(hQuery.CodedEntryList::withoutNegation, (func) ->
+hQuery.CodedEntryList::withoutNegation = _.wrap(hQuery.CodedEntryList::withoutNegation, (func) ->
   context = this.specificContext
   occurrence = this.specific_occurrence
-  func = bind(func, this)
+  func = _.bind(func, this)
   result = func()
   result.specificContext = context
   result.specific_occurrence = occurrence
   return result;
 );
 
-hQuery.CodedEntryList::concat = wrap(hQuery.CodedEntryList::concat, (func, otherEntries) ->
+hQuery.CodedEntryList::concat = _.wrap(hQuery.CodedEntryList::concat, (func, otherEntries) ->
   context = this.specificContext
   occurrence = this.specific_occurrence
-  func = bind(func, this)
+  func = _.bind(func, this)
   result = func(otherEntries)
   result.specificContext = context
   result.specific_occurrence = occurrence
   return result;
 );
 
-hQuery.CodedEntryList::match = wrap(hQuery.CodedEntryList::match, (func, codeSet, start, end, includeNegated=false) ->
+hQuery.CodedEntryList::match = _.wrap(hQuery.CodedEntryList::match, (func, codeSet, start, end, includeNegated=false) ->
   context = this.specificContext
   occurrence = this.specific_occurrence
-  func = bind(func, this)
+  func = _.bind(func, this)
   result = func(codeSet, start, end, includeNegated)
   result.specificContext = context
   result.specific_occurrence = occurrence
