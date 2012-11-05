@@ -5,31 +5,107 @@
       [1,7,8],
     ]
   }
+
+A singleton class the represents the table of all specific occurrences
 ###
 class Specifics
-  
-  @OCCURRENCES
-  @KEY_LOOKUP
-  @TYPE_LOOKUP
-  @INITIALIZED: false
-  @PATIENT: null
-  @ANY = '*'
-  
-  @initialize: (patient, hqmfjs, occurrences...)->
-    Specifics.OCCURRENCES = occurrences
-    Specifics.KEY_LOOKUP = {}
-    Specifics.INDEX_LOOKUP = {}
-    Specifics.TYPE_LOOKUP = {}
-    Specifics.FUNCTION_LOOKUP = {}
-    Specifics.PATIENT = patient
-    Specifics.HQMFJS = hqmfjs
+  constructor: ->
+    @patient = null
+    @any = '*'
+
+  initialize: (patient, hqmfjs, occurrences...)->
+    @occurrences = occurrences
+    @keyLookup = {}
+    @indexLookup = {}
+    @typeLookup = {}
+    @functionLookup = {}
+    @patient = patient
+    @hqmfjs = hqmfjs
     for occurrenceKey,i in occurrences
-      Specifics.KEY_LOOKUP[i] = occurrenceKey.id
-      Specifics.INDEX_LOOKUP[occurrenceKey.id] = i
-      Specifics.FUNCTION_LOOKUP[i] = occurrenceKey.function
-      Specifics.TYPE_LOOKUP[occurrenceKey.type] ||= []
-      Specifics.TYPE_LOOKUP[occurrenceKey.type].push(i)
+      @keyLookup[i] = occurrenceKey.id
+      @indexLookup[occurrenceKey.id] = i
+      @functionLookup[i] = occurrenceKey.function
+      @typeLookup[occurrenceKey.type] ||= []
+      @typeLookup[occurrenceKey.type].push(i)
   
+  _generateCartisian: (allValues) ->
+    Array::reduce.call(allValues, (as, bs) -> 
+      product = []
+      for a in as
+        for b in bs
+          product.push(a.concat(b))
+      product
+    , [[]])
+  
+  identity: ->
+    new SpecificOccurrence([new Row(undefined)])
+
+  extractEventsForLeftMost: (rows) ->
+    events = []
+    for row in rows
+      events.push(@extractEvent(row.leftMost, row))
+    events
+  
+  
+  extractEvents: (key, rows) ->
+    events = []
+    for row in rows
+      events.push(@extractEvent(key, row))
+    events
+    
+  extractEvent: (key, row) ->
+    index = @indexLookup[key]
+    if index?
+      entry = row.values[index]
+    else
+      entry = row.tempValue
+    entry = new hQuery.CodedEntry(entry.json)
+    entry.specificRow = row
+    entry
+  
+  validate: (populations...) ->
+    value = @intersectAll(new Boolean(populations[0].isTrue()), populations)
+    value.isTrue() and value.specificContext.hasRows()
+  
+  intersectAll: (boolVal, values, negate=false) ->
+    result = new SpecificOccurrence
+    # add identity row
+    result.addIdentityRow()
+    for value in values
+      if value.specificContext?
+        result = result.intersect(value.specificContext)
+    if negate and (!result.hasRows() or result.hasSpecifics())
+      result = result.negate()
+      result = result.compactReusedEvents()
+      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.
+      # the reason we do this is because we may get too many negated values.  Values that may be culled later via other specific occurrences.  Thus we do not want to return 
+      # false out of a negation because the values we are evaluating as false may be dropped.
+      boolVal = new Boolean(true)
+    boolVal.specificContext = result.compactReusedEvents()
+    boolVal
+
+  unionAll: (boolVal, values,negate=false) ->
+    result = new SpecificOccurrence
+    for value in values
+      if value.specificContext? and (value.isTrue() or negate)
+        result = result.union(value.specificContext) if value.specificContext?
+    
+    if negate and result.hasSpecifics()
+      result = result.negate() 
+      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.  See comment in intersectAll.
+      boolVal = new Boolean(true)
+    boolVal.specificContext = result
+    boolVal
+  
+  # copy the specifics parameters from an existing element onto the new value element
+  maintainSpecifics: (newElement, existingElement) ->
+    newElement.specificContext = existingElement.specificContext
+    newElement.specific_occurrence = existingElement.specific_occurrence
+    newElement
+    
+@Specifics = new Specifics
+
+class SpecificOccurrence
   constructor: (rows=[])->
     @rows = rows
   
@@ -37,7 +113,7 @@ class Specifics
     @rows = @rows.concat(rows)
     
   removeDuplicateRows: () ->
-    deduped = new Specifics()
+    deduped = new SpecificOccurrence
     for row in @rows
       # this could potentially be hasRow to dump even more rows.
       deduped.addRows([row]) if !deduped.hasExactRow(row)
@@ -49,12 +125,12 @@ class Specifics
     return false
   
   union: (other) ->
-    value = new Specifics()
+    value = new SpecificOccurrence()
     value.rows = @rows.concat(other.rows)
     value.removeDuplicateRows()
   
   intersect: (other) ->
-    value = new Specifics()
+    value = new SpecificOccurrence()
     for leftRow in @rows
       for rightRow in other.rows
         result = leftRow.intersect(rightRow)
@@ -73,8 +149,8 @@ class Specifics
     keys = []
     allValues = []
     for index in @specificsWithValues()
-      keys.push(Specifics.KEY_LOOKUP[index])
-      allValues.push(Specifics.HQMFJS[Specifics.FUNCTION_LOOKUP[index]](Specifics.PATIENT))
+      keys.push(Specifics.keyLookup[index])
+      allValues.push(Specifics.hqmfjs[Specifics.functionLookup[index]](Specifics.patient))
     cartesian = Specifics._generateCartisian(allValues)
     for values in cartesian
       occurrences = {}
@@ -82,29 +158,19 @@ class Specifics
         occurrences[key] = values[i]
       row = new Row(@getLeftMost(), occurrences)
       negatedRows.push(row) if !@hasRow(row)
-    (new Specifics(negatedRows)).compactReusedEvents()
-
-  @_generateCartisian: (allValues) ->
-    Array::reduce.call(allValues, (as, bs) -> 
-      product = []
-      for a in as
-        for b in bs
-          product.push(a.concat(b))
-      product
-    , [[]])
-
-  # removes any rows that have the same value for OccurrenceA and OccurrenceB
+    (new SpecificOccurrence(negatedRows)).compactReusedEvents()
+    # removes any rows that have the same value for OccurrenceA and OccurrenceB
   compactReusedEvents: ->
     newRows = []
     for myRow in @rows
       goodRow = true
-      for type,indexes of Specifics.TYPE_LOOKUP
+      for type,indexes of Specifics.typeLookup
         ids = []
         for index in indexes
           ids.push(myRow.values[index].id) if myRow.values[index] != Specifics.ANY
         goodRow &&= ids.length == _.unique(ids).length
       newRows.push(myRow) if goodRow
-    new Specifics(newRows)
+    new SpecificOccurrence(newRows)
   
   hasRow: (row) ->
     found = false
@@ -157,7 +223,7 @@ class Specifics
     for groupKey, group of groupedRows
       if func(Specifics.extractEventsForLeftMost(group), range).isTrue()
         resultRows = resultRows.concat(group)
-    new Specifics(resultRows)
+    new SpecificOccurrence(resultRows)
 
   FIRST: ->
     @applySubset(FIRST)
@@ -188,105 +254,38 @@ class Specifics
       entries = func(Specifics.extractEventsForLeftMost(group))
       if entries.length > 0
         resultRows.push(entries[0].specificRow)
-    new Specifics(resultRows)
+    new SpecificOccurrence(resultRows)
   
   addIdentityRow: ->
     @addRows(Specifics.identity().rows)
-  
-  @identity: ->
-    new Specifics([new Row(undefined)])
-  
 
-  @extractEventsForLeftMost: (rows) ->
-    events = []
-    for row in rows
-      events.push(Specifics.extractEvent(row.leftMost, row))
-    events
-  
-  
-  @extractEvents: (key, rows) ->
-    events = []
-    for row in rows
-      events.push(Specifics.extractEvent(key, row))
-    events
-    
-  @extractEvent: (key, row) ->
-    index = Specifics.INDEX_LOOKUP[key]
-    if index?
-      entry = row.values[index]
-    else
-      entry = row.tempValue
-    entry = new hQuery.CodedEntry(entry.json)
-    entry.specificRow = row
-    entry
-  
-  @validate: (populations...) ->
-    value = Specifics.intersectAll(new Boolean(populations[0].isTrue()), populations)
-    value.isTrue() and value.specificContext.hasRows()
-  
-  @intersectAll: (boolVal, values, negate=false) ->
-    result = new Specifics()
-    # add identity row
-    result.addIdentityRow()
-    for value in values
-      if value.specificContext?
-        result = result.intersect(value.specificContext)
-    if negate and (!result.hasRows() or result.hasSpecifics())
-      result = result.negate()
-      result = result.compactReusedEvents()
-      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.
-      # the reason we do this is because we may get too many negated values.  Values that may be culled later via other specific occurrences.  Thus we do not want to return 
-      # false out of a negation because the values we are evaluating as false may be dropped.
-      boolVal = new Boolean(true)
-    boolVal.specificContext = result.compactReusedEvents()
-    boolVal
 
-  @unionAll: (boolVal, values,negate=false) ->
-    result = new Specifics()
-    for value in values
-      if value.specificContext? and (value.isTrue() or negate)
-        result = result.union(value.specificContext) if value.specificContext?
-    
-    if negate and result.hasSpecifics()
-      result = result.negate() 
-      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.  See comment in intersectAll.
-      boolVal = new Boolean(true)
-    boolVal.specificContext = result
-    boolVal
-  
-  # copy the specifics parameters from an existing element onto the new value element
-  @maintainSpecifics: (newElement, existingElement) ->
-    newElement.specificContext = existingElement.specificContext
-    newElement.specific_occurrence = existingElement.specific_occurrence
-    newElement
-    
-@Specifics = Specifics
 
 class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
   constructor: (leftMost, occurrences={}) ->
     throw "left most key must be a string or undefined was: #{leftMost}" if typeof(leftMost) != 'string' and typeof(leftMost) != 'undefined'
-    @length = Specifics.OCCURRENCES.length
+    @length = Specifics.occurrences.length
     @values = []
     @leftMost = leftMost
     @tempValue = occurrences[undefined]
     for i in [0...@length]
-      key = Specifics.KEY_LOOKUP[i]
-      value = occurrences[key] || Specifics.ANY
+      key = Specifics.keyLookup[i]
+      value = occurrences[key] || Specifics.any
       @values[i] = value
 
   hasSpecifics: ->
-    @length = Specifics.OCCURRENCES.length
+    @length = Specifics.occurrences.length
     foundSpecific = false
     for i in [0...@length]
-      return true if @values[i] != Specifics.ANY
+      return true if @values[i] != Specifics.any
     false
 
   specificsWithValues: ->
-    @length = Specifics.OCCURRENCES.length
+    @length = Specifics.occurrences.length
     foundSpecificIndexes = []
     for i in [0...@length]
-      foundSpecificIndexes.push(i) if @values[i]? and @values[i] != Specifics.ANY
+      foundSpecificIndexes.push(i) if @values[i]? and @values[i] != Specifics.any
     foundSpecificIndexes
 
   equals: (other) ->
@@ -315,9 +314,9 @@ class Row
   groupKey: (key=null) ->
     keyForGroup = ''
     for i in [0...@length]
-      value = Specifics.ANY
-      value = @values[i].id if @values[i] != Specifics.ANY 
-      if Specifics.KEY_LOOKUP[i] == key
+      value = Specifics.any
+      value = @values[i].id if @values[i] != Specifics.any 
+      if Specifics.keyLookup[i] == key
         keyForGroup += "X_"
       else
         keyForGroup += "#{value}_"
@@ -325,8 +324,8 @@ class Row
     
   
   @match: (left, right) ->
-    return right if left == Specifics.ANY
-    return left if right == Specifics.ANY
+    return right if left == Specifics.any
+    return left if right == Specifics.any
     return left if left.id == right.id
     return undefined
 
@@ -334,7 +333,7 @@ class Row
     return true if !left? and !right?
     return false if !left?
     return false if !right?
-    return true if left == Specifics.ANY and right == Specifics.ANY
+    return true if left == Specifics.any and right == Specifics.any
     return true if left.id == right.id
     return false
   

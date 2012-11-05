@@ -583,7 +583,7 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
   if (events.length==undefined)
     events = [events]
   
-  specificContext = new Specifics()
+  specificContext = new SpecificOccurrence()
   hasSpecificOccurrence = (events.specific_occurrence? || bounds.specific_occurrence?)
   matchingEvents = []
   matchingEvents.specific_occurrence = events.specific_occurrence

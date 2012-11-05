@@ -21,24 +21,24 @@ class SpecificsTest < Test::Unit::TestCase
 
   def test_specifics_initialized_proper
     
-    @context.eval('Specifics.KEY_LOOKUP[0]').must_equal 'OccurrenceAEncounter'
-    @context.eval('Specifics.KEY_LOOKUP[1]').must_equal 'OccurrenceBEncounter'
-    @context.eval("Specifics.INDEX_LOOKUP['OccurrenceAEncounter']").must_equal 0
-    @context.eval("Specifics.INDEX_LOOKUP['OccurrenceBEncounter']").must_equal 1
-    @context.eval('Specifics.FUNCTION_LOOKUP[0]').must_equal 'SourceOccurrenceAEncounter'
-    @context.eval('Specifics.FUNCTION_LOOKUP[1]').must_equal 'SourceOccurrenceBEncounter'
-    @context.eval("Specifics.TYPE_LOOKUP['Encounter'].length").must_equal 2
-    @context.eval("Specifics.TYPE_LOOKUP['Encounter'][0]").must_equal 0
-    @context.eval("Specifics.TYPE_LOOKUP['Encounter'][1]").must_equal 1
+    @context.eval('Specifics.keyLookup[0]').must_equal 'OccurrenceAEncounter'
+    @context.eval('Specifics.keyLookup[1]').must_equal 'OccurrenceBEncounter'
+    @context.eval("Specifics.indexLookup['OccurrenceAEncounter']").must_equal 0
+    @context.eval("Specifics.indexLookup['OccurrenceBEncounter']").must_equal 1
+    @context.eval('Specifics.functionLookup[0]').must_equal 'SourceOccurrenceAEncounter'
+    @context.eval('Specifics.functionLookup[1]').must_equal 'SourceOccurrenceBEncounter'
+    @context.eval("Specifics.typeLookup['Encounter'].length").must_equal 2
+    @context.eval("Specifics.typeLookup['Encounter'][0]").must_equal 0
+    @context.eval("Specifics.typeLookup['Encounter'][1]").must_equal 1
   end
   
   def test_specifics_row_union
     
     union_rows = "
       var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1}});
-      var specific1 = new Specifics([row1]);
+      var specific1 = new SpecificOccurrence([row1]);
       var row2 = new Row('OccurrenceAEncounter',{'OccurrenceBEncounter':{'id':2}});
-      var specific2 = new Specifics([row2]);
+      var specific2 = new SpecificOccurrence([row2]);
       result = specific1.union(specific2);
       result.rows.length;
     "
@@ -153,17 +153,17 @@ class SpecificsTest < Test::Unit::TestCase
       var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':3}});
       var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
       
-      var specific1 = new Specifics([row1]);
-      var specific2 = new Specifics([row2]);
-      var specific3 = new Specifics([row3,row4]);
-      var specific4 = new Specifics([row3,row6]);
-      var specific5 = new Specifics([row5,row6]);
+      var specific1 = new SpecificOccurrence([row1]);
+      var specific2 = new SpecificOccurrence([row2]);
+      var specific3 = new SpecificOccurrence([row3,row4]);
+      var specific4 = new SpecificOccurrence([row3,row6]);
+      var specific5 = new SpecificOccurrence([row5,row6]);
       
-      var allSpecific1 = new Specifics();
+      var allSpecific1 = new SpecificOccurrence();
       allSpecific1.addIdentityRow();
       allSpecific1.addIdentityRow();
       allSpecific1.addIdentityRow();
-      var allSpecific2 = new Specifics();
+      var allSpecific2 = new SpecificOccurrence();
       allSpecific2.addIdentityRow();
       allSpecific2.addIdentityRow();
       allSpecific2.addIdentityRow();
@@ -211,12 +211,12 @@ class SpecificsTest < Test::Unit::TestCase
       var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':4}});
       var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
   
-      var specific1 = new Specifics([row1]);
-      var specific2 = new Specifics([row2]);
-      var specific3 = new Specifics([row3,row4]);
-      var specific4 = new Specifics([row3,row6]);
-      var specific5 = new Specifics([row5,row6]);
-      var specific6 = new Specifics([row1,row2])
+      var specific1 = new SpecificOccurrence([row1]);
+      var specific2 = new SpecificOccurrence([row2]);
+      var specific3 = new SpecificOccurrence([row3,row4]);
+      var specific4 = new SpecificOccurrence([row3,row6]);
+      var specific5 = new SpecificOccurrence([row5,row6]);
+      var specific6 = new SpecificOccurrence([row1,row2])
     "
     
     # test negation single specific
@@ -273,8 +273,8 @@ class SpecificsTest < Test::Unit::TestCase
       var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
       var row3 = new Row(undefined, {});
   
-      var specific1 = new Specifics();
-      var specific2 = new Specifics([row2]);
+      var specific1 = new SpecificOccurrence();
+      var specific2 = new SpecificOccurrence([row2]);
     "
     
     # test negation single specific
@@ -318,7 +318,7 @@ class SpecificsTest < Test::Unit::TestCase
       var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':3}});
       var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
       
-      var specific1 = new Specifics([row1,row2,row3,row4,row5,row6]);
+      var specific1 = new SpecificOccurrence([row1,row2,row3,row4,row5,row6]);
     "
     
     @context.eval(rows)
@@ -345,7 +345,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('rows[0].values[1].id').must_equal 1
     @context.eval('rows[7].values[0].id').must_equal 3
     @context.eval('rows[7].values[1].id').must_equal 8
-    @context.eval('var specific = new Specifics(rows)')
+    @context.eval('var specific = new SpecificOccurrence(rows)')
     @context.eval('specific.rows.length').must_equal 8
     @context.eval('specific.compactReusedEvents().rows.length').must_equal 7
     @context.eval('var rows = Row.buildRowsForMatching(undefined,entry,boundsKey,bounds)')
@@ -386,9 +386,9 @@ class SpecificsTest < Test::Unit::TestCase
       var row7 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
       var row8 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
+      var specific1 = new SpecificOccurrence([row1,row2]);
+      var specific2 = new SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new SpecificOccurrence([row6,row7,row8]);
     "
     @context.eval(rows)
     @context.eval('var result = specific1.finalizeEvents(specific2,specific3)')
@@ -425,11 +425,11 @@ class SpecificsTest < Test::Unit::TestCase
   
       var row9 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':6}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
-      var specific4 = new Specifics([row9]);
-      var specific5 = new Specifics();
+      var specific1 = new SpecificOccurrence([row1,row2]);
+      var specific2 = new SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new SpecificOccurrence([row6,row7,row8]);
+      var specific4 = new SpecificOccurrence([row9]);
+      var specific5 = new SpecificOccurrence();
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
@@ -471,9 +471,9 @@ class SpecificsTest < Test::Unit::TestCase
       var row7 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
       var row8 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
+      var specific1 = new SpecificOccurrence([row1,row2]);
+      var specific2 = new SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new SpecificOccurrence([row6,row7,row8]);
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
@@ -521,9 +521,9 @@ class SpecificsTest < Test::Unit::TestCase
       var row7 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
       var row8 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
+      var specific1 = new SpecificOccurrence([row1,row2]);
+      var specific2 = new SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new SpecificOccurrence([row6,row7,row8]);
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
@@ -599,8 +599,8 @@ class SpecificsTest < Test::Unit::TestCase
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': {id:14}, 'OccurrenceBEncounter':{'id':2}}),
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': {id:15}, 'OccurrenceBEncounter':{'id':3}})]
       
-      var specific1 = new Specifics(non_specific_rows);
-      var specific2 = new Specifics(specific_rows);
+      var specific1 = new SpecificOccurrence(non_specific_rows);
+      var specific2 = new SpecificOccurrence(specific_rows);
       
     "
     @context.eval(rows)
@@ -672,10 +672,10 @@ class SpecificsTest < Test::Unit::TestCase
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': new hQuery.CodedEntry({_id:14,time:getTime(2010,0,2)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': new hQuery.CodedEntry({_id:15,time:getTime(2010,0,2)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':3})})]
 
-      var specific1 = new Specifics(non_specific_rows);
-      var specific2 = new Specifics(specific_rows);
-      var specific3 = new Specifics([new Row(undefined)]);
-      var specific4 = new Specifics()
+      var specific1 = new SpecificOccurrence(non_specific_rows);
+      var specific2 = new SpecificOccurrence(specific_rows);
+      var specific3 = new SpecificOccurrence([new Row(undefined)]);
+      var specific4 = new SpecificOccurrence()
       
     "
     @context.eval(rows)
