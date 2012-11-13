@@ -186,7 +186,7 @@ module HQMF2JS
         // NUMERATOR
         #{js_for(population[HQMF::PopulationCriteria::NUMER], HQMF::PopulationCriteria::NUMER)}
         #{js_for(population[HQMF::PopulationCriteria::DENEX], HQMF::PopulationCriteria::DENEX)}
-        #{js_for(population[HQMF::PopulationCriteria::EXCEP], HQMF::PopulationCriteria::EXCEP)}
+        #{js_for(population[HQMF::PopulationCriteria::DENEXCEP], HQMF::PopulationCriteria::DENEXCEP)}
         "
       end
       

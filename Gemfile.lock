@@ -1,3 +1,33 @@
+GIT
+  remote: http://github.com/pophealth/patientapi.git
+  revision: 0921d68dc960d8f4548f60b0b7bb7c5e340c6664
+  branch: develop
+  specs:
+    hquery-patient-api (0.1.0)
+
+GIT
+  remote: http://github.com/projectcypress/health-data-standards.git
+  revision: 8a7988d7e214dc6979f0459fa3e18e0a3576b675
+  branch: develop
+  specs:
+    health-data-standards (2.1.0)
+      builder (~> 3.0.0)
+      erubis (~> 2.7.0)
+      mongoid (~> 3.0.6)
+      nokogiri (~> 1.5.5)
+      uuid (~> 2.3.5)
+
+GIT
+  remote: https://github.com/pophealth/hqmf-parser.git
+  revision: 324ba92d683f499d757f59c8ecd2f6023514748c
+  branch: develop
+  specs:
+    hqmf-parser (1.0.2)
+      google-spreadsheet-ruby (= 0.1.8)
+      roo (= 1.10.1)
+      rubyzip
+      spreadsheet (= 0.6.8)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -143,7 +173,7 @@ GEM
       rubyzip (>= 0.9.4)
       spreadsheet (> 0.6.4)
       todonotes (>= 0.1.0)
-    ruby-ole (1.2.11.4)
+    ruby-ole (1.2.11.5)
     rubyzip (0.9.9)
     sass (3.1.15)
     sass-rails (3.2.5)
