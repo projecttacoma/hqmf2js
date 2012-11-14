@@ -47,7 +47,7 @@ def initialize_javascript_context(hqmf_utils, codes_json, converted_hqmf)
     #{converted_hqmf}
     var larry = #{fixture_json};
     #{initialize_patient}")
-  @context.eval("Specifics.initialize()")
+  @context.eval("hqmf.SpecificsManager.initialize()")
 end
 
 def compile_coffee_script

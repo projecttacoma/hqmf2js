@@ -30,9 +30,9 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
       <%- end -%>
     <%- else -%>
         <%- if criteria.specific_occurrence -%>
-  events.specificContext=new Specifics(Row.buildForDataCriteria(events.specific_occurrence, events))
+  events.specificContext=new hqmf.SpecificOccurrence(Row.buildForDataCriteria(events.specific_occurrence, events))
         <%- else -%>
-  events.specificContext=Specifics.identity()
+  events.specificContext=hqmf.SpecificsManager.identity()
         <%- end -%>
     <%- end -%>
     <%- if criteria.subset_operators -%>

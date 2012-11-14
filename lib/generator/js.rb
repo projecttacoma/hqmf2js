@@ -200,7 +200,7 @@ module HQMF2JS
         json_list = specific_occurrences.map {|occurrence| occurrence.to_json}
         specifics_list = json_list.join(',')
         specifics_list = ",#{specifics_list}" unless specifics_list.empty?
-        "hqmfjs.initializeSpecifics = function(patient_api, hqmfjs) { Specifics.initialize(patient_api,hqmfjs#{specifics_list}) }"
+        "hqmfjs.initializeSpecifics = function(patient_api, hqmfjs) { hqmf.SpecificsManager.initialize(patient_api,hqmfjs#{specifics_list}) }"
       end
       
       # Generate JS for a HQMF2::PopulationCriteria
@@ -229,14 +229,15 @@ module HQMF2JS
          ctx.find_asset('underscore').to_s,
          "// #########################\n// ###### PATIENT API #######\n// #########################\n",
          HqueryPatientApi::Generator.patient_api_javascript.to_s,
+         "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
+         ctx.find_asset('specifics').to_s,
          "// #########################\n// ### LIBRARY FUNCTIONS ####\n// #########################\n",
          ctx.find_asset('hqmf_util').to_s, 
          "// #########################\n// ### PATIENT EXTENSION ####\n// #########################\n",
          ctx.find_asset('patient_api_extension').to_s,
          "// #########################\n// ##### LOGGING UTILS ######\n// #########################\n",
-         ctx.find_asset('logging_utils').to_s,
-         "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
-         ctx.find_asset('specifics').to_s].join("\n")
+         ctx.find_asset('logging_utils').to_s].join("\n")
+
       end
   
     end

@@ -1,3 +1,5 @@
+@hqmf ||= {}
+
 ###
   {
     rows: [
@@ -8,7 +10,7 @@
 
 A singleton class the represents the table of all specific occurrences
 ###
-class Specifics
+class hqmf.SpecificsManagerSingleton
   constructor: ->
     @patient = null
     @any = '*'
@@ -29,7 +31,7 @@ class Specifics
       @typeLookup[occurrenceKey.type].push(i)
   
   _generateCartisian: (allValues) ->
-    Array::reduce.call(allValues, (as, bs) -> 
+    _.reduce(allValues, (as, bs) -> 
       product = []
       for a in as
         for b in bs
@@ -38,7 +40,7 @@ class Specifics
     , [[]])
   
   identity: ->
-    new SpecificOccurrence([new Row(undefined)])
+    new hqmf.SpecificOccurrence([new Row(undefined)])
 
   extractEventsForLeftMost: (rows) ->
     events = []
@@ -68,7 +70,7 @@ class Specifics
     value.isTrue() and value.specificContext.hasRows()
   
   intersectAll: (boolVal, values, negate=false) ->
-    result = new SpecificOccurrence
+    result = new hqmf.SpecificOccurrence
     # add identity row
     result.addIdentityRow()
     for value in values
@@ -85,7 +87,7 @@ class Specifics
     boolVal
 
   unionAll: (boolVal, values,negate=false) ->
-    result = new SpecificOccurrence
+    result = new hqmf.SpecificOccurrence
     for value in values
       if value.specificContext? and (value.isTrue() or negate)
         result = result.union(value.specificContext) if value.specificContext?
@@ -103,9 +105,9 @@ class Specifics
     newElement.specific_occurrence = existingElement.specific_occurrence
     newElement
     
-@Specifics = new Specifics
+@hqmf.SpecificsManager = new hqmf.SpecificsManagerSingleton
 
-class SpecificOccurrence
+class hqmf.SpecificOccurrence
   constructor: (rows=[])->
     @rows = rows
   
@@ -113,7 +115,7 @@ class SpecificOccurrence
     @rows = @rows.concat(rows)
     
   removeDuplicateRows: () ->
-    deduped = new SpecificOccurrence
+    deduped = new hqmf.SpecificOccurrence
     for row in @rows
       # this could potentially be hasRow to dump even more rows.
       deduped.addRows([row]) if !deduped.hasExactRow(row)
@@ -125,12 +127,12 @@ class SpecificOccurrence
     return false
   
   union: (other) ->
-    value = new SpecificOccurrence()
+    value = new hqmf.SpecificOccurrence()
     value.rows = @rows.concat(other.rows)
     value.removeDuplicateRows()
   
   intersect: (other) ->
-    value = new SpecificOccurrence()
+    value = new hqmf.SpecificOccurrence()
     for leftRow in @rows
       for rightRow in other.rows
         result = leftRow.intersect(rightRow)
@@ -149,28 +151,28 @@ class SpecificOccurrence
     keys = []
     allValues = []
     for index in @specificsWithValues()
-      keys.push(Specifics.keyLookup[index])
-      allValues.push(Specifics.hqmfjs[Specifics.functionLookup[index]](Specifics.patient))
-    cartesian = Specifics._generateCartisian(allValues)
+      keys.push(hqmf.SpecificsManager.keyLookup[index])
+      allValues.push(hqmf.SpecificsManager.hqmfjs[hqmf.SpecificsManager.functionLookup[index]](hqmf.SpecificsManager.patient))
+    cartesian = hqmf.SpecificsManager._generateCartisian(allValues)
     for values in cartesian
       occurrences = {}
       for key, i in keys
         occurrences[key] = values[i]
       row = new Row(@getLeftMost(), occurrences)
       negatedRows.push(row) if !@hasRow(row)
-    (new SpecificOccurrence(negatedRows)).compactReusedEvents()
+    (new hqmf.SpecificOccurrence(negatedRows)).compactReusedEvents()
     # removes any rows that have the same value for OccurrenceA and OccurrenceB
   compactReusedEvents: ->
     newRows = []
     for myRow in @rows
       goodRow = true
-      for type,indexes of Specifics.typeLookup
+      for type,indexes of hqmf.SpecificsManager.typeLookup
         ids = []
         for index in indexes
-          ids.push(myRow.values[index].id) if myRow.values[index] != Specifics.ANY
+          ids.push(myRow.values[index].id) if myRow.values[index] != hqmf.SpecificsManager.any
         goodRow &&= ids.length == _.unique(ids).length
       newRows.push(myRow) if goodRow
-    new SpecificOccurrence(newRows)
+    new hqmf.SpecificOccurrence(newRows)
   
   hasRow: (row) ->
     found = false
@@ -221,9 +223,9 @@ class SpecificOccurrence
     resultRows = []
     groupedRows = @group()
     for groupKey, group of groupedRows
-      if func(Specifics.extractEventsForLeftMost(group), range).isTrue()
+      if func(hqmf.SpecificsManager.extractEventsForLeftMost(group), range).isTrue()
         resultRows = resultRows.concat(group)
-    new SpecificOccurrence(resultRows)
+    new hqmf.SpecificOccurrence(resultRows)
 
   FIRST: ->
     @applySubset(FIRST)
@@ -251,13 +253,13 @@ class SpecificOccurrence
     resultRows = []
     groupedRows = @group()
     for groupKey, group of groupedRows
-      entries = func(Specifics.extractEventsForLeftMost(group))
+      entries = func(hqmf.SpecificsManager.extractEventsForLeftMost(group))
       if entries.length > 0
         resultRows.push(entries[0].specificRow)
-    new SpecificOccurrence(resultRows)
+    new hqmf.SpecificOccurrence(resultRows)
   
   addIdentityRow: ->
-    @addRows(Specifics.identity().rows)
+    @addRows(hqmf.SpecificsManager.identity().rows)
 
 
 
@@ -265,27 +267,27 @@ class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
   constructor: (leftMost, occurrences={}) ->
     throw "left most key must be a string or undefined was: #{leftMost}" if typeof(leftMost) != 'string' and typeof(leftMost) != 'undefined'
-    @length = Specifics.occurrences.length
+    @length = hqmf.SpecificsManager.occurrences.length
     @values = []
     @leftMost = leftMost
     @tempValue = occurrences[undefined]
     for i in [0...@length]
-      key = Specifics.keyLookup[i]
-      value = occurrences[key] || Specifics.any
+      key = hqmf.SpecificsManager.keyLookup[i]
+      value = occurrences[key] || hqmf.SpecificsManager.any
       @values[i] = value
 
   hasSpecifics: ->
-    @length = Specifics.occurrences.length
+    @length = hqmf.SpecificsManager.occurrences.length
     foundSpecific = false
     for i in [0...@length]
-      return true if @values[i] != Specifics.any
+      return true if @values[i] != hqmf.SpecificsManager.any
     false
 
   specificsWithValues: ->
-    @length = Specifics.occurrences.length
+    @length = hqmf.SpecificsManager.occurrences.length
     foundSpecificIndexes = []
     for i in [0...@length]
-      foundSpecificIndexes.push(i) if @values[i]? and @values[i] != Specifics.any
+      foundSpecificIndexes.push(i) if @values[i]? and @values[i] != hqmf.SpecificsManager.any
     foundSpecificIndexes
 
   equals: (other) ->
@@ -314,9 +316,9 @@ class Row
   groupKey: (key=null) ->
     keyForGroup = ''
     for i in [0...@length]
-      value = Specifics.any
-      value = @values[i].id if @values[i] != Specifics.any 
-      if Specifics.keyLookup[i] == key
+      value = hqmf.SpecificsManager.any
+      value = @values[i].id if @values[i] != hqmf.SpecificsManager.any 
+      if hqmf.SpecificsManager.keyLookup[i] == key
         keyForGroup += "X_"
       else
         keyForGroup += "#{value}_"
@@ -324,8 +326,8 @@ class Row
     
   
   @match: (left, right) ->
-    return right if left == Specifics.any
-    return left if right == Specifics.any
+    return right if left == hqmf.SpecificsManager.any
+    return left if right == hqmf.SpecificsManager.any
     return left if left.id == right.id
     return undefined
 
@@ -333,7 +335,7 @@ class Row
     return true if !left? and !right?
     return false if !left?
     return false if !right?
-    return true if left == Specifics.any and right == Specifics.any
+    return true if left == hqmf.SpecificsManager.any and right == hqmf.SpecificsManager.any
     return true if left.id == right.id
     return false
   

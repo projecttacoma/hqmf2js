@@ -413,25 +413,25 @@ class ANYNonNull
 atLeastOneTrue = (values...) ->
   trueValues = (value for value in values when value && value.isTrue())
   trueValues.length>0
-  Specifics.unionAll(new Boolean(trueValues.length>0), values)
+  hqmf.SpecificsManager.unionAll(new Boolean(trueValues.length>0), values)
 @atLeastOneTrue = atLeastOneTrue
   
 # Returns true if all of the supplied values are true
 allTrue = (values...) ->
   trueValues = (value for value in values when value && value.isTrue())
-  Specifics.intersectAll(new Boolean(trueValues.length>0 && trueValues.length==values.length), values)
+  hqmf.SpecificsManager.intersectAll(new Boolean(trueValues.length>0 && trueValues.length==values.length), values)
 @allTrue = allTrue
   
 # Returns true if one or more of the supplied values is false
 atLeastOneFalse = (values...) ->
   falseValues = (value for value in values when value.isFalse())
-  Specifics.intersectAll(new Boolean(falseValues.length>0), values, true)
+  hqmf.SpecificsManager.intersectAll(new Boolean(falseValues.length>0), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 # Returns true if all of the supplied values are false
 allFalse = (values...) ->
   falseValues = (value for value in values when value.isFalse())
-  Specifics.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
+  hqmf.SpecificsManager.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse
   
 # Return true if compareTo matches value
@@ -475,7 +475,7 @@ class CrossProduct extends Array
 
 # Create a CrossProduct of the supplied event lists.
 XPRODUCT = (eventLists...) ->
-  Specifics.intersectAll(new CrossProduct(eventLists), eventLists)
+  hqmf.SpecificsManager.intersectAll(new CrossProduct(eventLists), eventLists)
 @XPRODUCT = XPRODUCT
 
 # Create a new list containing all the events from the supplied event lists
@@ -484,14 +484,14 @@ UNION = (eventLists...) ->
   for eventList in eventLists
     for event in eventList
       union.push(event)
-  Specifics.unionAll(union, eventLists)
+  hqmf.SpecificsManager.unionAll(union, eventLists)
 @UNION = UNION
 
 # Return true if the number of events matches the supplied range
 COUNT = (events, range) ->
   count = events.length
   result = new Boolean(range.match(count))
-  applySpecificOccurrenceSubset('COUNT', Specifics.maintainSpecifics(result, events), range)
+  applySpecificOccurrenceSubset('COUNT', hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @COUNT = COUNT
 
 # Convert an hQuery.CodedEntry or JS Date into an IVL_TS
@@ -563,7 +563,7 @@ eventMatchesBounds = (event, bounds, methodName, range) ->
       currentMatches = eventMatchesBounds(event, boundList, methodName, range)
       return [] if (currentMatches.length == 0)
       matchingBounds = matchingBounds.concat(currentMatches)
-    return Specifics.maintainSpecifics(matchingBounds,bounds)
+    return hqmf.SpecificsManager.maintainSpecifics(matchingBounds,bounds)
   else
     eventIVL = getIVL(event)
     matchingBounds = (bound for bound in bounds when (
@@ -573,7 +573,7 @@ eventMatchesBounds = (event, bounds, methodName, range) ->
         result &&= withinRange(methodName, eventIVL, boundIVL, range)
       result
     ))
-    Specifics.maintainSpecifics(matchingBounds, bounds)
+    hqmf.SpecificsManager.maintainSpecifics(matchingBounds, bounds)
 @eventMatchesBounds = eventMatchesBounds
   
 # Determine which event match one of the supplied bounds
@@ -583,7 +583,7 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
   if (events.length==undefined)
     events = [events]
   
-  specificContext = new SpecificOccurrence()
+  specificContext = new hqmf.SpecificOccurrence()
   hasSpecificOccurrence = (events.specific_occurrence? || bounds.specific_occurrence?)
   matchingEvents = []
   matchingEvents.specific_occurrence = events.specific_occurrence
@@ -693,37 +693,37 @@ applySpecificOccurrenceSubset = (operator, result, range, calculateSpecifics) ->
 FIRST = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[0]] if (events.length > 0)
-  applySpecificOccurrenceSubset('FIRST',Specifics.maintainSpecifics(result, events))
+  applySpecificOccurrenceSubset('FIRST',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @FIRST = FIRST
 
 SECOND = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[1]] if (events.length > 1)
-  applySpecificOccurrenceSubset('SECOND',Specifics.maintainSpecifics(result, events))
+  applySpecificOccurrenceSubset('SECOND',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @SECOND = SECOND
 
 THIRD = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[2]] if (events.length > 2)
-  applySpecificOccurrenceSubset('THIRD',Specifics.maintainSpecifics(result, events))
+  applySpecificOccurrenceSubset('THIRD',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @THIRD = THIRD
 
 FOURTH = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[3]] if (events.length > 3)
-  applySpecificOccurrenceSubset('FOURTH',Specifics.maintainSpecifics(result, events))
+  applySpecificOccurrenceSubset('FOURTH',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @FOURTH = FOURTH
 
 FIFTH = (events) ->
   result = []
   result = [events.sort(dateSortAscending)[4]] if (events.length > 4)
-  applySpecificOccurrenceSubset('FIFTH',Specifics.maintainSpecifics(result, events))
+  applySpecificOccurrenceSubset('FIFTH',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @FIFTH = FIFTH
 
 RECENT = (events) ->
   result = []
   result = [events.sort(dateSortDescending)[0]] if (events.length > 0)
-  applySpecificOccurrenceSubset('RECENT',Specifics.maintainSpecifics(result, events))
+  applySpecificOccurrenceSubset('RECENT',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @RECENT = RECENT
   
 LAST = (events) ->
@@ -759,7 +759,7 @@ MIN = (events, range) ->
   if (events.length > 0)
     minValue = events.sort(valueSortAscending)[0].value()["scalar"]
   result = new Boolean(range.match(minValue))
-  applySpecificOccurrenceSubset('MIN',Specifics.maintainSpecifics(result, events), range)
+  applySpecificOccurrenceSubset('MIN',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MIN = MIN
 
 MAX = (events, range) ->
@@ -767,7 +767,7 @@ MAX = (events, range) ->
   if (events.length > 0)
     maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
   result = new Boolean(range.match(maxValue))
-  applySpecificOccurrenceSubset('MAX',Specifics.maintainSpecifics(result, events), range)
+  applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MAX = MAX
 
 @OidDictionary = {};

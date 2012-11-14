@@ -5,7 +5,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
   
   def setup
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
-    @context.eval("Specifics.initialize()")
+    @context.eval("hqmf.SpecificsManager.initialize()")
   end
 
 

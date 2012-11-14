@@ -6,14 +6,14 @@ var events = [value];
 events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
       <%- end -%>
     <%- end -%>
-events.specificContext=Specifics.identity();
+events.specificContext=hqmf.SpecificsManager.identity();
 return events;
   <%- elsif criteria.property == :expired or criteria.property == :clinicalTrialParticipant -%>
 matching = matchingValue(value, 'true');
-matching.specificContext=Specifics.identity();
+matching.specificContext=hqmf.SpecificsManager.identity();
 return matching
   <%- else -%>
 matching = matchingValue(value, <%= js_for_bounds(criteria.value) %>);
-matching.specificContext=Specifics.identity();
+matching.specificContext=hqmf.SpecificsManager.identity();
 return matching;
   <%- end -%>
