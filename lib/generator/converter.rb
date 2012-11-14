@@ -35,7 +35,7 @@ module HQMF2JS
         if (Specifics.validate(hqmfjs.NUMER(patient), denom, ipp)) {
           emit('denom', 1);
           emit('numer', 1);
-        } else if (Specifics.validate(hqmfjs.EXCEP(patient), denom, ipp)) {
+        } else if (Specifics.validate(hqmfjs.DENEXCEP(patient), denom, ipp)) {
           emit('excep', 1);
         } else {
           emit('denom', 1);
