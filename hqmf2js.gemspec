@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.email = "hquery-talk@googlegroups.com"
   s.homepage = "http://github.com/hquery/hqmf2js"
   s.authors = ["Marc Hadley"]
-  s.version = '1.0.0'
+  s.version = '1.0.1'
   
   s.add_dependency 'nokogiri', '~> 1.5.2'
   s.add_dependency 'tilt', '~> 1.3.3'
