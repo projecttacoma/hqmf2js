@@ -1,7 +1,6 @@
 This project is a library that will convert a declarative HQMF measure description into executable JavaScript suitable for use within the hQuery Gateway.
 
 
-
 Project Practices
 =================
 
