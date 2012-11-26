@@ -15,7 +15,7 @@ class TS
       minute = parseInt(hl7ts.substring(10,12), 10)
       if isNaN(minute)
         minute = 0
-      @date = new Date(year, month, day, hour, minute)
+      @date = new Date(Date.UTC(year, month, day, hour, minute))
     else
       @date = new Date()
   
@@ -24,17 +24,17 @@ class TS
   # wk (week), d (day), h (hour) and min (minute).
   add: (pq) ->
     if pq.unit=="a"
-      @date.setFullYear(@date.getFullYear()+pq.value)
+      @date.setUTCFullYear(@date.getUTCFullYear()+pq.value)
     else if pq.unit=="mo"
-      @date.setMonth(@date.getMonth()+pq.value)
+      @date.setUTCMonth(@date.getUTCMonth()+pq.value)
     else if pq.unit=="wk"
-      @date.setDate(@date.getDate()+(7*pq.value))
+      @date.setUTCDate(@date.getUTCDate()+(7*pq.value))
     else if pq.unit=="d"
-      @date.setDate(@date.getDate()+pq.value)
+      @date.setUTCDate(@date.getUTCDate()+pq.value)
     else if pq.unit=="h"
-      @date.setHours(@date.getHours()+pq.value)
+      @date.setUTCHours(@date.getUTCHours()+pq.value)
     else if pq.unit=="min"
-      @date.setMinutes(@date.getMinutes()+pq.value)
+      @date.setUTCMinutes(@date.getUTCMinutes()+pq.value)
     else
       throw "Unknown time unit: "+pq.unit
     this
@@ -76,7 +76,7 @@ class TS
     if @date==null || other.date==null
       return false
     if other.inclusive
-      beforeOrConcurrent(other)
+      @beforeOrConcurrent(other)
     else
       [a,b] = TS.dropSeconds(@date, other.date)
       a.getTime() < b.getTime()
@@ -86,7 +86,7 @@ class TS
     if @date==null || other.date==null
       return false
     if other.inclusive
-      afterOrConcurrent(other)
+      @afterOrConcurrent(other)
     else
       [a,b] = TS.dropSeconds(@date, other.date)
       a.getTime() > b.getTime()
@@ -113,21 +113,21 @@ class TS
     
   # Number of whole years between the two time stamps (as Date objects)
   @yearsDifference: (earlier, later) ->
-    if (later.getMonth() < earlier.getMonth())
-      later.getFullYear()-earlier.getFullYear()-1
-    else if (later.getMonth() == earlier.getMonth() && later.getDate() >= earlier.getDate())
-      later.getFullYear()-earlier.getFullYear()
-    else if (later.getMonth() == earlier.getMonth() && later.getDate() < earlier.getDate())
-      later.getFullYear()-earlier.getFullYear()-1
+    if (later.getUTCMonth() < earlier.getUTCMonth())
+      later.getUTCFullYear()-earlier.getUTCFullYear()-1
+    else if (later.getUTCMonth() == earlier.getUTCMonth() && later.getUTCDate() >= earlier.getUTCDate())
+      later.getUTCFullYear()-earlier.getUTCFullYear()
+    else if (later.getUTCMonth() == earlier.getUTCMonth() && later.getUTCDate() < earlier.getUTCDate())
+      later.getUTCFullYear()-earlier.getUTCFullYear()-1
     else
-      later.getFullYear()-earlier.getFullYear()
+      later.getUTCFullYear()-earlier.getUTCFullYear()
       
   # Number of whole months between the two time stamps (as Date objects)
   @monthsDifference: (earlier, later) ->
-    if (later.getDate() >= earlier.getDate())
-      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()
+    if (later.getUTCDate() >= earlier.getUTCDate())
+      (later.getUTCFullYear()-earlier.getUTCFullYear())*12+later.getUTCMonth()-earlier.getUTCMonth()
     else
-      (later.getFullYear()-earlier.getFullYear())*12+later.getMonth()-earlier.getMonth()-1
+      (later.getUTCFullYear()-earlier.getUTCFullYear())*12+later.getUTCMonth()-earlier.getUTCMonth()-1
       
   # Number of whole minutes between the two time stamps (as Date objects)
   @minutesDifference: (earlier, later) ->
@@ -140,10 +140,8 @@ class TS
   # Number of days betweem the two time stamps (as Date objects)
   @daysDifference: (earlier, later) ->
     # have to discard time portion for day difference calculation purposes
-    e = new Date(earlier.getFullYear(), earlier.getMonth(), earlier.getDate())
-    e.setUTCHours(0)
-    l = new Date(later.getFullYear(), later.getMonth(), later.getDate())
-    l.setUTCHours(0)
+    e = new Date(Date.UTC(earlier.getUTCFullYear(), earlier.getUTCMonth(), earlier.getUTCDate()))
+    l = new Date(Date.UTC(later.getUTCFullYear(), later.getUTCMonth(), later.getUTCDate()))
     Math.floor(TS.hoursDifference(e,l)/24)
     
   # Number of whole weeks between the two time stmaps (as Date objects)
