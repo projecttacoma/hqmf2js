@@ -284,7 +284,8 @@ class Specifics
       # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.
       # the reason we do this is because we may get too many negated values.  Values that may be culled later via other specific occurrences.  Thus we do not want to return 
       # false out of a negation because the values we are evaluating as false may be dropped.
-      boolVal = new Boolean(true)
+      # we need to verify that we actually have some occurrences
+      boolVal = new Boolean(true) if @OCCURRENCES.length > 0
     boolVal.specificContext = result.compactReusedEvents()
     boolVal
 
@@ -294,10 +295,11 @@ class Specifics
       if value.specificContext? and (value.isTrue() or negate)
         result = result.union(value.specificContext) if value.specificContext?
     
-    if negate and result.hasSpecifics()
+    if negate and (!result.hasRows() or result.hasSpecifics())
       result = result.negate() 
       # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.  See comment in intersectAll.
-      boolVal = new Boolean(true)
+      # we need to verify that we actually have some occurrences
+      boolVal = new Boolean(true) if @OCCURRENCES.length > 0
     boolVal.specificContext = result
     boolVal
   
