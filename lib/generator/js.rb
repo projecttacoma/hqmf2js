@@ -119,6 +119,8 @@ module HQMF2JS
       def js_for_code_list(criteria)
         if criteria.inline_code_list
           criteria.inline_code_list.to_json
+        elsif criteria.code_list_id.nil?
+          "null"
         else
           "getCodes(\"#{criteria.code_list_id}\")"
         end
