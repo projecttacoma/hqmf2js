@@ -33,17 +33,17 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
   def test_converted_hqmf
     # Unspecified time bounds should be nil
     assert_equal nil, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().low.asDate()")
-    assert_equal 2010, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().high.asDate().getFullYear()")
+    assert_equal 2010, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().high.asDate().getUTCFullYear()")
 
     # Measure variables
-    assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getFullYear()")
-    assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getMonth()")
-    assert_equal 2011, @context.eval("MeasurePeriod.high.asDate().getFullYear()")
-    assert_equal 11, @context.eval("MeasurePeriod.high.asDate().getMonth()")
-    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getFullYear()")
-    assert_equal 0, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getMonth()")
-    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getFullYear()")
-    assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getMonth()")
+    assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getUTCFullYear()")
+    assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getUTCMonth()")
+    assert_equal 2011, @context.eval("MeasurePeriod.high.asDate().getUTCFullYear()")
+    assert_equal 11, @context.eval("MeasurePeriod.high.asDate().getUTCMonth()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getUTCFullYear()")
+    assert_equal 0, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getUTCMonth()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCFullYear()")
+    assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCMonth()")
   
     # Age functions - Fixture is 37.1
     assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient).isTrue()")
