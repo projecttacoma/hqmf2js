@@ -457,7 +457,7 @@ filterEventsByField = (events, field, value) ->
 
 # Utility method to obtain the value set for an OID
 getCodes = (oid) ->
-  OidDictionary[oid]
+  OidDictionary[oid] || {}
 @getCodes = getCodes
 
 # Used for representing XPRODUCTs of arrays, holds both a flattened array that contains
