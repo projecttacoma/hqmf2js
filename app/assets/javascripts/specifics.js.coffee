@@ -48,7 +48,6 @@ class hqmf.SpecificsManagerSingleton
       events.push(@extractEvent(row.leftMost, row))
     events
   
-  
   extractEvents: (key, rows) ->
     events = []
     for row in rows
@@ -64,7 +63,20 @@ class hqmf.SpecificsManagerSingleton
     entry = new hQuery.CodedEntry(entry.json)
     entry.specificRow = row
     entry
+    
+  # Returns a count of the unique events that match the criteria for the supplied
+  # specific occurrence. Call after validating that population criteria are met. Returns
+  # 1 if occurrenceID is null, for use with patient based measures. 
+  countUnique: (occurrenceID, populations...) ->
+    value = @intersectAll(new Boolean(populations[0].isTrue()), populations)
+    if occurrenceID?
+      columnIndex = @indexLookup[occurrenceID]
+      value.specificContext.uniqueEvents(columnIndex)
+    else
+      1
   
+  # Returns a boolean indication of whether all of the supplied population criteria are
+  # met
   validate: (populations...) ->
     value = @intersectAll(new Boolean(populations[0].isTrue()), populations)
     value.isTrue() and value.specificContext.hasRows()
@@ -79,9 +91,11 @@ class hqmf.SpecificsManagerSingleton
     if negate and (!result.hasRows() or result.hasSpecifics())
       result = result.negate()
       result = result.compactReusedEvents()
-      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.
-      # the reason we do this is because we may get too many negated values.  Values that may be culled later via other specific occurrences.  Thus we do not want to return 
-      # false out of a negation because the values we are evaluating as false may be dropped.
+      # this is a little odd, but it appears when we have a negation with specifics we can
+      # ignore the logical result of the negation. The reason we do this is because we may
+      # get too many negated values.  Values that may be culled later via other specific 
+      # occurrences.  Thus we do not want to return false out of a negation because the 
+      # values we are evaluating as false may be dropped.
 
       # we need to verify that we actually have some occurrences
       boolVal = new Boolean(true) if @occurrences.length > 0
@@ -123,6 +137,14 @@ class hqmf.SpecificOccurrence
       # this could potentially be hasRow to dump even more rows.
       deduped.addRows([row]) if !deduped.hasExactRow(row)
     deduped
+    
+  # Returns a count of unique events for a supplied column index
+  uniqueEvents: (columnIndex) ->
+    eventIds = []
+    for row in @rows
+      event = row.values[columnIndex]
+      eventIds.push(event.id) if event != hqmf.SpecificsManager.any and not (event.id in eventIds)
+    eventIds.length
   
   hasExactRow: (other) ->
     for row in @rows
@@ -164,7 +186,8 @@ class hqmf.SpecificOccurrence
       row = new Row(@getLeftMost(), occurrences)
       negatedRows.push(row) if !@hasRow(row)
     (new hqmf.SpecificOccurrence(negatedRows)).compactReusedEvents()
-    # removes any rows that have the same value for OccurrenceA and OccurrenceB
+  
+  # removes any rows that have the same value for OccurrenceA and OccurrenceB
   compactReusedEvents: ->
     newRows = []
     for myRow in @rows

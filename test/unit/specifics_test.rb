@@ -202,6 +202,31 @@ class SpecificsTest < Test::Unit::TestCase
     
   end
   
+  def test_specifics_event_counting
+    
+    init_rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':20}});
+      var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':20}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':30}});
+      
+      var specific = new hqmf.SpecificOccurrence([row1,row2,row3]);
+      specific.addIdentityRow();
+
+      var pop = new Boolean(true);
+      pop.specificContext = specific;  
+    "
+    
+    @context.eval(init_rows)
+    @context.eval("specific.uniqueEvents(0)").must_equal 3
+    @context.eval("specific.uniqueEvents(1)").must_equal 2
+    @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceAEncounter"]').must_equal 0
+    @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceBEncounter"]').must_equal 1
+    @context.eval('hqmf.SpecificsManager.validate(pop)').must_equal true
+    @context.eval('hqmf.SpecificsManager.countUnique("OccurrenceAEncounter", pop)').must_equal 3
+    @context.eval('hqmf.SpecificsManager.countUnique("OccurrenceBEncounter", pop)').must_equal 2
+    @context.eval('hqmf.SpecificsManager.countUnique(null, pop)').must_equal 1
+  end
+
   def test_negation
     rows = "
       var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1}});
