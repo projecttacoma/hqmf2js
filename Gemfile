@@ -8,14 +8,14 @@ group :assets do
   gem 'uglifier'
 end
 
-#gem "hquery-patient-api", :git => 'http://github.com/pophealth/patientapi.git', :branch => 'develop'
+gem "hquery-patient-api", :git => 'http://github.com/pophealth/patientapi.git', :branch => 'develop'
 #gem 'hquery-patient-api', :path => '../patientapi'
-gem 'hquery-patient-api', '~> 0.3.0'
+#gem 'hquery-patient-api', '~> 0.3.0'
 gem 'hqmf-parser', :git => 'https://github.com/pophealth/hqmf-parser.git', :branch => 'develop'
 #gem 'hqmf-parser', :path => '../hqmf-parser'
 #gem 'hqmf-parser', '~> 1.0.2'
-#gem "health-data-standards", :git => 'http://github.com/projectcypress/health-data-standards.git', :branch => 'develop'
-gem "health-data-standards", '~> 2.1.2'
+gem "health-data-standards", :git => 'http://github.com/projectcypress/health-data-standards.git', :branch => 'develop'
+#gem "health-data-standards", '~> 2.1.2'
 
 gem 'nokogiri'
 gem 'sprockets'
