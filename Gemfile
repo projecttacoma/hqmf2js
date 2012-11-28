@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem 'rails'
+gem 'rails', '3.2.9'
 
 group :assets do
   gem 'sass-rails'
@@ -18,7 +18,7 @@ gem "health-data-standards", :git => 'http://github.com/projectcypress/health-da
 #gem "health-data-standards", '~> 2.1.2'
 
 gem 'nokogiri'
-gem 'sprockets'
+gem 'sprockets', '~> 2.2.2'
 gem 'coffee-script'
 gem 'uglifier'
 gem 'tilt'

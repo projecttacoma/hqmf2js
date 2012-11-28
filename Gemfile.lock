@@ -211,10 +211,10 @@ DEPENDENCIES
   minitest
   nokogiri
   pry
-  rails
+  rails (= 3.2.9)
   rake
   sass-rails
-  sprockets
+  sprockets (~> 2.2.2)
   therubyracer
   therubyrhino
   tilt
