@@ -227,6 +227,55 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('hqmf.SpecificsManager.countUnique(null, pop)').must_equal 1
   end
 
+  def test_specifics_event_exclusion
+    
+    init_rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':20}});
+      var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':20}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':30}});
+      
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2,row3]);
+      var specific2 = new hqmf.SpecificOccurrence([row1]);
+      var specific3 = new hqmf.SpecificOccurrence([]);
+      specific3.addIdentityRow();
+
+      var pop1 = new Boolean(true);
+      pop1.specificContext = specific1;
+      var pop2 = new Boolean(true);
+      pop2.specificContext = specific2;
+      var pop3 = new Boolean(true);
+      pop3.specificContext = specific3;
+      var pop4 = new Boolean(false);
+      pop4.specificContext = specific3;
+    "
+    
+    @context.eval(init_rows)
+    @context.eval('var resultSpecific = specific1.removeMatchingRows(0, specific2)')
+    @context.eval('resultSpecific.rows.length').must_equal 2
+    @context.eval('resultSpecific.rows[0].values[0].id').must_equal 2
+    @context.eval('resultSpecific.rows[1].values[0].id').must_equal 3
+    @context.eval('resultSpecific = specific1.removeMatchingRows(1, specific2)')
+    @context.eval('resultSpecific.rows.length').must_equal 1
+    @context.eval('resultSpecific.rows[0].values[0].id').must_equal 3
+    @context.eval('var result = hqmf.SpecificsManager.exclude("OccurrenceAEncounter", pop1, pop2)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result.specificContext.rows.length').must_equal 2
+    @context.eval('result.specificContext.rows[0].values[0].id').must_equal 2
+    @context.eval('result.specificContext.rows[1].values[0].id').must_equal 3
+    @context.eval('result = hqmf.SpecificsManager.exclude("OccurrenceBEncounter", pop1, pop2)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result.specificContext.rows.length').must_equal 1
+    @context.eval('result.specificContext.rows[0].values[0].id').must_equal 3
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop3, pop3)')
+    @context.eval('result.isTrue()').must_equal false
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop3, pop4)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop4, pop3)')
+    @context.eval('result.isTrue()').must_equal false
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop4, pop4)')
+    @context.eval('result.isTrue()').must_equal false
+  end
+
   def test_negation
     rows = "
       var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1}});
@@ -477,10 +526,10 @@ class SpecificsTest < Test::Unit::TestCase
     "
     @context.eval(rows)
     
-    @context.eval('hqmf.SpecificsManager.validate(pop1,pop2,pop3)').must_equal true
-    @context.eval('hqmf.SpecificsManager.validate(pop1,pop2,pop4)').must_equal false
-    @context.eval('hqmf.SpecificsManager.validate(pop1,pop2,pop5)').must_equal false
-    @context.eval('hqmf.SpecificsManager.validate(pop3f,pop1,pop2)').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop3))').must_equal true
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop4))').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop5))').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop3f,pop1,pop2))').must_equal false
     
   end
   

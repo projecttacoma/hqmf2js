@@ -64,22 +64,40 @@ class hqmf.SpecificsManagerSingleton
     entry.specificRow = row
     entry
     
+  intersectSpecifics: (populations...) ->
+    value = @intersectAll(new Boolean(populations[0].isTrue()), populations)
+    value
+    
   # Returns a count of the unique events that match the criteria for the supplied
   # specific occurrence. Call after validating that population criteria are met. Returns
   # 1 if occurrenceID is null, for use with patient based measures. 
-  countUnique: (occurrenceID, populations...) ->
-    value = @intersectAll(new Boolean(populations[0].isTrue()), populations)
+  countUnique: (occurrenceID, intersectedPopulation) ->
     if occurrenceID?
       columnIndex = @indexLookup[occurrenceID]
-      value.specificContext.uniqueEvents(columnIndex)
-    else
+      intersectedPopulation.specificContext.uniqueEvents(columnIndex)
+    else if @validate(intersectedPopulation)
       1
+    else
+      0
+  
+  # remove any rows from initial that have the same event id as a row in exclusions for 
+  # the specified occurence id
+  exclude: (occurrenceID, initial, exclusions) ->
+    if occurrenceID?
+      columnIndex = @indexLookup[occurrenceID]
+      resultContext = initial.specificContext.removeMatchingRows(columnIndex, exclusions.specificContext)
+      result = new Boolean(resultContext.hasRows())
+      result.specificContext = resultContext
+      return result
+    else if @validate(exclusions)
+      return @maintainSpecifics(new Boolean(false), initial)
+    else
+      return initial
   
   # Returns a boolean indication of whether all of the supplied population criteria are
   # met
-  validate: (populations...) ->
-    value = @intersectAll(new Boolean(populations[0].isTrue()), populations)
-    value.isTrue() and value.specificContext.hasRows()
+  validate: (intersectedPopulation) ->
+    intersectedPopulation.isTrue() and intersectedPopulation.specificContext.hasRows()
   
   intersectAll: (boolVal, values, negate=false) ->
     result = new hqmf.SpecificOccurrence
@@ -96,7 +114,6 @@ class hqmf.SpecificsManagerSingleton
       # get too many negated values.  Values that may be culled later via other specific 
       # occurrences.  Thus we do not want to return false out of a negation because the 
       # values we are evaluating as false may be dropped.
-
       # we need to verify that we actually have some occurrences
       boolVal = new Boolean(true) if @occurrences.length > 0
     boolVal.specificContext = result.compactReusedEvents()
@@ -131,6 +148,23 @@ class hqmf.SpecificOccurrence
   addRows: (rows) ->
     @rows = @rows.concat(rows)
     
+  # Return a new SpecificOccurrence with any matching rows removed  
+  removeMatchingRows: (columnIndex, other) ->
+    removeAll = false
+    idsToRemove = []
+    for row in other.rows
+      if row.values[columnIndex].id?
+        idsToRemove.push(row.values[columnIndex].id)
+      else if row.values[columnIndex] == hqmf.SpecificsManager.any
+        removeAll = true
+    rowsToAdd = []
+    if not removeAll
+      for row in @rows
+        if not (row.values[columnIndex].id in idsToRemove)
+          rowsToAdd.push(row)
+    result = new hqmf.SpecificOccurrence(rowsToAdd)
+    result
+  
   removeDuplicateRows: () ->
     deduped = new hqmf.SpecificOccurrence
     for row in @rows
