@@ -217,13 +217,14 @@ class SpecificsTest < Test::Unit::TestCase
     "
     
     @context.eval(init_rows)
-    @context.eval("specific.uniqueEvents(0)").must_equal 3
-    @context.eval("specific.uniqueEvents(1)").must_equal 2
+    @context.eval("specific.uniqueEvents([0])").must_equal 3
+    @context.eval("specific.uniqueEvents([1])").must_equal 2
     @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceAEncounter"]').must_equal 0
     @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceBEncounter"]').must_equal 1
     @context.eval('hqmf.SpecificsManager.validate(pop)').must_equal true
-    @context.eval('hqmf.SpecificsManager.countUnique("OccurrenceAEncounter", pop)').must_equal 3
-    @context.eval('hqmf.SpecificsManager.countUnique("OccurrenceBEncounter", pop)').must_equal 2
+    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter"], pop)').must_equal 3
+    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceBEncounter"], pop)').must_equal 2
+    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter", "OccurrenceBEncounter"], pop)').must_equal 5
     @context.eval('hqmf.SpecificsManager.countUnique(null, pop)').must_equal 1
   end
 
@@ -257,12 +258,16 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('resultSpecific = specific1.removeMatchingRows(1, specific2)')
     @context.eval('resultSpecific.rows.length').must_equal 1
     @context.eval('resultSpecific.rows[0].values[0].id').must_equal 3
-    @context.eval('var result = hqmf.SpecificsManager.exclude("OccurrenceAEncounter", pop1, pop2)')
+    @context.eval('var result = hqmf.SpecificsManager.exclude(["OccurrenceAEncounter"], pop1, pop2)')
     @context.eval('result.isTrue()').must_equal true
     @context.eval('result.specificContext.rows.length').must_equal 2
     @context.eval('result.specificContext.rows[0].values[0].id').must_equal 2
     @context.eval('result.specificContext.rows[1].values[0].id').must_equal 3
-    @context.eval('result = hqmf.SpecificsManager.exclude("OccurrenceBEncounter", pop1, pop2)')
+    @context.eval('result = hqmf.SpecificsManager.exclude(["OccurrenceBEncounter"], pop1, pop2)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result.specificContext.rows.length').must_equal 1
+    @context.eval('result.specificContext.rows[0].values[0].id').must_equal 3
+    @context.eval('result = hqmf.SpecificsManager.exclude(["OccurrenceAEncounter","OccurrenceBEncounter"], pop1, pop2)')
     @context.eval('result.isTrue()').must_equal true
     @context.eval('result.specificContext.rows.length').must_equal 1
     @context.eval('result.specificContext.rows[0].values[0].id').must_equal 3

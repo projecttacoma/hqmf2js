@@ -71,10 +71,10 @@ class hqmf.SpecificsManagerSingleton
   # Returns a count of the unique events that match the criteria for the supplied
   # specific occurrence. Call after validating that population criteria are met. Returns
   # 1 if occurrenceID is null, for use with patient based measures. 
-  countUnique: (occurrenceID, intersectedPopulation) ->
-    if occurrenceID?
-      columnIndex = @indexLookup[occurrenceID]
-      intersectedPopulation.specificContext.uniqueEvents(columnIndex)
+  countUnique: (occurrenceIDs, intersectedPopulation) ->
+    if occurrenceIDs?
+      columnIndices = (@indexLookup[occurrenceID] for occurrenceID in occurrenceIDs)
+      intersectedPopulation.specificContext.uniqueEvents(columnIndices)
     else if @validate(intersectedPopulation)
       1
     else
@@ -82,10 +82,12 @@ class hqmf.SpecificsManagerSingleton
   
   # remove any rows from initial that have the same event id as a row in exclusions for 
   # the specified occurence id
-  exclude: (occurrenceID, initial, exclusions) ->
-    if occurrenceID?
-      columnIndex = @indexLookup[occurrenceID]
-      resultContext = initial.specificContext.removeMatchingRows(columnIndex, exclusions.specificContext)
+  exclude: (occurrenceIDs, initial, exclusions) ->
+    if occurrenceIDs?
+      resultContext = initial.specificContext
+      for occurrenceID in occurrenceIDs
+        columnIndex = @indexLookup[occurrenceID]
+        resultContext = resultContext.removeMatchingRows(columnIndex, exclusions.specificContext)
       result = new Boolean(resultContext.hasRows())
       result.specificContext = resultContext
       return result
@@ -173,11 +175,12 @@ class hqmf.SpecificOccurrence
     deduped
     
   # Returns a count of unique events for a supplied column index
-  uniqueEvents: (columnIndex) ->
+  uniqueEvents: (columnIndices) ->
     eventIds = []
-    for row in @rows
-      event = row.values[columnIndex]
-      eventIds.push(event.id) if event != hqmf.SpecificsManager.any and not (event.id in eventIds)
+    for columnIndex in columnIndices
+      for row in @rows
+        event = row.values[columnIndex]
+        eventIds.push(event.id) if event != hqmf.SpecificsManager.any and not (event.id in eventIds)
     eventIds.length
   
   hasExactRow: (other) ->
