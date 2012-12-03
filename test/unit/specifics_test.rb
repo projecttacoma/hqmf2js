@@ -221,6 +221,11 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("specific.uniqueEvents([1])").must_equal 2
     @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceAEncounter"]').must_equal 0
     @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceBEncounter"]').must_equal 1
+    @context.eval('hqmf.SpecificsManager.getColumnIndex("OccurrenceAEncounter")').must_equal 0
+    @context.eval('hqmf.SpecificsManager.getColumnIndex("OccurrenceBEncounter")').must_equal 1
+    assert_raise V8::JSError do
+      @context.eval('hqmf.SpecificsManager.getColumnIndex("OccurrenceCEncounter")')
+    end
     @context.eval('hqmf.SpecificsManager.validate(pop)').must_equal true
     @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter"], pop)').must_equal 3
     @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceBEncounter"], pop)').must_equal 2

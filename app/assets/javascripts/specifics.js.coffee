@@ -41,6 +41,12 @@ class hqmf.SpecificsManagerSingleton
   
   identity: ->
     new hqmf.SpecificOccurrence([new Row(undefined)])
+    
+  getColumnIndex: (occurrenceID) ->
+    columnIndex = @indexLookup[occurrenceID]
+    if typeof columnIndex == "undefined"
+      throw "Unknown occurrence identifier: "+occurrenceID
+    columnIndex
 
   empty: ->
     new hqmf.SpecificOccurrence([])
@@ -76,7 +82,7 @@ class hqmf.SpecificsManagerSingleton
   # 1 if occurrenceID is null, for use with patient based measures. 
   countUnique: (occurrenceIDs, intersectedPopulation) ->
     if occurrenceIDs?
-      columnIndices = (@indexLookup[occurrenceID] for occurrenceID in occurrenceIDs)
+      columnIndices = (@getColumnIndex(occurrenceID) for occurrenceID in occurrenceIDs)
       intersectedPopulation.specificContext.uniqueEvents(columnIndices)
     else if @validate(intersectedPopulation)
       1
@@ -89,7 +95,7 @@ class hqmf.SpecificsManagerSingleton
     if occurrenceIDs?
       resultContext = initial.specificContext
       for occurrenceID in occurrenceIDs
-        columnIndex = @indexLookup[occurrenceID]
+        columnIndex = @getColumnIndex(occurrenceID)
         resultContext = resultContext.removeMatchingRows(columnIndex, exclusions.specificContext)
       result = new Boolean(resultContext.hasRows())
       result.specificContext = resultContext
