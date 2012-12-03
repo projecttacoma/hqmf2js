@@ -42,6 +42,9 @@ class hqmf.SpecificsManagerSingleton
   identity: ->
     new hqmf.SpecificOccurrence([new Row(undefined)])
 
+  empty: ->
+    new hqmf.SpecificOccurrence([])
+
   extractEventsForLeftMost: (rows) ->
     events = []
     for row in rows
