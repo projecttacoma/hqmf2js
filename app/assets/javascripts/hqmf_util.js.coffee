@@ -462,7 +462,7 @@ shiftTimes = (event, field) ->
 @shiftTimes = shiftTimes
 
 adjustBoundsForField = (events, field) ->
-  shiftedEvents = (shiftTimes(event, field) for event in events when event.respondTo(field))
+  shiftedEvents = (shiftTimes(event, field) for event in events when (event.respondTo(field) and event[field]()))
   shiftedEvents
 @adjustBoundsForField = adjustBoundsForField
 

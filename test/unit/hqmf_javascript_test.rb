@@ -8,8 +8,6 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     doc = HQMF::Parser.parse(hqmf_contents, HQMF::Parser::HQMF_VERSION_2)
     
     codes_file_path = File.expand_path("../../fixtures/codes/codes.xml", __FILE__)
-    # This patient is identified from Cypress as in the denominator and numerator for NQF59
-    numerator_patient_json = File.read('test/fixtures/patients/larry_vanderman.json')
     
     # First compile the CoffeeScript that enables our converted HQMF JavaScript
     hqmf_utils = compile_coffee_script
@@ -46,10 +44,8 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_to_js_method
     value = @converter.to_js(0,@codes_hash)
     local_context = V8::Context.new
-    patient_api = File.open('test/fixtures/patient_api.js').read
     hqmf_utils = HQMF2JS::Generator::JS.library_functions
-    local_context.eval("#{patient_api}
-                        #{hqmf_utils}
+    local_context.eval("#{hqmf_utils}
                         #{value}")
                         
     local_context.eval('typeof hqmfjs != undefined').must_equal true
@@ -149,7 +145,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 2010, @context.eval('procedures[0].timeStamp().getFullYear()')
     assert_equal true, @context.eval('procedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
     @context.eval('var updatedProcedures = adjustBoundsForField(procedures, "incisionDatetime")')
-    assert_equal 7, @context.eval('updatedProcedures.length')
+    assert_equal 1, @context.eval('updatedProcedures.length')
     assert_equal 2005, @context.eval('updatedProcedures[0].timeStamp().getFullYear()')
     assert_equal true, @context.eval('updatedProcedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
   end

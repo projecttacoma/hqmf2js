@@ -32,7 +32,6 @@ def get_js_context(javascript)
 end
 
 def initialize_javascript_context(hqmf_utils, codes_json, converted_hqmf)
-  patient_api = File.open('test/fixtures/patient_api.js').read
   fixture_json = File.read('test/fixtures/patients/larry_vanderman.json')
   initialize_patient = 'var numeratorPatient = new hQuery.Patient(larry);'
 
@@ -41,7 +40,7 @@ def initialize_javascript_context(hqmf_utils, codes_json, converted_hqmf)
   else
     @context = V8::Context.new
   end
-  @context.eval("#{patient_api}
+  @context.eval("
     #{hqmf_utils}
     var OidDictionary = #{codes_json};
     #{converted_hqmf}
