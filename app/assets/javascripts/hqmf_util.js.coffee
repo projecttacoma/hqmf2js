@@ -455,6 +455,17 @@ filterEventsByField = (events, field, value) ->
   event for event in respondingEvents when value.match(event[field]())
 @filterEventsByField = filterEventsByField
 
+shiftTimes = (event, field) ->
+  shiftedEvent = new event.constructor(event.json)
+  shiftedEvent.setTimestamp(shiftedEvent[field]())
+  shiftedEvent
+@shiftTimes = shiftTimes
+
+adjustBoundsForField = (events, field) ->
+  shiftedEvents = (shiftTimes(event, field) for event in events when event.respondTo(field))
+  shiftedEvents
+@adjustBoundsForField = adjustBoundsForField
+
 # Utility method to obtain the value set for an OID
 getCodes = (oid) ->
   codes = OidDictionary[oid]

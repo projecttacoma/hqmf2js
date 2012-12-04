@@ -48,6 +48,32 @@ hQuery.Scalar = (function() {
 })();
 
 /**
+@class PhysicalQuantity - a representation of a physical quantity
+@exports PhysicalQuantity as hQuery.PhysicalQuantity
+*/
+
+
+hQuery.PhysicalQuantity = (function() {
+
+  PhysicalQuantity.name = 'PhysicalQuantity';
+
+  function PhysicalQuantity(json) {
+    this.json = json;
+  }
+
+  PhysicalQuantity.prototype.units = function() {
+    return this.json['units'];
+  };
+
+  PhysicalQuantity.prototype.scalar = function() {
+    return parseFloat(this.json['scalar']);
+  };
+
+  return PhysicalQuantity;
+
+})();
+
+/**
 @class A code with its corresponding code system
 @exports CodedValue as hQuery.CodedValue
 */
@@ -87,6 +113,10 @@ hQuery.CodedValue = (function() {
     return this.csn;
   };
 
+  CodedValue.normalize = function(val) {
+    return String(val).toLowerCase();
+  };
+
   /**
   Returns true if the contained code and codeSystemName match a code in the supplied codeSet.
   @param {Object} codeSet a hash with code system names as keys and an array of codes as values
@@ -95,13 +125,15 @@ hQuery.CodedValue = (function() {
 
 
   CodedValue.prototype.includedIn = function(codeSet) {
-    var code, codeSystemName, codes, _i, _len;
+    var c1, c2, code, codeSystemName, codes, _i, _len;
     for (codeSystemName in codeSet) {
       codes = codeSet[codeSystemName];
       if (this.csn === codeSystemName) {
         for (_i = 0, _len = codes.length; _i < _len; _i++) {
           code = codes[_i];
-          if (code === this.c) {
+          c1 = hQuery.CodedValue.normalize(code);
+          c2 = hQuery.CodedValue.normalize(this.c);
+          if (c1 === c2) {
             return true;
           }
         }
@@ -492,6 +524,98 @@ hQuery.Organization = (function() {
 })();
 
 /**
+@class a Facility
+@exports Organization as hQuery.Facility
+*/
+
+
+hQuery.Facility = (function(_super) {
+
+  __extends(Facility, _super);
+
+  Facility.name = 'Facility';
+
+  function Facility(json) {
+    this.json = json;
+    if (this.json['code'] != null) {
+      Facility.__super__.constructor.call(this, this.json['code']['code'], this.json['code']['codeSystem']);
+    }
+    if (this.json['start_time']) {
+      this._startDate = hQuery.dateFromUtcSeconds(this.json['start_time']);
+    }
+    if (this.json['end_time']) {
+      this._endDate = hQuery.dateFromUtcSeconds(this.json['end_time']);
+    }
+  }
+
+  /**
+  @returns {String} the name of the facility
+  */
+
+
+  Facility.prototype.name = function() {
+    return this.json['name'];
+  };
+
+  /**
+  Date and time at which the coded entry started
+  @returns {Date}
+  */
+
+
+  Facility.prototype.startDate = function() {
+    return this._startDate;
+  };
+
+  /**
+  Date and time at which the coded entry ended
+  @returns {Date}
+  */
+
+
+  Facility.prototype.endDate = function() {
+    return this._endDate;
+  };
+
+  /**
+  @returns {Array} an array of {@link hQuery.Address} objects associated with the facility
+  */
+
+
+  Facility.prototype.addresses = function() {
+    var address, list, _i, _len, _ref;
+    list = [];
+    if (this.json['addresses']) {
+      _ref = this.json['addresses'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        address = _ref[_i];
+        list.push(new hQuery.Address(address));
+      }
+    }
+    return list;
+  };
+
+  /**
+  @returns {Array} an array of {@link hQuery.Telecom} objects associated with the facility
+  */
+
+
+  Facility.prototype.telecoms = function() {
+    var tel, _i, _len, _ref, _results;
+    _ref = this.json['telecoms'];
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      tel = _ref[_i];
+      _results.push(new hQuery.Telecom(tel));
+    }
+    return _results;
+  };
+
+  return Facility;
+
+})(hQuery.CodedValue);
+
+/**
 @class represents a DateRange in the form of hi and low date values.
 @exports DateRange as hQuery.DateRange
 */
@@ -576,14 +700,30 @@ hQuery.CodedEntry = (function() {
 
   function CodedEntry(json) {
     this.json = json;
-    this._date = hQuery.dateFromUtcSeconds(this.json['time']);
-    this._startDate = hQuery.dateFromUtcSeconds(this.json['start_time']);
-    this._endDate = hQuery.dateFromUtcSeconds(this.json['end_time']);
+    if (this.json['time']) {
+      this._date = hQuery.dateFromUtcSeconds(this.json['time']);
+    }
+    if (this.json['start_time']) {
+      this._startDate = hQuery.dateFromUtcSeconds(this.json['start_time']);
+    }
+    if (this.json['end_time']) {
+      this._endDate = hQuery.dateFromUtcSeconds(this.json['end_time']);
+    }
     this._type = hQuery.createCodedValues(this.json['codes']);
-    this._status = this.json['status'];
-    this._id = this.json['id'];
+    this._statusCode = this.json['status_code'];
+    this.id = this.json['_id'];
+    this.source_id = this.json['id'];
     this._freeTextType = this.json['description'];
   }
+
+  /**
+  Adjust the start and end times of this event to the supplied timestamp
+  */
+
+
+  CodedEntry.prototype.setTimestamp = function(timestamp) {
+    return this._date = this._startDate = this._endDate = timestamp;
+  };
 
   /**
   Date and time at which the coded entry took place
@@ -637,6 +777,17 @@ hQuery.CodedEntry = (function() {
   };
 
   /**
+  Determines whether a coded entry contains sufficient information (code and at least 
+  one time stamp) to be usable
+  @returns {boolean}
+  */
+
+
+  CodedEntry.prototype.isUsable = function() {
+    return this._type.length > 0 && (this._date || this._startDate || this._endDate);
+  };
+
+  /**
   An Array of CodedValues which describe what kind of coded entry took place
   @returns {Array}
   */
@@ -657,27 +808,40 @@ hQuery.CodedEntry = (function() {
   };
 
   /**
-  Unique identifier for this coded entry
-  @returns {String}
-  */
-
-
-  CodedEntry.prototype.id = function() {
-    return this._id;
-  };
-
-  /**
   Status for this coded entry
   @returns {String}
   */
 
 
   CodedEntry.prototype.status = function() {
-    return this._status;
+    if (this._statusCode != null) {
+      if (this._statusCode['HL7 ActStatus'] != null) {
+        return this._statusCode['HL7 ActStatus'][0];
+      } else if (this._statusCode['SNOMED-CT'] != null) {
+        switch (this._statusCode['SNOMED-CT'][0]) {
+          case '55561003':
+            return 'active';
+          case '73425007':
+            return 'inactive';
+          case '413322009':
+            return 'resolved';
+        }
+      }
+    }
   };
 
   /**
-  Returns true if any of this entry's codes match a code in the supplied codeSet.
+  Status for this coded entry
+  @returns {Hash} keys are code systems, values are arrays of codes
+  */
+
+
+  CodedEntry.prototype.statusCode = function() {
+    return this._statusCode;
+  };
+
+  /**
+  Returns true if any of this entry codes match a code in the supplied codeSet.
   @param {Object} codeSet a hash with code system names as keys and an array of codes as values
   @returns {boolean}
   */
@@ -693,6 +857,59 @@ hQuery.CodedEntry = (function() {
       }
     }
     return false;
+  };
+
+  /**
+  @returns {Boolean} whether the entry was negated
+  */
+
+
+  CodedEntry.prototype.negationInd = function() {
+    return this.json['negationInd'] || false;
+  };
+
+  /**
+  Returns the values of the result. This will return an array that contains
+  PhysicalQuantity or CodedValue objects depending on the result type.
+  @returns {Array} containing either PhysicalQuantity and/or CodedValues
+  */
+
+
+  CodedEntry.prototype.values = function() {
+    var value, values, _i, _len, _ref;
+    values = [];
+    if (this.json['values']) {
+      _ref = this.json['values'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        value = _ref[_i];
+        if (value['scalar'] != null) {
+          values.push(new hQuery.PhysicalQuantity(value));
+        } else {
+          values = values.concat(hQuery.createCodedValues(value.codes));
+        }
+      }
+    }
+    return values;
+  };
+
+  /**
+  Indicates the reason an entry was negated.
+  @returns {hQuery.CodedValue}   Used to indicate reason an immunization was not administered.
+  */
+
+
+  CodedEntry.prototype.negationReason = function() {
+    return hQuery.createCodedValue(this.json['negationReason']);
+  };
+
+  /**
+  Explains the reason for an entry.
+  @returns {hQuery.CodedValue}   Used to explain the rationale for a given entry.
+  */
+
+
+  CodedEntry.prototype.reason = function() {
+    return hQuery.createCodedValue(this.json['reason']);
   };
 
   return CodedEntry;
@@ -717,32 +934,49 @@ hQuery.CodedEntryList = (function(_super) {
   }
 
   /**
+  Push the supplied entry onto this list if it is usable
+  @param {CodedEntry} a coded entry that should be added to the list if it is usable
+  */
+
+
+  CodedEntryList.prototype.pushIfUsable = function(entry) {
+    if (entry.isUsable()) {
+      return this.push(entry);
+    }
+  };
+
+  /**
   Return the number of entries that match the
   supplied code set where those entries occur between the supplied time bounds
   @param {Object} codeSet a hash with code system names as keys and an array of codes as values
   @param {Date} start the start of the period during which the entry must occur, a null value will match all times
   @param {Date} end the end of the period during which the entry must occur, a null value will match all times
-  @return {Array[CodedEntry]} the matching entries
+  @param {boolean} includeNegated whether the returned list of entries should include those that have been negated
+  @return {CodedEntryList} the matching entries
   */
 
 
-  CodedEntryList.prototype.match = function(codeSet, start, end) {
-    var afterStart, beforeEnd, entry, matchingEntries, _i, _len;
-    matchingEntries = [];
+  CodedEntryList.prototype.match = function(codeSet, start, end, includeNegated) {
+    var afterStart, beforeEnd, cloned, entry, matchesCode, _i, _len;
+    if (includeNegated == null) {
+      includeNegated = false;
+    }
+    cloned = new hQuery.CodedEntryList();
     for (_i = 0, _len = this.length; _i < _len; _i++) {
       entry = this[_i];
-      afterStart = !start || entry.date() >= start;
-      beforeEnd = !end || entry.date() <= end;
-      if (afterStart && beforeEnd && entry.includesCodeFrom(codeSet)) {
-        matchingEntries.push(entry);
+      afterStart = !start || entry.timeStamp() >= start;
+      beforeEnd = !end || entry.timeStamp() <= end;
+      matchesCode = codeSet === null || entry.includesCodeFrom(codeSet);
+      if (afterStart && beforeEnd && matchesCode && (includeNegated || !entry.negationInd())) {
+        cloned.push(entry);
       }
     }
-    return matchingEntries;
+    return cloned;
   };
 
   /**
   Return a new list of entries that is the result of concatenating the passed in entries with this list
-  @return {Array[CodedEntry]} the set of concatenated entries
+  @return {CodedEntryList} the set of concatenated entries
   */
 
 
@@ -762,7 +996,7 @@ hQuery.CodedEntryList = (function(_super) {
 
   /**
   Match entries with the specified statuses
-  @return {Array[CodedEntry]} the matching entries
+  @return {CodedEntryList} the matching entries
   */
 
 
@@ -771,11 +1005,50 @@ hQuery.CodedEntryList = (function(_super) {
     if (includeUndefined == null) {
       includeUndefined = true;
     }
-    statuses = statuses.concat([void 0, null]);
+    if (includeUndefined) {
+      statuses = statuses.concat([void 0, null]);
+    }
     cloned = new hQuery.CodedEntryList();
     for (_i = 0, _len = this.length; _i < _len; _i++) {
       entry = this[_i];
       if (_ref = entry.status(), __indexOf.call(statuses, _ref) >= 0) {
+        cloned.push(entry);
+      }
+    }
+    return cloned;
+  };
+
+  /**
+  Filter entries based on negation
+  @param {Object} codeSet a hash with code system names as keys and an array of codes as values
+  @return {CodedEntryList} negated entries
+  */
+
+
+  CodedEntryList.prototype.withNegation = function(codeSet) {
+    var cloned, entry, _i, _len;
+    cloned = new hQuery.CodedEntryList();
+    for (_i = 0, _len = this.length; _i < _len; _i++) {
+      entry = this[_i];
+      if (entry.negationInd() && (!codeSet || (entry.negationReason() && entry.negationReason().includedIn(codeSet)))) {
+        cloned.push(entry);
+      }
+    }
+    return cloned;
+  };
+
+  /**
+  Filter entries based on negation
+  @return {CodedEntryList} non-negated entries
+  */
+
+
+  CodedEntryList.prototype.withoutNegation = function() {
+    var cloned, entry, _i, _len;
+    cloned = new hQuery.CodedEntryList();
+    for (_i = 0, _len = this.length; _i < _len; _i++) {
+      entry = this[_i];
+      if (!entry.negationInd()) {
         cloned.push(entry);
       }
     }
@@ -803,6 +1076,14 @@ hQuery.createCodedValues = function(jsonCodes) {
     }
   }
   return codedValues;
+};
+
+hQuery.createCodedValue = function(json) {
+  var value;
+  if (json != null) {
+    value = new hQuery.CodedValue(json['code'], json['codeSystem']);
+  }
+  return value || new hQuery.CodedValue();
 };
 /**
 @namespace scoping into the hquery namespace
@@ -1192,7 +1473,7 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.route = function() {
-    return new hQuery.CodedValue(this.json['route']['code'], this.json['route']['codeSystem']);
+    return hQuery.createCodedValue(this.json['route']);
   };
 
   /**
@@ -1210,7 +1491,7 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.site = function() {
-    return new hQuery.CodedValue(this.json['site']['code'], this.json['site']['codeSystem']);
+    return hQuery.createCodedValue(this.json['site']);
   };
 
   /**
@@ -1246,7 +1527,7 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.indication = function() {
-    return new hQuery.CodedValue(this.json['indication']['code'], this.json['indication']['codeSystem']);
+    return hQuery.createCodedValue(this.json['indication']);
   };
 
   /**
@@ -1255,7 +1536,7 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.productForm = function() {
-    return new hQuery.CodedValue(this.json['productForm']['code'], this.json['productForm']['codeSystem']);
+    return hQuery.createCodedValue(this.json['productForm']);
   };
 
   /**
@@ -1264,7 +1545,7 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.vehicle = function() {
-    return new hQuery.CodedValue(this.json['vehicle']['code'], this.json['vehicle']['codeSystem']);
+    return hQuery.createCodedValue(this.json['vehicle']);
   };
 
   /**
@@ -1273,7 +1554,7 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.reaction = function() {
-    return new hQuery.CodedValue(this.json['reaction']['code'], this.json['reaction']['codeSystem']);
+    return hQuery.createCodedValue(this.json['reaction']);
   };
 
   /**
@@ -1282,7 +1563,7 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.deliveryMethod = function() {
-    return new hQuery.CodedValue(this.json['deliveryMethod']['code'], this.json['deliveryMethod']['codeSystem']);
+    return hQuery.createCodedValue(this.json['deliveryMethod']);
   };
 
   /**
@@ -1300,7 +1581,8 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.typeOfMedication = function() {
-    return new hQuery.TypeOfMedication(this.json['typeOfMedication']['code'], this.json['typeOfMedication']['codeSystem']);
+    var _ref, _ref1;
+    return new hQuery.TypeOfMedication((_ref = this.json['typeOfMedication']) != null ? _ref['code'] : void 0, (_ref1 = this.json['typeOfMedication']) != null ? _ref1['codeSystem'] : void 0);
   };
 
   /**
@@ -1311,7 +1593,8 @@ hQuery.Medication = (function(_super) {
 
 
   Medication.prototype.statusOfMedication = function() {
-    return new hQuery.StatusOfMedication(this.json['statusOfMedication']['code'], this.json['statusOfMedication']['codeSystem']);
+    var _ref, _ref1;
+    return new hQuery.StatusOfMedication((_ref = this.json['statusOfMedication']) != null ? _ref['code'] : void 0, (_ref1 = this.json['statusOfMedication']) != null ? _ref1['codeSystem'] : void 0);
   };
 
   /**
@@ -1321,6 +1604,16 @@ hQuery.Medication = (function(_super) {
 
   Medication.prototype.patientInstructions = function() {
     return this.json['patientInstructions'];
+  };
+
+  /**
+  The duration over which this medication has been active. For example, 5 days.
+  @returns {Hash} with two keys: unit and scalar
+  */
+
+
+  Medication.prototype.cumulativeMedicationDuration = function() {
+    return this.json['cumulativeMedicationDuration'];
   };
 
   /**
@@ -1448,7 +1741,17 @@ hQuery.Condition = (function(_super) {
 
 
   Condition.prototype.diagnosisPriority = function() {
-    return this.json['diagnosisPriority'];
+    return this.json['priority'];
+  };
+
+  /**
+  Ordinality
+  @returns {CodedValue}
+  */
+
+
+  Condition.prototype.ordinality = function() {
+    return hQuery.createCodedValue(this.json['ordinality_code']);
   };
 
   /**
@@ -1478,7 +1781,7 @@ hQuery.Condition = (function(_super) {
 
 
   Condition.prototype.problemStatus = function() {
-    return new hQuery.CodedValue(this.json['problemStatus']['code'], this.json['problemStatus']['codeSystem']);
+    return hQuery.createCodedValue(this.json['problemStatus']);
   };
 
   /**
@@ -1489,6 +1792,16 @@ hQuery.Condition = (function(_super) {
 
   Condition.prototype.comment = function() {
     return this.json['comment'];
+  };
+
+  /**
+  This is a description of the level of the severity of the condition.
+  @returns {CodedValue}
+  */
+
+
+  Condition.prototype.severity = function() {
+    return hQuery.createCodedValue(this.json['severity']);
   };
 
   return Condition;
@@ -1506,12 +1819,12 @@ this.hQuery || (this.hQuery = {});
 /**
 An Encounter is an interaction, regardless of the setting, between a patient and a
 practitioner who is vested with primary responsibility for diagnosing, evaluating,
-or treating the patient's condition. It may include visits, appointments, as well
+or treating the patients condition. It may include visits, appointments, as well
 as non face-to-face interactions. It is also a contact between a patient and a
 practitioner who has primary responsibility for assessing and treating the
 patient at a given contact, exercising independent judgment.
 @class An Encounter is an interaction, regardless of the setting, between a patient and a
-practitioner 
+practitioner
 @augments hQuery.CodedEntry
 @exports Encounter as hQuery.Encounter
 */
@@ -1533,8 +1846,8 @@ hQuery.Encounter = (function(_super) {
   */
 
 
-  Encounter.prototype.dischargeDisp = function() {
-    return this.json['dischargeDisp'];
+  Encounter.prototype.dischargeDisposition = function() {
+    return this.json['dischargeDisposition'];
   };
 
   /**
@@ -1545,7 +1858,7 @@ hQuery.Encounter = (function(_super) {
 
 
   Encounter.prototype.admitType = function() {
-    return new hQuery.CodedValue(this.json['admitType']['code'], this.json['admitType']['codeSystem']);
+    return hQuery.createCodedValue(this.json['admitType']);
   };
 
   /**
@@ -1563,16 +1876,7 @@ hQuery.Encounter = (function(_super) {
 
 
   Encounter.prototype.facility = function() {
-    return new hQuery.Organization(this.json['facility']);
-  };
-
-  /**
-  @returns {hQuery.DateRange}
-  */
-
-
-  Encounter.prototype.encounterDuration = function() {
-    return new hQuery.DateRange(this.json);
+    return new hQuery.Facility(this.json['facility']);
   };
 
   /**
@@ -1582,6 +1886,36 @@ hQuery.Encounter = (function(_super) {
 
   Encounter.prototype.reasonForVisit = function() {
     return new hQuery.CodedEntry(this.json['reason']);
+  };
+
+  /**
+  @returns {Integer}
+  */
+
+
+  Encounter.prototype.lengthOfStay = function() {
+    if (!((this.startDate() != null) && (this.endDate() != null))) {
+      return 0;
+    }
+    return Math.floor((this.endDate() - this.startDate()) / (1000 * 60 * 60 * 24));
+  };
+
+  /**
+  @returns {CodedValue}
+  */
+
+
+  Encounter.prototype.transferTo = function() {
+    return hQuery.createCodedValue(this.json['transferTo']);
+  };
+
+  /**
+  @returns {CodedValue}
+  */
+
+
+  Encounter.prototype.transferFrom = function() {
+    return hQuery.createCodedValue(this.json['transferFrom']);
   };
 
   return Encounter;
@@ -1635,6 +1969,28 @@ hQuery.Procedure = (function(_super) {
     return new hQuery.CodedValue(this.json['site']['code'], this.json['site']['codeSystem']);
   };
 
+  /**
+  @returns {hQuery.CodedValue} A SNOMED code indicating where the procedure was performed.
+  */
+
+
+  Procedure.prototype.source = function() {
+    if (this.json['source'] && this.json['source']['code'] && this.json['source']['codeSystem']) {
+      return new hQuery.CodedValue(this.json['source']['code'], this.json['source']['codeSystem']);
+    } else {
+      return null;
+    }
+  };
+
+  /**
+  @returns {Date} The actual or intended start of an incision.
+  */
+
+
+  Procedure.prototype.incisionDatetime = function() {
+    return hQuery.dateFromUtcSeconds(this.json['incisionDatetime']);
+  };
+
   return Procedure;
 
 })(hQuery.CodedEntry);
@@ -1682,32 +2038,12 @@ hQuery.Result = (function(_super) {
   };
 
   /**
-  A status from the HL7 ActStatusNormal vocabulary
-  @returns {String}
-  */
-
-
-  Result.prototype.status = function() {
-    return this.json['status'];
-  };
-
-  /**
-  Returns the value of the result. This will return an object. The properties of this
-  object are dependent on the type of result.
-  */
-
-
-  Result.prototype.value = function() {
-    return this.json['value'];
-  };
-
-  /**
   @returns {CodedValue}
   */
 
 
   Result.prototype.interpretation = function() {
-    return new hQuery.CodedValue(this.json['interpretation'].code, this.json['interpretation'].codeSystem);
+    return hQuery.createCodedValue(this.json['interpretation']);
   };
 
   /**
@@ -1923,7 +2259,7 @@ hQuery.Immunization = (function(_super) {
 
 
   Immunization.prototype.refusalInd = function() {
-    return this.json['refusalInd'];
+    return this.json['negationInd'];
   };
 
   /**
@@ -1935,7 +2271,8 @@ hQuery.Immunization = (function(_super) {
 
 
   Immunization.prototype.refusalReason = function() {
-    return new hQuery.NoImmunization(this.json['refusalReason']['code'], this.json['refusalReason']['codeSystem']);
+    var _ref, _ref1;
+    return new hQuery.NoImmunization((_ref = this.json['negationReason']) != null ? _ref['code'] : void 0, (_ref1 = this.json['negationReason']) != null ? _ref1['codeSystem'] : void 0);
   };
 
   return Immunization;
@@ -2004,7 +2341,7 @@ hQuery.Allergy = (function(_super) {
 
 
   Allergy.prototype.adverseEventType = function() {
-    return new hQuery.CodedValue(this.json['type']['code'], this.json['type']['codeSystem']);
+    return hQuery.createCodedValue(this.json['type']);
   };
 
   /**
@@ -2024,7 +2361,7 @@ hQuery.Allergy = (function(_super) {
 
 
   Allergy.prototype.reaction = function() {
-    return new hQuery.CodedValue(this.json['reaction']['code'], this.json['reaction']['codeSystem']);
+    return hQuery.createCodedValue(this.json['reaction']);
   };
 
   /**
@@ -2041,7 +2378,7 @@ hQuery.Allergy = (function(_super) {
 
 
   Allergy.prototype.severity = function() {
-    return new hQuery.CodedValue(this.json['severity']['code'], this.json['severity']['codeSystem']);
+    return hQuery.createCodedValue(this.json['severity']);
   };
 
   /**
@@ -2102,7 +2439,7 @@ hQuery.Provider = (function() {
 
 
   Provider.prototype.role = function() {
-    return new hQuery.CodedValue(this.json['role']['code'], this.json['role']['codeSystem']);
+    return hQuery.createCodedValue(this.json['role']);
   };
 
   /**
@@ -2120,7 +2457,7 @@ hQuery.Provider = (function() {
 
 
   Provider.prototype.providerType = function() {
-    return new hQuery.CodedValue(this.json['providerType']['code'], this.json['providerType']['codeSystem']);
+    return hQuery.createCodedValue(this.json['providerType']);
   };
 
   /**
@@ -2177,7 +2514,7 @@ hQuery.Language = (function(_super) {
 
 
   Language.prototype.modeCode = function() {
-    return new hQuery.CodedValue(this.json['modeCode']['code'], this.json['modeCode']['codeSystem']);
+    return hQuery.createCodedValue(this.json['modeCode']);
   };
 
   /**
@@ -2314,6 +2651,7 @@ hQuery.CareGoal = (function(_super) {
 
   function CareGoal(json) {
     this.json = json;
+    CareGoal.__super__.constructor.call(this, this.json);
   }
 
   return CareGoal;
@@ -2350,9 +2688,88 @@ hQuery.MedicalEquipment = (function(_super) {
 
   function MedicalEquipment(json) {
     this.json = json;
+    MedicalEquipment.__super__.constructor.call(this, this.json);
   }
 
+  /**
+  @returns {CodedValue}
+  */
+
+
+  MedicalEquipment.prototype.anatomicalStructure = function() {
+    return hQuery.createCodedValue(this.json['anatomicalStructure']);
+  };
+
   return MedicalEquipment;
+
+})(hQuery.CodedEntry);
+/**
+@namespace scoping into the hquery namespace
+*/
+
+var __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+this.hQuery || (this.hQuery = {});
+
+/**
+This class can be used to represnt a functional status for a patient. Currently,
+it is not a very close representation of functional status as it is represented
+in the HL7 CCD, HITSP C32 or Consolidated CDA.
+
+In the previously mentioned specifications, functional status may represented
+using either a condition or result. Having "mixed" types of entries in a section
+is currently not well supported in the existing Record class
+
+Additionally, there is a mismatch between the data needed to calculate Stage 2
+Meaningful Use Quailty Measures and the data contained in patient summary
+standards. The CQMs are checking to see if a functional status represented by
+a result was patient supplied. Right now, results do not have a source, and
+even if we were to use Provider as a source, it would need to be extended
+to support patients.
+
+To avoid this, the patient sumamry style functional status has been "flattened"
+into this class. This model supports the information needed to calculate
+Stage 2 MU CQMs. If importers are created from C32 or CCDA, the information
+can be stored here, but it will be a lossy transformation.
+@class
+@augments hQuery.CodedEntry
+@exports FunctionalStatus as hQuery.FunctionalStatus
+*/
+
+
+hQuery.FunctionalStatus = (function(_super) {
+
+  __extends(FunctionalStatus, _super);
+
+  FunctionalStatus.name = 'FunctionalStatus';
+
+  function FunctionalStatus(json) {
+    this.json = json;
+    FunctionalStatus.__super__.constructor.call(this, this.json);
+  }
+
+  /**
+  Either "condition" or "result"
+  @returns {String}
+  */
+
+
+  FunctionalStatus.prototype.type = function() {
+    return this.json["type"];
+  };
+
+  /**
+  A coded value. Like a code for patient supplied.
+  @returns {hQuery.CodedValue}
+  */
+
+
+  FunctionalStatus.prototype.source = function() {
+    return hQuery.createCodedValue(this.json["source"]);
+  };
+
+  return FunctionalStatus;
 
 })(hQuery.CodedEntry);
 /**
@@ -2454,7 +2871,7 @@ hQuery.Patient = (function(_super) {
   };
 
   /**
-  @returns {Date} containing the patient's birthdate
+  @returns {Date} containing the patients birthdate
   */
 
 
@@ -2495,7 +2912,7 @@ hQuery.Patient = (function(_super) {
 
   Patient.prototype.maritalStatus = function() {
     if (this.json['maritalStatus']) {
-      return new hQuery.CodedValue(this.json['maritalStatus']['code'], this.json['maritalStatus']['codeSystem']);
+      return hQuery.createCodedValue(this.json['maritalStatus']);
     }
   };
 
@@ -2507,7 +2924,7 @@ hQuery.Patient = (function(_super) {
 
   Patient.prototype.religiousAffiliation = function() {
     if (this.json['religiousAffiliation']) {
-      return new hQuery.CodedValue(this.json['religiousAffiliation']['code'], this.json['religiousAffiliation']['codeSystem']);
+      return hQuery.createCodedValue(this.json['religiousAffiliation']);
     }
   };
 
@@ -2519,7 +2936,7 @@ hQuery.Patient = (function(_super) {
 
   Patient.prototype.race = function() {
     if (this.json['race']) {
-      return new hQuery.CodedValue(this.json['race']['code'], this.json['race']['codeSystem']);
+      return hQuery.createCodedValue(this.json['race']);
     }
   };
 
@@ -2531,7 +2948,7 @@ hQuery.Patient = (function(_super) {
 
   Patient.prototype.ethnicity = function() {
     if (this.json['ethnicity']) {
-      return new hQuery.CodedValue(this.json['ethnicity']['code'], this.json['ethnicity']['codeSystem']);
+      return hQuery.createCodedValue(this.json['ethnicity']);
     }
   };
 
@@ -2543,7 +2960,7 @@ hQuery.Patient = (function(_super) {
 
   Patient.prototype.confidentiality = function() {
     if (this.json['confidentiality']) {
-      return new hQuery.CodedValue(this.json['confidentiality']['code'], this.json['confidentiality']['codeSystem']);
+      return hQuery.createCodedValue(this.json['confidentiality']);
     }
   };
 
@@ -2603,6 +3020,24 @@ hQuery.Patient = (function(_super) {
   };
 
   /**
+  @returns {Boolean} returns true if the patient has died
+  */
+
+
+  Patient.prototype.expired = function() {
+    return this.json['expired'];
+  };
+
+  /**
+  @returns {Boolean} returns true if the patient participated in a clinical trial
+  */
+
+
+  Patient.prototype.clinicalTrialParticipant = function() {
+    return this.json['clinicalTrialParticipant'];
+  };
+
+  /**
   @returns {hQuery.CodedEntryList} A list of {@link hQuery.Encounter} objects
   */
 
@@ -2614,7 +3049,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['encounters'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         encounter = _ref[_i];
-        list.push(new hQuery.Encounter(encounter));
+        list.pushIfUsable(new hQuery.Encounter(encounter));
       }
     }
     return list;
@@ -2632,7 +3067,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['medications'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         medication = _ref[_i];
-        list.push(new hQuery.Medication(medication));
+        list.pushIfUsable(new hQuery.Medication(medication));
       }
     }
     return list;
@@ -2650,7 +3085,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['conditions'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         condition = _ref[_i];
-        list.push(new hQuery.Condition(condition));
+        list.pushIfUsable(new hQuery.Condition(condition));
       }
     }
     return list;
@@ -2668,7 +3103,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['procedures'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         procedure = _ref[_i];
-        list.push(new hQuery.Procedure(procedure));
+        list.pushIfUsable(new hQuery.Procedure(procedure));
       }
     }
     return list;
@@ -2686,7 +3121,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['results'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         result = _ref[_i];
-        list.push(new hQuery.Result(result));
+        list.pushIfUsable(new hQuery.Result(result));
       }
     }
     return list;
@@ -2704,7 +3139,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['vital_signs'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         vital = _ref[_i];
-        list.push(new hQuery.Result(vital));
+        list.pushIfUsable(new hQuery.Result(vital));
       }
     }
     return list;
@@ -2722,7 +3157,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['immunizations'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         immunization = _ref[_i];
-        list.push(new hQuery.Immunization(immunization));
+        list.pushIfUsable(new hQuery.Immunization(immunization));
       }
     }
     return list;
@@ -2740,7 +3175,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['allergies'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         allergy = _ref[_i];
-        list.push(new hQuery.Allergy(allergy));
+        list.pushIfUsable(new hQuery.Allergy(allergy));
       }
     }
     return list;
@@ -2758,7 +3193,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['pregnancies'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pregnancy = _ref[_i];
-        list.push(new hQuery.Pregnancy(pregnancy));
+        list.pushIfUsable(new hQuery.Pregnancy(pregnancy));
       }
     }
     return list;
@@ -2776,7 +3211,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['socialhistories'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         socialhistory = _ref[_i];
-        list.push(new hQuery.Socialhistory(socialhistory));
+        list.pushIfUsable(new hQuery.Socialhistory(socialhistory));
       }
     }
     return list;
@@ -2794,7 +3229,7 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['care_goals'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         caregoal = _ref[_i];
-        list.push(new hQuery.CareGoal(caregoal));
+        list.pushIfUsable(new hQuery.CareGoal(caregoal));
       }
     }
     return list;
@@ -2812,7 +3247,25 @@ hQuery.Patient = (function(_super) {
       _ref = this.json['medical_equipment'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         equipment = _ref[_i];
-        list.push(new hQuery.MedicalEquipment(equipment));
+        list.pushIfUsable(new hQuery.MedicalEquipment(equipment));
+      }
+    }
+    return list;
+  };
+
+  /**
+  @returns {hQuery.CodedEntryList} A list of {@link FunctionalStatus} objects
+  */
+
+
+  Patient.prototype.functionalStatuses = function() {
+    var fs, list, _i, _len, _ref;
+    list = new hQuery.CodedEntryList;
+    if (this.json['functional_statuses']) {
+      _ref = this.json['functional_statuses'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        fs = _ref[_i];
+        list.pushIfUsable(new hQuery.FunctionalStatus(fs));
       }
     }
     return list;

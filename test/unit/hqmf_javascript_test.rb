@@ -142,6 +142,16 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     # getCode
     assert_equal 1, @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")').count
     assert_equal "00110", @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")["HL7"][0]')
+    
+    # adjustBoundsForField 
+    @context.eval('var procedures = numeratorPatient.procedures()')
+    assert_equal 7, @context.eval('procedures.length')
+    assert_equal 2010, @context.eval('procedures[0].timeStamp().getFullYear()')
+    assert_equal true, @context.eval('procedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
+    @context.eval('var updatedProcedures = adjustBoundsForField(procedures, "incisionDatetime")')
+    assert_equal 7, @context.eval('updatedProcedures.length')
+    assert_equal 2005, @context.eval('updatedProcedures[0].timeStamp().getFullYear()')
+    assert_equal true, @context.eval('updatedProcedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
   end
   
   def test_map_reduce_generation
