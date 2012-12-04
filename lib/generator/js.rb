@@ -46,6 +46,10 @@ module HQMF2JS
         HQMF::DataCriteria::FIELDS[field_name][:coded_entry_method].to_s.camelize(:lower)
       end
       
+      def field_timestamp(field_name)
+        HQMF::DataCriteria::FIELDS[field_name][:timestamp]
+      end
+      
       def js_for_value(value)
         if value
           if value.respond_to?(:derived?) && value.derived?

@@ -20,9 +20,12 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
     <%- end -%>
     <%- if criteria.field_values.present?
           criteria.field_values.keys.each do |field|
-      -%>
+            if field_timestamp(field) -%>
+  events = adjustBoundsForField(events, "<%= field_method(field) %>");
+        <%- else -%>
   events = filterEventsByField(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
-    <%-   end
+    <%-     end
+          end
         end -%>
     <%- if criteria.temporal_references and criteria.temporal_references.length > 0 -%>
       <%- criteria.temporal_references.each do |temporal_reference| -%>
