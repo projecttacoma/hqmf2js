@@ -144,10 +144,26 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 7, @context.eval('procedures.length')
     assert_equal 2010, @context.eval('procedures[0].timeStamp().getFullYear()')
     assert_equal true, @context.eval('procedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
-    @context.eval('var updatedProcedures = adjustBoundsForField(procedures, "incisionDatetime")')
+    @context.eval('var updatedProcedures = adjustBoundsForField(procedures, "incisionTime")')
     assert_equal 1, @context.eval('updatedProcedures.length')
     assert_equal 2005, @context.eval('updatedProcedures[0].timeStamp().getFullYear()')
     assert_equal true, @context.eval('updatedProcedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
+    
+    # denormalizeEventsByLocation
+    @context.eval('var normalizedEncounters = denormalizeEventsByLocation(numeratorPatient.encounters(), "facilityArrival")')
+    assert_equal 1, @context.eval('normalizedEncounters.length')
+    assert_equal 10, @context.eval('normalizedEncounters[0].startDate().getUTCMonth()')
+    assert_equal 19, @context.eval('normalizedEncounters[0].startDate().getUTCDate()')
+    assert_equal 10, @context.eval('normalizedEncounters[0].endDate().getUTCMonth()')
+    assert_equal 19, @context.eval('normalizedEncounters[0].endDate().getUTCDate()')
+    assert_equal 'bar', @context.eval('normalizedEncounters[0].facility().code()')
+    assert_equal 'SNOMED-CT', @context.eval('normalizedEncounters[0].facility().codeSystemName()')
+    @context.eval('normalizedEncounters = denormalizeEventsByLocation(numeratorPatient.encounters(), "facilityDeparture")')
+    assert_equal 1, @context.eval('normalizedEncounters.length')
+    assert_equal 11, @context.eval('normalizedEncounters[0].startDate().getUTCMonth()')
+    assert_equal 1, @context.eval('normalizedEncounters[0].startDate().getUTCDate()')
+    assert_equal 11, @context.eval('normalizedEncounters[0].endDate().getUTCMonth()')
+    assert_equal 1, @context.eval('normalizedEncounters[0].endDate().getUTCDate()')
   end
   
   def test_map_reduce_generation

@@ -100,7 +100,16 @@
           "V70.0"
         ]
       }, 
-      "description": "Encounter Outpatient", 
+      "description": "Encounter Outpatient",
+      "facility": {
+        "name": "Outpatient Clinic",
+        "start_time": 1290166000,
+        "end_time": 1291166000,
+        "code": {
+          "code": "bar",
+          "codeSystem": "SNOMED-CT"
+        }
+      }, 
       "end_time": 1291266000
     }, 
     {
@@ -201,7 +210,7 @@
       }, 
       "description": "Foot Exam", 
       "time": 1291266000, 
-      "incisionDatetime": 1112587200,
+      "incisionTime": 1112587200,
       "values": [
         {
           "scalar": "Normal", 

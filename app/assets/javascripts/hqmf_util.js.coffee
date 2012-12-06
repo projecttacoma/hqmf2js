@@ -462,9 +462,38 @@ shiftTimes = (event, field) ->
 @shiftTimes = shiftTimes
 
 adjustBoundsForField = (events, field) ->
-  shiftedEvents = (shiftTimes(event, field) for event in events when (event.respondTo(field) and event[field]()))
+  validEvents = (event for event in events when (event.respondTo(field) and event[field]()))
+  shiftedEvents = (shiftTimes(event, field) for event in validEvents)
   shiftedEvents
 @adjustBoundsForField = adjustBoundsForField
+
+# Clone the supplied event and replace any facilities with just the supplied one
+narrowEventForFacility = (event, facility) ->
+  narrowed = new event.constructor(event.json)
+  # uncomment the following line when patient API is modified to support multiple
+  # facilities
+  # narrowed._facilities = [facility]
+  narrowed
+@narrowEventForFacility = narrowEventForFacility
+
+# Return a cloned set of events, each with just one of the original facilities
+denormalizeEvent = (event) ->
+  # the following line should be changed when the patient API is modified to support
+  # more than one facility per encounter
+  # narrowed = (narrowEventForFacility(event, facility) for facility in event.facilities)
+  narrowed = (narrowEventForFacility(event, facility) for facility in [event.facility])
+@denormalizeEvent = denormalizeEvent
+
+# Creates a new set of events with one location per event. Input events with more than
+# one location will be duplicated once per location and each resulting event will
+# be assigned one location. Start and end times of the event will be adjusted to match the
+# value of the supplied field
+denormalizeEventsByLocation = (events, field) ->
+  respondingEvents = (event for event in events when event.respondTo("facility") and event.facility())
+  denormalizedEvents = (denormalizeEvent(event) for event in respondingEvents)
+  denormalizedEvents = [].concat denormalizedEvents...
+  adjustBoundsForField(denormalizedEvents, field)
+@denormalizeEventsByLocation = denormalizeEventsByLocation
 
 # Utility method to obtain the value set for an OID
 getCodes = (oid) ->

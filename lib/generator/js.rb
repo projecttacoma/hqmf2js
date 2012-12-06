@@ -46,8 +46,15 @@ module HQMF2JS
         HQMF::DataCriteria::FIELDS[field_name][:coded_entry_method].to_s.camelize(:lower)
       end
       
-      def field_timestamp(field_name)
-        HQMF::DataCriteria::FIELDS[field_name][:timestamp]
+      def field_library_method(field_name)
+        field_type = HQMF::DataCriteria::FIELDS[field_name][:field_type]
+        if field_type == :value
+          'filterEventsByField'
+        elsif field_type == :timestamp
+          'adjustBoundsForField'
+        elsif field_type == :nested_timestamp
+          'denormalizeEventsByLocation'
+        end
       end
       
       def js_for_value(value)
