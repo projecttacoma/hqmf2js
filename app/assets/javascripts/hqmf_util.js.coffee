@@ -633,7 +633,7 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
 
     if hasSpecificOccurrence
       matchingEvents.specific_occurrence = events.specific_occurrence
-      # TODO: we'll need a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
+      # TODO: well need a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
       specificContext.addRows(Row.buildRowsForMatching(events.specific_occurrence, event, bounds.specific_occurrence, matchingBounds))
     else
       # add all stars
@@ -809,6 +809,11 @@ MAX = (events, range) ->
   result = new Boolean(range.match(maxValue))
   applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MAX = MAX
+
+DATEDIFF = (events, range) ->
+  return 0
+@DATEDIFF = DATEDIFF
+
 
 @OidDictionary = {};
 
