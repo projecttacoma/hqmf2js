@@ -411,6 +411,40 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('specific1.compactReusedEvents().rows.length').must_equal 4
     
   end
+
+  def test_compact_reused_events_different_specifics
+    
+    @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
+    
+    test_initialize_js = 
+    "
+      hqmf.SpecificsManager.initialize({},hqmfjs, {'id':'OccurrenceAEncounter1', 'type':'Encounter1', 'function':'SourceOccurrenceAEncounter1'},{'id':'OccurrenceAEncounter2', 'type':'Encounter2', 'function':'SourceOccurrenceAEncounter2'})
+      hqmfjs.SourceOccurrenceAEncounter1 = function(patient) {
+        return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
+      }
+      hqmfjs.SourceOccurrenceAEncounter2 = function(patient) {
+        return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
+      }
+    "
+    @context.eval(test_initialize_js)
+    
+    rows = "
+      var row1 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1}});
+      var row2 = new Row('OccurrenceAEncounter2',{'OccurrenceAEncounter2':{'id':2}});
+      var row3 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1},'OccurrenceAEncounter2':{'id':2}});
+      var row4 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':2},'OccurrenceAEncounter2':{'id':2}});
+      var row5 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':3},'OccurrenceAEncounter2':{'id':3}});
+      var row6 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1},'OccurrenceAEncounter2':{'id':3}});
+      
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2,row3,row4,row5,row6]);
+    "
+    
+    @context.eval(rows)
+    
+    @context.eval('specific1.rows.length').must_equal 6
+    @context.eval('specific1.compactReusedEvents().rows.length').must_equal 6
+    
+  end
   
   def test_row_build_rows_for_matching
     
