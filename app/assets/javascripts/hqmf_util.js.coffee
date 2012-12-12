@@ -452,7 +452,8 @@ filterEventsByValue = (events, value) ->
 # Return only those events with a field that matches the supplied value
 filterEventsByField = (events, field, value) ->
   respondingEvents = (event for event in events when event.respondTo(field))
-  event for event in respondingEvents when value.match(event[field]())
+  result = (event for event in respondingEvents when value.match(event[field]()))
+  hqmf.SpecificsManager.maintainSpecifics(result, events)
 @filterEventsByField = filterEventsByField
 
 shiftTimes = (event, field) ->
@@ -464,7 +465,7 @@ shiftTimes = (event, field) ->
 adjustBoundsForField = (events, field) ->
   validEvents = (event for event in events when (event.respondTo(field) and event[field]()))
   shiftedEvents = (shiftTimes(event, field) for event in validEvents)
-  shiftedEvents
+  hqmf.SpecificsManager.maintainSpecifics(shiftedEvents, events)
 @adjustBoundsForField = adjustBoundsForField
 
 # Clone the supplied event and replace any facilities with just the supplied one
@@ -492,7 +493,8 @@ denormalizeEventsByLocation = (events, field) ->
   respondingEvents = (event for event in events when event.respondTo("facility") and event.facility())
   denormalizedEvents = (denormalizeEvent(event) for event in respondingEvents)
   denormalizedEvents = [].concat denormalizedEvents...
-  adjustBoundsForField(denormalizedEvents, field)
+  result = adjustBoundsForField(denormalizedEvents, field)
+  hqmf.SpecificsManager.maintainSpecifics(result, events)
 @denormalizeEventsByLocation = denormalizeEventsByLocation
 
 # Utility method to obtain the value set for an OID

@@ -85,17 +85,6 @@ class @Logger
       return result;
     );
     
-    # hQuery.CodedEntry.prototype.includesCodeFrom = _.wrap(hQuery.CodedEntry.prototype.includesCodeFrom, (func, codeSet) ->
-    #   func = _.bind(func, this, codeSet)
-    #   result = func(codeSet)
-    #   matchText = "--- noMatch"
-    #   matchText = "+++ validMatch" if result
-    #   
-    #   Logger.info("#{matchText}: -> #{Logger.classNameFor(this)}:#{this.freeTextType()}:#{this.date()}:#{Logger.codedValuesAsString(this.type())}")
-    #   
-    #   return result;
-    # );
-    
     @getCodes = _.wrap(@getCodes, (func, oid) -> 
       codes = func(oid)
       Logger.info("accessed codes: #{oid}")
