@@ -349,6 +349,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
     @context.eval('var range1 = new IVL_PQ(null, new PQ(1, "d"))')
     @context.eval('var range2 = new IVL_PQ(new PQ(1, "d"), null)')
     @context.eval('var range3 = new IVL_PQ(new PQ(0, "d"), null)')
+    @context.eval('var range4 = new IVL_PQ(null, new PQ(3, "d"))')
     
     # DURING
     assert_equal 1, @context.eval('DURING(events1, bound1)').count
@@ -474,6 +475,19 @@ class LibraryFunctionTest < Test::Unit::TestCase
     # CONCURRENT
     assert_equal 1, @context.eval('CONCURRENT(events1, bound1)').count
     assert_equal 0, @context.eval('CONCURRENT(events1, bound2)').count
+
+    #DATEDIFF
+    @context.eval('var diffEvent1 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}, "timeStamp": function() {return new Date(Date.UTC(2012, 1, 5, 0, 0));}}')
+    @context.eval('var diffEvent2 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120107"), new TS("20120107"));}, "timeStamp": function() {return new Date(Date.UTC(2012, 1, 7, 0, 0));}}')
+    @context.eval('var diffEvent3 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120111"), new TS("20120111"));}, "timeStamp": function() {return new Date(Date.UTC(2012, 1, 11, 0, 0));}}')
+    
+    assert_equal true, @context.eval('DATEDIFF([diffEvent1,diffEvent2],range4).isTrue()')
+    assert_equal true, @context.eval('DATEDIFF([diffEvent2,diffEvent1],range4).isTrue()')
+    assert_equal true, @context.eval('DATEDIFF([diffEvent1,diffEvent1],range4).isTrue()')
+    
+    # false test
+    
+    
   end
   
   def test_ordinal_operators
