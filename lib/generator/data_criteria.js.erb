@@ -19,20 +19,20 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
   events = filterEventsByValue(events, <%= js_for_bounds(criteria.value) %>);
     <%- end -%>
     <%- if criteria.field_values.present?
-          criteria.field_values.keys.each do |field|
-      -%>
-  events = filterEventsByField(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
-    <%-   end
-        end -%>
+          criteria.field_values.keys.each do |field| -%>
+  events = <%= field_library_method(field) %>(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
+      <%- end -%>
+    <%- end -%>
     <%- if criteria.temporal_references and criteria.temporal_references.length > 0 -%>
       <%- criteria.temporal_references.each do |temporal_reference| -%>
-  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
+  if (events.length > 0) events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
+  else events.specificContext=hqmf.SpecificsManager.empty();
       <%- end -%>
     <%- else -%>
         <%- if criteria.specific_occurrence -%>
-  events.specificContext=new Specifics(Row.buildForDataCriteria(events.specific_occurrence, events))
+  events.specificContext=new hqmf.SpecificOccurrence(Row.buildForDataCriteria(events.specific_occurrence, events))
         <%- else -%>
-  events.specificContext=Specifics.identity()
+  events.specificContext=hqmf.SpecificsManager.identity()
         <%- end -%>
     <%- end -%>
     <%- if criteria.subset_operators -%>

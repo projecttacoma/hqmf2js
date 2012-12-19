@@ -7,7 +7,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
     test_initialize_js = 
     "
-      Specifics.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'})
+      hqmf.SpecificsManager.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'})
       hqmfjs.SourceOccurrenceAEncounter = function(patient) {
         return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
       }
@@ -21,24 +21,24 @@ class SpecificsTest < Test::Unit::TestCase
 
   def test_specifics_initialized_proper
     
-    @context.eval('Specifics.KEY_LOOKUP[0]').must_equal 'OccurrenceAEncounter'
-    @context.eval('Specifics.KEY_LOOKUP[1]').must_equal 'OccurrenceBEncounter'
-    @context.eval("Specifics.INDEX_LOOKUP['OccurrenceAEncounter']").must_equal 0
-    @context.eval("Specifics.INDEX_LOOKUP['OccurrenceBEncounter']").must_equal 1
-    @context.eval('Specifics.FUNCTION_LOOKUP[0]').must_equal 'SourceOccurrenceAEncounter'
-    @context.eval('Specifics.FUNCTION_LOOKUP[1]').must_equal 'SourceOccurrenceBEncounter'
-    @context.eval("Specifics.TYPE_LOOKUP['Encounter'].length").must_equal 2
-    @context.eval("Specifics.TYPE_LOOKUP['Encounter'][0]").must_equal 0
-    @context.eval("Specifics.TYPE_LOOKUP['Encounter'][1]").must_equal 1
+    @context.eval('hqmf.SpecificsManager.keyLookup[0]').must_equal 'OccurrenceAEncounter'
+    @context.eval('hqmf.SpecificsManager.keyLookup[1]').must_equal 'OccurrenceBEncounter'
+    @context.eval("hqmf.SpecificsManager.indexLookup['OccurrenceAEncounter']").must_equal 0
+    @context.eval("hqmf.SpecificsManager.indexLookup['OccurrenceBEncounter']").must_equal 1
+    @context.eval('hqmf.SpecificsManager.functionLookup[0]').must_equal 'SourceOccurrenceAEncounter'
+    @context.eval('hqmf.SpecificsManager.functionLookup[1]').must_equal 'SourceOccurrenceBEncounter'
+    @context.eval("hqmf.SpecificsManager.typeLookup['Encounter'].length").must_equal 2
+    @context.eval("hqmf.SpecificsManager.typeLookup['Encounter'][0]").must_equal 0
+    @context.eval("hqmf.SpecificsManager.typeLookup['Encounter'][1]").must_equal 1
   end
   
   def test_specifics_row_union
     
     union_rows = "
       var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1}});
-      var specific1 = new Specifics([row1]);
+      var specific1 = new hqmf.SpecificOccurrence([row1]);
       var row2 = new Row('OccurrenceAEncounter',{'OccurrenceBEncounter':{'id':2}});
-      var specific2 = new Specifics([row2]);
+      var specific2 = new hqmf.SpecificOccurrence([row2]);
       result = specific1.union(specific2);
       result.rows.length;
     "
@@ -153,17 +153,17 @@ class SpecificsTest < Test::Unit::TestCase
       var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':3}});
       var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
       
-      var specific1 = new Specifics([row1]);
-      var specific2 = new Specifics([row2]);
-      var specific3 = new Specifics([row3,row4]);
-      var specific4 = new Specifics([row3,row6]);
-      var specific5 = new Specifics([row5,row6]);
+      var specific1 = new hqmf.SpecificOccurrence([row1]);
+      var specific2 = new hqmf.SpecificOccurrence([row2]);
+      var specific3 = new hqmf.SpecificOccurrence([row3,row4]);
+      var specific4 = new hqmf.SpecificOccurrence([row3,row6]);
+      var specific5 = new hqmf.SpecificOccurrence([row5,row6]);
       
-      var allSpecific1 = new Specifics();
+      var allSpecific1 = new hqmf.SpecificOccurrence();
       allSpecific1.addIdentityRow();
       allSpecific1.addIdentityRow();
       allSpecific1.addIdentityRow();
-      var allSpecific2 = new Specifics();
+      var allSpecific2 = new hqmf.SpecificOccurrence();
       allSpecific2.addIdentityRow();
       allSpecific2.addIdentityRow();
       allSpecific2.addIdentityRow();
@@ -202,6 +202,90 @@ class SpecificsTest < Test::Unit::TestCase
     
   end
   
+  def test_specifics_event_counting
+    
+    init_rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':20}});
+      var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':20}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':30}});
+      
+      var specific = new hqmf.SpecificOccurrence([row1,row2,row3]);
+      specific.addIdentityRow();
+
+      var pop = new Boolean(true);
+      pop.specificContext = specific;  
+    "
+    
+    @context.eval(init_rows)
+    @context.eval("specific.uniqueEvents([0])").must_equal 3
+    @context.eval("specific.uniqueEvents([1])").must_equal 2
+    @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceAEncounter"]').must_equal 0
+    @context.eval('hqmf.SpecificsManager.indexLookup["OccurrenceBEncounter"]').must_equal 1
+    @context.eval('hqmf.SpecificsManager.getColumnIndex("OccurrenceAEncounter")').must_equal 0
+    @context.eval('hqmf.SpecificsManager.getColumnIndex("OccurrenceBEncounter")').must_equal 1
+    assert_raise V8::JSError do
+      @context.eval('hqmf.SpecificsManager.getColumnIndex("OccurrenceCEncounter")')
+    end
+    @context.eval('hqmf.SpecificsManager.validate(pop)').must_equal true
+    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter"], pop)').must_equal 3
+    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceBEncounter"], pop)').must_equal 2
+    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter", "OccurrenceBEncounter"], pop)').must_equal 5
+    @context.eval('hqmf.SpecificsManager.countUnique(null, pop)').must_equal 1
+  end
+
+  def test_specifics_event_exclusion
+    
+    init_rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':20}});
+      var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':20}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':30}});
+      
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2,row3]);
+      var specific2 = new hqmf.SpecificOccurrence([row1]);
+      var specific3 = new hqmf.SpecificOccurrence([]);
+      specific3.addIdentityRow();
+
+      var pop1 = new Boolean(true);
+      pop1.specificContext = specific1;
+      var pop2 = new Boolean(true);
+      pop2.specificContext = specific2;
+      var pop3 = new Boolean(true);
+      pop3.specificContext = specific3;
+      var pop4 = new Boolean(false);
+      pop4.specificContext = specific3;
+    "
+    
+    @context.eval(init_rows)
+    @context.eval('var resultSpecific = specific1.removeMatchingRows(0, specific2)')
+    @context.eval('resultSpecific.rows.length').must_equal 2
+    @context.eval('resultSpecific.rows[0].values[0].id').must_equal 2
+    @context.eval('resultSpecific.rows[1].values[0].id').must_equal 3
+    @context.eval('resultSpecific = specific1.removeMatchingRows(1, specific2)')
+    @context.eval('resultSpecific.rows.length').must_equal 1
+    @context.eval('resultSpecific.rows[0].values[0].id').must_equal 3
+    @context.eval('var result = hqmf.SpecificsManager.exclude(["OccurrenceAEncounter"], pop1, pop2)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result.specificContext.rows.length').must_equal 2
+    @context.eval('result.specificContext.rows[0].values[0].id').must_equal 2
+    @context.eval('result.specificContext.rows[1].values[0].id').must_equal 3
+    @context.eval('result = hqmf.SpecificsManager.exclude(["OccurrenceBEncounter"], pop1, pop2)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result.specificContext.rows.length').must_equal 1
+    @context.eval('result.specificContext.rows[0].values[0].id').must_equal 3
+    @context.eval('result = hqmf.SpecificsManager.exclude(["OccurrenceAEncounter","OccurrenceBEncounter"], pop1, pop2)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result.specificContext.rows.length').must_equal 1
+    @context.eval('result.specificContext.rows[0].values[0].id').must_equal 3
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop3, pop3)')
+    @context.eval('result.isTrue()').must_equal false
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop3, pop4)')
+    @context.eval('result.isTrue()').must_equal true
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop4, pop3)')
+    @context.eval('result.isTrue()').must_equal false
+    @context.eval('result = hqmf.SpecificsManager.exclude(null, pop4, pop4)')
+    @context.eval('result.isTrue()').must_equal false
+  end
+
   def test_negation
     rows = "
       var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1}});
@@ -211,12 +295,12 @@ class SpecificsTest < Test::Unit::TestCase
       var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':4}});
       var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
   
-      var specific1 = new Specifics([row1]);
-      var specific2 = new Specifics([row2]);
-      var specific3 = new Specifics([row3,row4]);
-      var specific4 = new Specifics([row3,row6]);
-      var specific5 = new Specifics([row5,row6]);
-      var specific6 = new Specifics([row1,row2])
+      var specific1 = new hqmf.SpecificOccurrence([row1]);
+      var specific2 = new hqmf.SpecificOccurrence([row2]);
+      var specific3 = new hqmf.SpecificOccurrence([row3,row4]);
+      var specific4 = new hqmf.SpecificOccurrence([row3,row6]);
+      var specific5 = new hqmf.SpecificOccurrence([row5,row6]);
+      var specific6 = new hqmf.SpecificOccurrence([row1,row2])
     "
     
     # test negation single specific
@@ -232,14 +316,14 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('specific1.hasRow(row5)').must_equal false
     
     # cartesian checks
-    @context.eval('Specifics._generateCartisian([[1,2,3]]).length').must_equal 3
-    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]]).length').must_equal 6
-    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[0][0]').must_equal 1
-    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[0][1]').must_equal 5
-    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[1][0]').must_equal 1
-    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[1][1]').must_equal 6
-    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[2][0]').must_equal 2
-    @context.eval('Specifics._generateCartisian([[1,2,3],[5,6]])[2][1]').must_equal 5
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3]]).length').must_equal 3
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3],[5,6]]).length').must_equal 6
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3],[5,6]])[0][0]').must_equal 1
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3],[5,6]])[0][1]').must_equal 5
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3],[5,6]])[1][0]').must_equal 1
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3],[5,6]])[1][1]').must_equal 6
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3],[5,6]])[2][0]').must_equal 2
+    @context.eval('hqmf.SpecificsManager._generateCartisian([[1,2,3],[5,6]])[2][1]').must_equal 5
     
     # specificsWithValue on Row
     @context.eval('row1.specificsWithValues()[0]').must_equal 0
@@ -273,8 +357,8 @@ class SpecificsTest < Test::Unit::TestCase
       var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
       var row3 = new Row(undefined, {});
   
-      var specific1 = new Specifics();
-      var specific2 = new Specifics([row2]);
+      var specific1 = new hqmf.SpecificOccurrence();
+      var specific2 = new hqmf.SpecificOccurrence([row2]);
     "
     
     # test negation single specific
@@ -303,7 +387,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval("x.specificContext = 'specificContext'")
     @context.eval("x.specific_occurrence = 'specific_occurrence'")
     @context.eval('var a = new Boolean(true)')
-    @context.eval("a = Specifics.maintainSpecifics(a,x)")
+    @context.eval("a = hqmf.SpecificsManager.maintainSpecifics(a,x)")
     @context.eval("typeof(a.specificContext) != 'undefined'").must_equal true
     @context.eval("typeof(a.specific_occurrence) != 'undefined'").must_equal true
     
@@ -318,13 +402,47 @@ class SpecificsTest < Test::Unit::TestCase
       var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':3}});
       var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
       
-      var specific1 = new Specifics([row1,row2,row3,row4,row5,row6]);
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2,row3,row4,row5,row6]);
     "
     
     @context.eval(rows)
     
     @context.eval('specific1.rows.length').must_equal 6
     @context.eval('specific1.compactReusedEvents().rows.length').must_equal 4
+    
+  end
+
+  def test_compact_reused_events_different_specifics
+    
+    @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
+    
+    test_initialize_js = 
+    "
+      hqmf.SpecificsManager.initialize({},hqmfjs, {'id':'OccurrenceAEncounter1', 'type':'Encounter1', 'function':'SourceOccurrenceAEncounter1'},{'id':'OccurrenceAEncounter2', 'type':'Encounter2', 'function':'SourceOccurrenceAEncounter2'})
+      hqmfjs.SourceOccurrenceAEncounter1 = function(patient) {
+        return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
+      }
+      hqmfjs.SourceOccurrenceAEncounter2 = function(patient) {
+        return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
+      }
+    "
+    @context.eval(test_initialize_js)
+    
+    rows = "
+      var row1 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1}});
+      var row2 = new Row('OccurrenceAEncounter2',{'OccurrenceAEncounter2':{'id':2}});
+      var row3 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1},'OccurrenceAEncounter2':{'id':2}});
+      var row4 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':2},'OccurrenceAEncounter2':{'id':2}});
+      var row5 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':3},'OccurrenceAEncounter2':{'id':3}});
+      var row6 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1},'OccurrenceAEncounter2':{'id':3}});
+      
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2,row3,row4,row5,row6]);
+    "
+    
+    @context.eval(rows)
+    
+    @context.eval('specific1.rows.length').must_equal 6
+    @context.eval('specific1.compactReusedEvents().rows.length').must_equal 6
     
   end
   
@@ -345,7 +463,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('rows[0].values[1].id').must_equal 1
     @context.eval('rows[7].values[0].id').must_equal 3
     @context.eval('rows[7].values[1].id').must_equal 8
-    @context.eval('var specific = new Specifics(rows)')
+    @context.eval('var specific = new hqmf.SpecificOccurrence(rows)')
     @context.eval('specific.rows.length').must_equal 8
     @context.eval('specific.compactReusedEvents().rows.length').must_equal 7
     @context.eval('var rows = Row.buildRowsForMatching(undefined,entry,boundsKey,bounds)')
@@ -386,9 +504,9 @@ class SpecificsTest < Test::Unit::TestCase
       var row7 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
       var row8 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2]);
+      var specific2 = new hqmf.SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new hqmf.SpecificOccurrence([row6,row7,row8]);
     "
     @context.eval(rows)
     @context.eval('var result = specific1.finalizeEvents(specific2,specific3)')
@@ -425,11 +543,11 @@ class SpecificsTest < Test::Unit::TestCase
   
       var row9 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':6}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
-      var specific4 = new Specifics([row9]);
-      var specific5 = new Specifics();
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2]);
+      var specific2 = new hqmf.SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new hqmf.SpecificOccurrence([row6,row7,row8]);
+      var specific4 = new hqmf.SpecificOccurrence([row9]);
+      var specific5 = new hqmf.SpecificOccurrence();
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
@@ -452,10 +570,10 @@ class SpecificsTest < Test::Unit::TestCase
     "
     @context.eval(rows)
     
-    @context.eval('Specifics.validate(pop1,pop2,pop3)').must_equal true
-    @context.eval('Specifics.validate(pop1,pop2,pop4)').must_equal false
-    @context.eval('Specifics.validate(pop1,pop2,pop5)').must_equal false
-    @context.eval('Specifics.validate(pop3f,pop1,pop2)').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop3))').must_equal true
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop4))').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop5))').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop3f,pop1,pop2))').must_equal false
     
   end
   
@@ -471,9 +589,9 @@ class SpecificsTest < Test::Unit::TestCase
       var row7 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
       var row8 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2]);
+      var specific2 = new hqmf.SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new hqmf.SpecificOccurrence([row6,row7,row8]);
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
@@ -488,7 +606,7 @@ class SpecificsTest < Test::Unit::TestCase
     "
     @context.eval(rows)
     
-    @context.eval('var intersection = Specifics.intersectAll(new Boolean(true), [pop1,pop2,pop3])')
+    @context.eval('var intersection = hqmf.SpecificsManager.intersectAll(new Boolean(true), [pop1,pop2,pop3])')
     assert @context.eval('intersection.isTrue()')
     @context.eval('var result = intersection.specificContext')
     
@@ -501,7 +619,7 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('result.rows[2].values[0].id').must_equal 2
     @context.eval('result.rows[2].values[1].id').must_equal 4
   
-    @context.eval('var intersection = Specifics.intersectAll(new Boolean(true), [pop1,pop2,pop3], true)')
+    @context.eval('var intersection = hqmf.SpecificsManager.intersectAll(new Boolean(true), [pop1,pop2,pop3], true)')
     @context.eval('var result = intersection.specificContext')
     
     # 5*5 = 25 - 5 equal rows - 3 non-negated = 17
@@ -521,9 +639,9 @@ class SpecificsTest < Test::Unit::TestCase
       var row7 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':5}});
       var row8 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':4}});
       
-      var specific1 = new Specifics([row1,row2]);
-      var specific2 = new Specifics([row3,row4,row5]);
-      var specific3 = new Specifics([row6,row7,row8]);
+      var specific1 = new hqmf.SpecificOccurrence([row1,row2]);
+      var specific2 = new hqmf.SpecificOccurrence([row3,row4,row5]);
+      var specific3 = new hqmf.SpecificOccurrence([row6,row7,row8]);
       
       var pop1 = new Boolean(true)
       pop1.specificContext = specific1
@@ -538,13 +656,13 @@ class SpecificsTest < Test::Unit::TestCase
     "
     @context.eval(rows)
     
-    @context.eval('var union = Specifics.unionAll(new Boolean(true), [pop1,pop2,pop3])')
+    @context.eval('var union = hqmf.SpecificsManager.unionAll(new Boolean(true), [pop1,pop2,pop3])')
     assert @context.eval('union.isTrue()')
     @context.eval('var result = union.specificContext')
     
     @context.eval('result.rows.length').must_equal 8
   
-    @context.eval('var union = Specifics.unionAll(new Boolean(true), [pop1,pop2,pop3], true)')
+    @context.eval('var union = hqmf.SpecificsManager.unionAll(new Boolean(true), [pop1,pop2,pop3], true)')
     assert @context.eval('union.isTrue()')
     @context.eval('var result = union.specificContext')
     
@@ -558,7 +676,7 @@ class SpecificsTest < Test::Unit::TestCase
   def test_row_grouping_key
   
     rows = "
-      Specifics.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'},{'id':'OccurrenceAProcedure', 'type':'Procedure', 'function':'SourceOccurrenceAProcedure'})
+      hqmf.SpecificsManager.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'},{'id':'OccurrenceAProcedure', 'type':'Procedure', 'function':'SourceOccurrenceAProcedure'})
       
       var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1}});
       var row2 = new Row('OccurrenceBEncounter',{'OccurrenceBEncounter':{'id':2}});
@@ -599,8 +717,8 @@ class SpecificsTest < Test::Unit::TestCase
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': {id:14}, 'OccurrenceBEncounter':{'id':2}}),
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': {id:15}, 'OccurrenceBEncounter':{'id':3}})]
       
-      var specific1 = new Specifics(non_specific_rows);
-      var specific2 = new Specifics(specific_rows);
+      var specific1 = new hqmf.SpecificOccurrence(non_specific_rows);
+      var specific2 = new hqmf.SpecificOccurrence(specific_rows);
       
     "
     @context.eval(rows)
@@ -632,21 +750,21 @@ class SpecificsTest < Test::Unit::TestCase
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': new hQuery.CodedEntry({_id:15}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':3})})]
     "
     @context.eval(rows)
-    @context.eval('Specifics.extractEvents(undefined, non_specific_rows).length').must_equal 6
-    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[0].id').must_equal 10
-    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[1].id').must_equal 11
-    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[2].id').must_equal 12
-    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[3].id').must_equal 13
-    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[4].id').must_equal 14
-    @context.eval('Specifics.extractEvents(undefined, non_specific_rows)[5].id').must_equal 15
+    @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows).length').must_equal 6
+    @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[0].id').must_equal 10
+    @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[1].id').must_equal 11
+    @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[2].id').must_equal 12
+    @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[3].id').must_equal 13
+    @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[4].id').must_equal 14
+    @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[5].id').must_equal 15
     
-    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows).length").must_equal 6
-    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[0].id").must_equal 10
-    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[1].id").must_equal 11
-    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[2].id").must_equal 12
-    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[3].id").must_equal 13
-    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[4].id").must_equal 14
-    @context.eval("Specifics.extractEvents('OccurrenceAEncounter', specific_rows)[5].id").must_equal 15
+    @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows).length").must_equal 6
+    @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[0].id").must_equal 10
+    @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[1].id").must_equal 11
+    @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[2].id").must_equal 12
+    @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[3].id").must_equal 13
+    @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[4].id").must_equal 14
+    @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[5].id").must_equal 15
     
   end
 
@@ -672,10 +790,10 @@ class SpecificsTest < Test::Unit::TestCase
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': new hQuery.CodedEntry({_id:14,time:getTime(2010,0,2)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':2})}),
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': new hQuery.CodedEntry({_id:15,time:getTime(2010,0,2)}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':3})})]
 
-      var specific1 = new Specifics(non_specific_rows);
-      var specific2 = new Specifics(specific_rows);
-      var specific3 = new Specifics([new Row(undefined)]);
-      var specific4 = new Specifics()
+      var specific1 = new hqmf.SpecificOccurrence(non_specific_rows);
+      var specific2 = new hqmf.SpecificOccurrence(specific_rows);
+      var specific3 = new hqmf.SpecificOccurrence([new Row(undefined)]);
+      var specific4 = new hqmf.SpecificOccurrence()
       
     "
     @context.eval(rows)

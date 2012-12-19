@@ -8,8 +8,6 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     doc = HQMF::Parser.parse(hqmf_contents, HQMF::Parser::HQMF_VERSION_2)
     
     codes_file_path = File.expand_path("../../fixtures/codes/codes.xml", __FILE__)
-    # This patient is identified from Cypress as in the denominator and numerator for NQF59
-    numerator_patient_json = File.read('test/fixtures/patients/larry_vanderman.json')
     
     # First compile the CoffeeScript that enables our converted HQMF JavaScript
     hqmf_utils = compile_coffee_script
@@ -46,10 +44,8 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_to_js_method
     value = @converter.to_js(0,@codes_hash)
     local_context = V8::Context.new
-    patient_api = File.open('test/fixtures/patient_api.js').read
     hqmf_utils = HQMF2JS::Generator::JS.library_functions
-    local_context.eval("#{patient_api}
-                        #{hqmf_utils}
+    local_context.eval("#{hqmf_utils}
                         #{value}")
                         
     local_context.eval('typeof hqmfjs != undefined').must_equal true
@@ -62,17 +58,17 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   def test_converted_hqmf
     # Unspecified time bounds should be nil
     assert_equal nil, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().low.asDate()")
-    assert_equal 2010, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().high.asDate().getFullYear()")
+    assert_equal 2010, @context.eval("numeratorPatient.encounters()[0].asIVL_TS().high.asDate().getUTCFullYear()")
 
     # Measure variables
-    assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getFullYear()")
-    assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getMonth()")
-    assert_equal 2011, @context.eval("MeasurePeriod.high.asDate().getFullYear()")
-    assert_equal 11, @context.eval("MeasurePeriod.high.asDate().getMonth()")
-    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getFullYear()")
-    assert_equal 0, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getMonth()")
-    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getFullYear()")
-    assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getMonth()")
+    assert_equal 2011, @context.eval("MeasurePeriod.low.asDate().getUTCFullYear()")
+    assert_equal 0, @context.eval("MeasurePeriod.low.asDate().getUTCMonth()")
+    assert_equal 2011, @context.eval("MeasurePeriod.high.asDate().getUTCFullYear()")
+    assert_equal 11, @context.eval("MeasurePeriod.high.asDate().getUTCMonth()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getUTCFullYear()")
+    assert_equal 0, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getUTCMonth()")
+    assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCFullYear()")
+    assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCMonth()")
   
     # Age functions - Fixture is 37.1
     assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient).isTrue()")
@@ -142,6 +138,32 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     # getCode
     assert_equal 1, @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")').count
     assert_equal "00110", @context.eval('getCodes("2.16.840.1.113883.3.464.1.14")["HL7"][0]')
+    
+    # adjustBoundsForField 
+    @context.eval('var procedures = numeratorPatient.procedures()')
+    assert_equal 7, @context.eval('procedures.length')
+    assert_equal 2010, @context.eval('procedures[0].timeStamp().getFullYear()')
+    assert_equal true, @context.eval('procedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
+    @context.eval('var updatedProcedures = adjustBoundsForField(procedures, "incisionTime")')
+    assert_equal 1, @context.eval('updatedProcedures.length')
+    assert_equal 2005, @context.eval('updatedProcedures[0].timeStamp().getFullYear()')
+    assert_equal true, @context.eval('updatedProcedures[0].includesCodeFrom({"SNOMED-CT": ["401191002"]})')
+    
+    # denormalizeEventsByLocation
+    @context.eval('var normalizedEncounters = denormalizeEventsByLocation(numeratorPatient.encounters(), "facilityArrival")')
+    assert_equal 1, @context.eval('normalizedEncounters.length')
+    assert_equal 10, @context.eval('normalizedEncounters[0].startDate().getUTCMonth()')
+    assert_equal 19, @context.eval('normalizedEncounters[0].startDate().getUTCDate()')
+    assert_equal 10, @context.eval('normalizedEncounters[0].endDate().getUTCMonth()')
+    assert_equal 19, @context.eval('normalizedEncounters[0].endDate().getUTCDate()')
+    assert_equal 'bar', @context.eval('normalizedEncounters[0].facility().code()')
+    assert_equal 'SNOMED-CT', @context.eval('normalizedEncounters[0].facility().codeSystemName()')
+    @context.eval('normalizedEncounters = denormalizeEventsByLocation(numeratorPatient.encounters(), "facilityDeparture")')
+    assert_equal 1, @context.eval('normalizedEncounters.length')
+    assert_equal 11, @context.eval('normalizedEncounters[0].startDate().getUTCMonth()')
+    assert_equal 1, @context.eval('normalizedEncounters[0].startDate().getUTCDate()')
+    assert_equal 11, @context.eval('normalizedEncounters[0].endDate().getUTCMonth()')
+    assert_equal 1, @context.eval('normalizedEncounters[0].endDate().getUTCDate()')
   end
   
   def test_map_reduce_generation

@@ -5,7 +5,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
   
   def setup
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
-    @context.eval("Specifics.initialize()")
+    @context.eval("hqmf.SpecificsManager.initialize()")
   end
 
 
@@ -85,15 +85,15 @@ class LibraryFunctionTest < Test::Unit::TestCase
     ts = 'new TS("20110101")'
     ts2 = 'new TS("20100101")'
     ts3 = 'new TS("20120101")'
-    assert_equal 2011, @context.eval("#{ts}.asDate().getFullYear()")
-    assert_equal 0, @context.eval("#{ts}.asDate().getMonth()")
-    assert_equal 1, @context.eval("#{ts}.asDate().getDate()")
-    assert_equal 2012, @context.eval("#{ts}.add(new PQ(1, 'a')).asDate().getFullYear()")
-    assert_equal 2, @context.eval("#{ts}.add(new PQ(1, 'd')).asDate().getDate()")
-    assert_equal 8, @context.eval("#{ts}.add(new PQ(1, 'wk')).asDate().getDate()")
-    assert_equal 1, @context.eval("#{ts}.add(new PQ(1, 'h')).asDate().getHours()")
-    assert_equal 5, @context.eval("#{ts}.add(new PQ(5, 'min')).asDate().getMinutes()")
-    assert_equal 11, @context.eval("#{ts}.add(new PQ(-1, 'mo')).asDate().getMonth()")
+    assert_equal 2011, @context.eval("#{ts}.asDate().getUTCFullYear()")
+    assert_equal 0, @context.eval("#{ts}.asDate().getUTCMonth()")
+    assert_equal 1, @context.eval("#{ts}.asDate().getUTCDate()")
+    assert_equal 2012, @context.eval("#{ts}.add(new PQ(1, 'a')).asDate().getUTCFullYear()")
+    assert_equal 2, @context.eval("#{ts}.add(new PQ(1, 'd')).asDate().getUTCDate()")
+    assert_equal 8, @context.eval("#{ts}.add(new PQ(1, 'wk')).asDate().getUTCDate()")
+    assert_equal 1, @context.eval("#{ts}.add(new PQ(1, 'h')).asDate().getUTCHours()")
+    assert_equal 5, @context.eval("#{ts}.add(new PQ(5, 'min')).asDate().getUTCMinutes()")
+    assert_equal 11, @context.eval("#{ts}.add(new PQ(-1, 'mo')).asDate().getUTCMonth()")
     assert @context.eval("#{ts2}.before(#{ts})")
     assert @context.eval("#{ts3}.after(#{ts})")
     assert !@context.eval("#{ts}.before(#{ts2})")
@@ -260,7 +260,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
     ivl1 = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
     ivl2 = 'new IVL_TS(new TS("20120312"), new TS("20120320"))'
     assert @context.eval("#{ivl2}.DURING(#{ivl1})")
-    assert_equal 2010, @context.eval('getIVL(new Date(2010,1,1)).low.asDate().getFullYear()')
+    assert_equal 2010, @context.eval('getIVL(new Date(Date.UTC(2010,1,1))).low.asDate().getUTCFullYear()')
   end
   
   def test_any_non_null
@@ -336,6 +336,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
     # Events and bounds for temporal operators
     @context.eval('var events1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
     @context.eval('var events2 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120102"), new TS("20120105"));}}]')
+    @context.eval('var events3 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105203030"), new TS("20120105203030"));}}]')
     @context.eval('var bound1 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}}]')
     @context.eval('var bound2 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120107"), new TS("20120107"));}}]')
     @context.eval('var bound3 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120103"), new TS("20120107"));}}]')
@@ -344,8 +345,11 @@ class LibraryFunctionTest < Test::Unit::TestCase
     @context.eval('var nullStartBound = new IVL_TS(new TS("20120105"), new TS("20120105"));')
     @context.eval('nullStartBound.low.date = null;')
     @context.eval('var bound6 = {"asIVL_TS": function() {return nullStartBound;}}')
+    @context.eval('var bound7 = [{"asIVL_TS": function() {return new IVL_TS(new TS("20120105193030"), new TS("20120105193030"));}}]')
     @context.eval('var range1 = new IVL_PQ(null, new PQ(1, "d"))')
     @context.eval('var range2 = new IVL_PQ(new PQ(1, "d"), null)')
+    @context.eval('var range3 = new IVL_PQ(new PQ(0, "d"), null)')
+    @context.eval('var range4 = new IVL_PQ(null, new PQ(3, "d"))')
     
     # DURING
     assert_equal 1, @context.eval('DURING(events1, bound1)').count
@@ -408,6 +412,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert_equal 0, @context.eval('SBS(events2, bound1, range1)').count
     assert_equal 1, @context.eval('SBS(events2, bound1)').count
     assert_equal 1, @context.eval('SBS(events2, bound1, range2)').count
+    assert_equal 0, @context.eval('SBS(events3, bound7, range3)').count
     
     # SAS
     assert_equal 0, @context.eval('SAS(events1, bound1)').count
@@ -470,6 +475,19 @@ class LibraryFunctionTest < Test::Unit::TestCase
     # CONCURRENT
     assert_equal 1, @context.eval('CONCURRENT(events1, bound1)').count
     assert_equal 0, @context.eval('CONCURRENT(events1, bound2)').count
+
+    #DATEDIFF
+    @context.eval('var diffEvent1 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120105"), new TS("20120105"));}, "timeStamp": function() {return new Date(Date.UTC(2012, 1, 5, 0, 0));}}')
+    @context.eval('var diffEvent2 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120107"), new TS("20120107"));}, "timeStamp": function() {return new Date(Date.UTC(2012, 1, 7, 0, 0));}}')
+    @context.eval('var diffEvent3 = {"asIVL_TS": function() {return new IVL_TS(new TS("20120111"), new TS("20120111"));}, "timeStamp": function() {return new Date(Date.UTC(2012, 1, 11, 0, 0));}}')
+    
+    assert_equal true, @context.eval('DATEDIFF([diffEvent1,diffEvent2],range4).isTrue()')
+    assert_equal true, @context.eval('DATEDIFF([diffEvent2,diffEvent1],range4).isTrue()')
+    assert_equal true, @context.eval('DATEDIFF([diffEvent1,diffEvent1],range4).isTrue()')
+    
+    # false test
+    
+    
   end
   
   def test_ordinal_operators

@@ -14,7 +14,7 @@ class CodesToJsonTest < Test::Unit::TestCase
     
     @context = get_js_context("var dictionary = #{codes_json}")
     
-    @context.eval("dictionary").entries.length.must_equal 18
+    @context.eval("dictionary").entries.length.must_equal 19
     @context.eval("dictionary['2.16.840.1.113883.3.464.1.42']").entries.first[0].must_equal "CPT"
     @context.eval("dictionary['2.16.840.1.113883.3.464.1.42']").entries.first[1].length.must_equal 19
     

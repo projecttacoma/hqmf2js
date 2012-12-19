@@ -25,17 +25,17 @@ module HQMF2JS
       # Pretty stock map/reduce functions that call out to our converted HQMF code stored in the functions variable
       map = "function map(patient) {
   var ipp = hqmfjs.IPP(patient);
-  if (Specifics.validate(ipp)) {
+  if (hqmf.SpecificsManager.validate(ipp)) {
     emit('ipp', 1);
-    if (Specifics.validate(hqmfjs.DENEX(patient), ipp)) {
+    if (hqmf.SpecificsManager.validate(hqmfjs.DENEX(patient), ipp)) {
       emit('denex', 1);    
     } else {
       var denom = hqmfjs.DENOM(patient);
-      if (Specifics.validate(denom, ipp)) {
-        if (Specifics.validate(hqmfjs.NUMER(patient), denom, ipp)) {
+      if (hqmf.SpecificsManager.validate(denom, ipp)) {
+        if (hqmf.SpecificsManager.validate(hqmfjs.NUMER(patient), denom, ipp)) {
           emit('denom', 1);
           emit('numer', 1);
-        } else if (Specifics.validate(hqmfjs.DENEXCEP(patient), denom, ipp)) {
+        } else if (hqmf.SpecificsManager.validate(hqmfjs.DENEXCEP(patient), denom, ipp)) {
           emit('excep', 1);
         } else {
           emit('denom', 1);

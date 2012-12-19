@@ -46,6 +46,17 @@ module HQMF2JS
         HQMF::DataCriteria::FIELDS[field_name][:coded_entry_method].to_s.camelize(:lower)
       end
       
+      def field_library_method(field_name)
+        field_type = HQMF::DataCriteria::FIELDS[field_name][:field_type]
+        if field_type == :value
+          'filterEventsByField'
+        elsif field_type == :timestamp
+          'adjustBoundsForField'
+        elsif field_type == :nested_timestamp
+          'denormalizeEventsByLocation'
+        end
+      end
+      
       def js_for_value(value)
         if value
           if value.respond_to?(:derived?) && value.derived?
@@ -119,6 +130,8 @@ module HQMF2JS
       def js_for_code_list(criteria)
         if criteria.inline_code_list
           criteria.inline_code_list.to_json
+        elsif criteria.code_list_id.nil?
+          "null"
         else
           "getCodes(\"#{criteria.code_list_id}\")"
         end
@@ -187,6 +200,8 @@ module HQMF2JS
         #{js_for(population[HQMF::PopulationCriteria::NUMER], HQMF::PopulationCriteria::NUMER)}
         #{js_for(population[HQMF::PopulationCriteria::DENEX], HQMF::PopulationCriteria::DENEX)}
         #{js_for(population[HQMF::PopulationCriteria::DENEXCEP], HQMF::PopulationCriteria::DENEXCEP)}
+        // CV
+        #{js_for(population[HQMF::PopulationCriteria::MSRPOPL], HQMF::PopulationCriteria::MSRPOPL)}
         "
       end
       
@@ -200,7 +215,7 @@ module HQMF2JS
         json_list = specific_occurrences.map {|occurrence| occurrence.to_json}
         specifics_list = json_list.join(',')
         specifics_list = ",#{specifics_list}" unless specifics_list.empty?
-        "hqmfjs.initializeSpecifics = function(patient_api, hqmfjs) { Specifics.initialize(patient_api,hqmfjs#{specifics_list}) }"
+        "hqmfjs.initializeSpecifics = function(patient_api, hqmfjs) { hqmf.SpecificsManager.initialize(patient_api,hqmfjs#{specifics_list}) }"
       end
       
       # Generate JS for a HQMF2::PopulationCriteria
@@ -225,16 +240,21 @@ module HQMF2JS
         Tilt::CoffeeScriptTemplate.default_bare = true 
         ctx.append_path "app/assets/javascripts"
         
-        ["// #########################\n// ###### PATIENT API #######\n// #########################\n",
+        ["// #########################\n// ###### Underscore.js #######\n// #######################\n",
+         ctx.find_asset('underscore').to_s,
+         "// #########################\n// ###### PATIENT API #######\n// #########################\n",
          HqueryPatientApi::Generator.patient_api_javascript.to_s,
+         "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
+         ctx.find_asset('specifics').to_s,
          "// #########################\n// ### LIBRARY FUNCTIONS ####\n// #########################\n",
          ctx.find_asset('hqmf_util').to_s, 
          "// #########################\n// ### PATIENT EXTENSION ####\n// #########################\n",
          ctx.find_asset('patient_api_extension').to_s,
+         "// #########################\n// ## CUSTOM CALCULATIONS ###\n// #########################\n",
+         ctx.find_asset('custom_calculations').to_s,
          "// #########################\n// ##### LOGGING UTILS ######\n// #########################\n",
-         ctx.find_asset('logging_utils').to_s,
-         "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
-         ctx.find_asset('specifics').to_s].join("\n")
+         ctx.find_asset('logging_utils').to_s].join("\n")
+
       end
   
     end
