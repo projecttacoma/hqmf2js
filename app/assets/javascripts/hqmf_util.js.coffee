@@ -563,7 +563,8 @@ eventAccessor = {
   'SCW': 'low',
   'ECWS': 'high'
   'SCWE': 'low',
-  'CONCURRENT': 'low'
+  'CONCURRENT': 'low',
+  'DATEDIFF': 'low'
 }
 
 boundAccessor = {  
@@ -583,7 +584,8 @@ boundAccessor = {
   'SCW': 'low',
   'ECWS': 'low'
   'SCWE': 'high',
-  'CONCURRENT': 'low'
+  'CONCURRENT': 'low',
+  'DATEDIFF': 'low'
 }
     
 # Determine whether the supplied event falls within range of the supplied bound
@@ -813,7 +815,9 @@ MAX = (events, range) ->
 @MAX = MAX
 
 DATEDIFF = (events, range) ->
-  return 0
+  return hqmf.SpecificsManager.maintainSpecifics(new Boolean(false), events) if events.length < 2
+  throw "cannot calculate against more than 2 events" if events.length > 2
+  hqmf.SpecificsManager.maintainSpecifics(new Boolean(withinRange('DATEDIFF', getIVL(events[0]), getIVL(events[1]), range)), events)
 @DATEDIFF = DATEDIFF
 
 
