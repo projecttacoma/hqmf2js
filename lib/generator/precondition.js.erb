@@ -1,8 +1,8 @@
 <%- if precondition.conjunction? -%>
 <%- if indent>0 -%>
-<%= "\n#{'  '*(indent+1)}#{conjunction_code_for(precondition)}(" -%>
+<%= "\n#{'  '*(indent+1)}#{conjunction_code_for(precondition)}('#{precondition.id}'," -%>
 <%- else -%>
-<%= "#{conjunction_code_for(precondition)}(" -%>
+<%= "#{conjunction_code_for(precondition)}('#{precondition.id}'," -%>
 <%- end -%>
 <%- precondition.preconditions.each_with_index do |child, index| -%>
 <%= "#{'  '*(indent+1)}#{js_for_precondition(child, indent+1)}" -%>

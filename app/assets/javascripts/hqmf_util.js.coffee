@@ -408,26 +408,26 @@ class ANYNonNull
 @ANYNonNull = ANYNonNull
 
 # Returns true if one or more of the supplied values is true
-atLeastOneTrue = (values...) ->
+atLeastOneTrue = (precondition, values...) ->
   trueValues = (value for value in values when value && value.isTrue())
   trueValues.length>0
   hqmf.SpecificsManager.unionAll(new Boolean(trueValues.length>0), values)
 @atLeastOneTrue = atLeastOneTrue
   
 # Returns true if all of the supplied values are true
-allTrue = (values...) ->
+allTrue = (precondition, values...) ->
   trueValues = (value for value in values when value && value.isTrue())
   hqmf.SpecificsManager.intersectAll(new Boolean(trueValues.length>0 && trueValues.length==values.length), values)
 @allTrue = allTrue
   
 # Returns true if one or more of the supplied values is false
-atLeastOneFalse = (values...) ->
+atLeastOneFalse = (precondition, values...) ->
   falseValues = (value for value in values when value.isFalse())
   hqmf.SpecificsManager.intersectAll(new Boolean(falseValues.length>0), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 # Returns true if all of the supplied values are false
-allFalse = (values...) ->
+allFalse = (precondition, values...) ->
   falseValues = (value for value in values when value.isFalse())
   hqmf.SpecificsManager.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse

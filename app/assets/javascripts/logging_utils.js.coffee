@@ -1,7 +1,11 @@
 class @Logger
   @logger: []
+  @debugEvaluations: {}
   @info: (string) ->
     @logger.push("#{Logger.indent()}#{string}")
+  @record: (id, result) ->
+    if typeof(result.isTrue) == 'function'
+      @debugEvaluations[id] = result.isTrue()
   @enabled: true
   @initialized: false
   @indentCount = 0
@@ -46,6 +50,7 @@ class @Logger
       result = func(patient)
       Logger.indentCount--
       Logger.info("#{method} -> #{Logger.asBoolean(result)}")
+      Logger.record(method,result)
       return result;
     );
   );
@@ -73,12 +78,6 @@ class @Logger
     );
     
     hQuery.CodedEntryList.prototype.match = _.wrap(hQuery.CodedEntryList.prototype.match, (func, codeSet, start, end) ->
-      
-      # if (codeSet)
-      #   Logger.info("matching: codeSets(#{_.keys(codeSet).join(",")}), #{start}, #{end}")
-      # else
-      #   Logger.info("matching: WARNING: CODE SETS ARE NULL, #{start}, #{end}")
-        
       func = _.bind(func, this, codeSet,start,end)
       result = func(codeSet,start,end)
       Logger.info("matched -> #{Logger.stringify(result)}")
@@ -98,6 +97,7 @@ class @Logger
       result = func.apply(this, args)
       Logger.indentCount--
       Logger.info("atLeastOneTrue -> #{result}")
+      Logger.record("precondition_#{args[0]}",result)
       result
     )
     
@@ -108,6 +108,7 @@ class @Logger
       result = func.apply(this, args)
       Logger.indentCount--
       Logger.info("allTrue -> #{result}")
+      Logger.record("precondition_#{args[0]}",result)
       result
     )
 
@@ -118,6 +119,7 @@ class @Logger
       result = func.apply(this, args)
       Logger.indentCount--
       Logger.info("allFalse -> #{result}")
+      Logger.record("precondition_#{args[0]}",result)
       result
     )
 
@@ -128,6 +130,7 @@ class @Logger
       result = func.apply(this, args)
       Logger.indentCount--
       Logger.info("atLeastOneFalse -> #{result}")
+      Logger.record("precondition_#{args[0]}",result)
       result
     )
     
