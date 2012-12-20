@@ -1,11 +1,11 @@
 class @Logger
   @logger: []
-  @debugEvaluations: {}
+  @rationale: {}
   @info: (string) ->
     @logger.push("#{Logger.indent()}#{string}")
   @record: (id, result) ->
     if typeof(result.isTrue) == 'function'
-      @debugEvaluations[id] = result.isTrue()
+      @rationale[id] = result.isTrue()
   @enabled: true
   @initialized: false
   @indentCount = 0
