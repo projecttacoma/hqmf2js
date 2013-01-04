@@ -202,6 +202,7 @@ module HQMF2JS
         #{js_for(population[HQMF::PopulationCriteria::DENEXCEP], HQMF::PopulationCriteria::DENEXCEP)}
         // CV
         #{js_for(population[HQMF::PopulationCriteria::MSRPOPL], HQMF::PopulationCriteria::MSRPOPL)}
+        #{js_for(population[HQMF::PopulationCriteria::OBSERV], HQMF::PopulationCriteria::OBSERV)}
         "
       end
       
