@@ -514,6 +514,8 @@ class CrossProduct extends Array
       @eventLists.push eventList
       for event in eventList
         this.push(event)
+  listCount: -> @eventLists.length
+  childList: (index) -> @eventLists[index]
 
 # Create a CrossProduct of the supplied event lists.
 XPRODUCT = (eventLists...) ->
@@ -545,7 +547,7 @@ getIVL = (eventOrTimeStamp) ->
     ts.date = eventOrTimeStamp
     new IVL_TS(ts, ts)
 @getIVL = getIVL
-    
+
 eventAccessor = {  
   'DURING': 'low',
   'OVERLAP': 'low',
@@ -820,6 +822,37 @@ DATEDIFF = (events, range) ->
   hqmf.SpecificsManager.maintainSpecifics(new Boolean(withinRange('DATEDIFF', getIVL(events[0]), getIVL(events[1]), range)), events)
 @DATEDIFF = DATEDIFF
 
+# Calculate the set of time differences in minutes between pairs of events
+# events - a XPRODUCT of two event lists
+# range - ignored
+# initialSpecificContext - the specific context containing one row per permissible
+# combination of events
+TIMEDIFF = (events, range, initialSpecificContext) ->
+  if events.listCount() != 2
+    throw "TIMEDIFF can only process 2 lists of events"
+  eventList1 = events.childList(0)
+  eventList2 = events.childList(1)
+  eventIndex1 = hqmf.SpecificsManager.getColumnIndex(eventList1.specific_occurrence)
+  eventIndex2 = hqmf.SpecificsManager.getColumnIndex(eventList2.specific_occurrence)
+  eventMap1 = {}
+  eventMap2 = {}
+  for event in eventList1
+    eventMap1[event.id] = event
+  for event in eventList2
+    eventMap2[event.id] = event
+  results = []
+  for row in initialSpecificContext.rows
+    event1 = row.values[eventIndex1]
+    event2 = row.values[eventIndex2]
+    if event1 and event2 and event1 != hqmf.SpecificsManager.any and event2 != hqmf.SpecificsManager.any 
+      # The maps contain the actual events we want to work with since these may contain
+      # time shifted clones of the events in the specificContext, e.g. via adjustBoundsForField
+      shiftedEvent1 = eventMap1[event1.id]
+      shiftedEvent2 = eventMap2[event2.id]
+      if shiftedEvent1 and shiftedEvent2
+        results.push(shiftedEvent1.asTS().difference(shiftedEvent2.asTS(), 'min'))
+  results
+@TIMEDIFF = TIMEDIFF
 
 @OidDictionary = {};
 

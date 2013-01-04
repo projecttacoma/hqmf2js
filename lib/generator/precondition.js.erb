@@ -5,10 +5,12 @@
 <%= "#{conjunction_code_for(precondition)}('#{precondition.id}'," -%>
 <%- end -%>
 <%- precondition.preconditions.each_with_index do |child, index| -%>
-<%= "#{'  '*(indent+1)}#{js_for_precondition(child, indent+1)}" -%>
+<%= "#{'  '*(indent+1)}#{js_for_precondition(child, indent+1, context)}" -%>
 <%= "," if index < precondition.preconditions.length-1 -%>
 <%- end -%>
 <%= "\n#{'  '*(indent+1)})" -%>
+<%- elsif context -%>
+<%= "\n#{'  '*(indent+1)}hqmfjs.#{js_name(precondition.reference)}(patient, initialSpecificContext)" -%>
 <%- else -%>
 <%= "\n#{'  '*(indent+1)}hqmfjs.#{js_name(precondition.reference)}(patient)" -%>
 <%- end -%>

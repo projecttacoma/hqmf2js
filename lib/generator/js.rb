@@ -138,8 +138,8 @@ module HQMF2JS
       end
       
       # Returns the JavaScript generated for a HQMF::Precondition
-      def js_for_precondition(precondition, indent)
-        HQMF2JS::Generator.render_template('precondition', {'doc' => doc, 'precondition' => precondition, 'indent' => indent})
+      def js_for_precondition(precondition, indent, context=false)
+        HQMF2JS::Generator.render_template('precondition', {'doc' => doc, 'precondition' => precondition, 'indent' => indent, 'context' => context})
       end
       
       def patient_api_method(criteria)
@@ -224,7 +224,11 @@ module HQMF2JS
         type ||= criteria_code
         criteria = @doc.population_criteria(criteria_code)
         if criteria && criteria.preconditions && criteria.preconditions.length > 0
-          HQMF2JS::Generator.render_template('population_criteria', {'doc' => @doc, 'criteria' => criteria, 'type'=>type})
+          if type==HQMF::PopulationCriteria::OBSERV
+            HQMF2JS::Generator.render_template('observation_criteria', {'doc' => @doc, 'criteria' => criteria, 'type'=>type})
+          else
+            HQMF2JS::Generator.render_template('population_criteria', {'doc' => @doc, 'criteria' => criteria, 'type'=>type})
+          end
         else
           "hqmfjs.#{type} = function(patient) { return new Boolean(#{when_not_found}); }"
         end

@@ -1,4 +1,4 @@
-hqmfjs.<%= type %> = function(patient) {
-  return <%= js_for_precondition(criteria, 0) -%>;
+hqmfjs.<%= type %> = function(patient, initialSpecificContext) {
+  return <%= js_for_precondition(criteria, 0, true) -%>;
 };
 

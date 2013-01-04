@@ -29,15 +29,19 @@ namespace :hqmf do
       f.write("// #########################\n\n")
            
       f.write("// INITIAL PATIENT POPULATION\n")
-      f.write(gen.js_for('IPP'))
-      f.write("// DENOMINATOR\n")
-      f.write(gen.js_for('DENOM'))
-      f.write("// NUMERATOR\n")
-      f.write(gen.js_for('NUMER'))
-      f.write("// EXCLUSIONS\n")
-      f.write(gen.js_for('EXCL'))
-      f.write("// DENOMINATOR EXCEPTIONS\n")
-      f.write(gen.js_for('DENEXCEP'))
+      f.write(gen.js_for(HQMF::PopulationCriteria::IPP))
+      f.write("\n// DENOMINATOR\n")
+      f.write(gen.js_for(HQMF::PopulationCriteria::DENOM))
+      f.write("\n// NUMERATOR\n")
+      f.write(gen.js_for(HQMF::PopulationCriteria::NUMER))
+      f.write("\n// EXCLUSIONS\n")
+      f.write(gen.js_for(HQMF::PopulationCriteria::DENEX))
+      f.write("\n// DENOMINATOR EXCEPTIONS\n")
+      f.write(gen.js_for(HQMF::PopulationCriteria::DENEXCEP))
+      f.write("\n// MSRPOPL\n")
+      f.write(gen.js_for(HQMF::PopulationCriteria::MSRPOPL))
+      f.write("\n// OBSERV\n")
+      f.write(gen.js_for(HQMF::PopulationCriteria::OBSERV))
     end
     
     puts "wrote javascript to: #{out_file}"

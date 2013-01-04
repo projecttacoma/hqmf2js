@@ -6,7 +6,7 @@ var <%=  js_name(criteria) %> = <%= js_for_value(criteria.value) %>;
 
 // Data critera
 <%- all_criteria.select {|c| c.type != :variable}.each do |criteria| -%>
-hqmfjs.<%= js_name(criteria) %> = function(patient) {
+hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
   <%- if criteria.type == :characteristic and !criteria.property.nil? -%>
 <%= js_for_characteristic(criteria) %>
   <%- else -%>
@@ -37,7 +37,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient) {
     <%- end -%>
     <%- if criteria.subset_operators -%>
       <%- criteria.subset_operators.select {|subset_operator| subset_operator.type}.each do |subset_operator| -%>
-  events = <%= subset_operator.type %>(events<%= ", #{js_for_bounds(subset_operator.value)}" if subset_operator.value %>);
+  events = <%= subset_operator.type %>(events<%= ", #{js_for_bounds(subset_operator.value)}" if subset_operator.value %>, initialSpecificContext);
       <%- end # each operator -%>
     <%- end # subset operators -%>
   return events;

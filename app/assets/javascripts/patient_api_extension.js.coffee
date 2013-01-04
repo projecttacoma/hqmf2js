@@ -13,6 +13,10 @@ hQuery.CodedEntry::asIVL_TS = ->
   tsHigh = new TS()
   tsHigh.date = this.endDate() || this.date() || null
   new IVL_TS(tsLow, tsHigh)
+hQuery.CodedEntry::asTS = ->
+  ts = new TS()
+  ts.date = this.timeStamp()
+  ts
 
 hQuery.CodedEntry::respondTo = (functionName) ->
   typeof(@[functionName]) == "function"
