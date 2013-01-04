@@ -10,7 +10,7 @@
 <%- end -%>
 <%= "\n#{'  '*(indent+1)})" -%>
 <%- elsif context -%>
-<%= "\n#{'  '*(indent+1)}hqmfjs.#{js_name(precondition.reference)}(patient, initialSpecificContext)" -%>
+<%= " hqmfjs.#{js_name(precondition.reference)}(patient, initialSpecificContext)" -%>
 <%- else -%>
 <%= "\n#{'  '*(indent+1)}hqmfjs.#{js_name(precondition.reference)}(patient)" -%>
 <%- end -%>
