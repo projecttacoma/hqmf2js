@@ -4,7 +4,7 @@ class @Logger
   @info: (string) ->
     @logger.push("#{Logger.indent()}#{string}")
   @record: (id, result) ->
-    if typeof(result.isTrue) == 'function'
+    if result? and typeof(result.isTrue) == 'function'
       @rationale[id] = result.isTrue()
   @enabled: true
   @initialized: false
@@ -44,10 +44,14 @@ class @Logger
 
 @enableMeasureLogging = (hqmfjs) ->
   _.each(_.functions(hqmfjs), (method) ->
-    hqmfjs[method] = _.wrap(hqmfjs[method], (func, patient) ->
+    hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
+
+      args = Array.prototype.slice.call(arguments,1)
+
       Logger.info("#{method}:")
       Logger.indentCount++
-      result = func(patient)
+      result = func.apply(this, args)
+
       Logger.indentCount--
       Logger.info("#{method} -> #{Logger.asBoolean(result)}")
       Logger.record(method,result)
