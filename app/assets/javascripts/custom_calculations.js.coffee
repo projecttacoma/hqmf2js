@@ -1,5 +1,8 @@
 @hqmf.CustomCalc = {}
 
+@hqmf.CustomCalc.ADE_TTR_OBSERV = (patient) ->
+  []
+
 class @hqmf.CustomCalc.PercentTTREntries extends hQuery.CodedEntryList
 
   constructor: (events) ->
