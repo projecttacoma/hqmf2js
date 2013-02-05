@@ -16,9 +16,10 @@ module HQMF2JS
         translation = {}
         value_sets.each do |value_set|
           code_sets = {}
-          value_set["code_sets"].each do |code_set|
-            code_sets[code_set["code_set"]] ||= []
-            code_sets[code_set["code_set"]].concat(code_set["codes"])
+          binding.pry if value_set["concepts"].nil?
+          value_set["concepts"].each do |code_set|
+            code_sets[code_set["code_system_name"]] ||= []
+            code_sets[code_set["code_system_name"]].concat(code_set["code"].to_a)
           end
           
           translation[value_set["oid"]] = code_sets
@@ -35,6 +36,7 @@ module HQMF2JS
       #   <ValueSet id="2.16.840.1.113883.3.464.1.14" displayName="birth date">
       #     <ConceptList xml:lang="en-US">
       #       <Concept code="00110" codeSystemName="HL7" displayName="Date/Time of birth (TS)"
+      
       #         codeSystemVersion="3"/>
       #      </ConceptList>
       #   </ValueSet>
