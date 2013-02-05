@@ -893,7 +893,7 @@
                 {
                     "type": "SUMMARY",
                     "value": {
-                        "type": "IVL_INT",
+                        "type": "IVL_PQ",
                         "low": {
                             "type": "PQ",
                             "value": "2",
@@ -1118,7 +1118,7 @@
                 {
                     "type": "COUNT",
                     "value": {
-                        "type": "IVL_INT",
+                        "type": "IVL_PQ",
                         "low": {
                             "type": "PQ",
                             "value": "3",
@@ -1145,7 +1145,7 @@
                 {
                     "type": "COUNT",
                     "value": {
-                        "type": "IVL_INT",
+                        "type": "IVL_PQ",
                         "low": {
                             "type": "PQ",
                             "value": "5",

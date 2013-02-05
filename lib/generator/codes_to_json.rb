@@ -16,7 +16,6 @@ module HQMF2JS
         translation = {}
         value_sets.each do |value_set|
           code_sets = {}
-          binding.pry if value_set["concepts"].nil?
           value_set["concepts"].each do |code_set|
             code_sets[code_set["code_system_name"]] ||= []
             code_sets[code_set["code_system_name"]].concat(code_set["code"].to_a)
