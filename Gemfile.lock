@@ -1,22 +1,22 @@
 GIT
   remote: https://github.com/pophealth/patientapi.git
-  revision: 10653162405f466adaeeb9874ca8a4666f8d4e1e
+  revision: 63e9208fab523b2f1562dc74e4f3a05d599b8023
   branch: develop
   specs:
     hquery-patient-api (1.0.0)
 
 GIT
   remote: https://github.com/projectcypress/health-data-standards.git
-  revision: 1c651653b1eef6871dd965985b5af93cf16263f0
+  revision: 3be92ccef662020b90099eed641fa23a2d725ad2
   branch: develop
   specs:
-    health-data-standards (3.0.0)
+    health-data-standards (3.0.1)
       activesupport (~> 3.2.9)
       builder (~> 3.0.0)
       erubis (~> 2.7.0)
       google-spreadsheet-ruby (= 0.1.8)
       log4r (~> 1.1.10)
-      mongoid (~> 3.0.14)
+      mongoid (~> 3.1.0)
       nokogiri (~> 1.5.5)
       rest-client (~> 1.6.7)
       roo (= 1.10.1)
@@ -75,7 +75,7 @@ GEM
     erubis (2.7.0)
     execjs (1.4.0)
       multi_json (~> 1.0)
-    faraday (0.8.5)
+    faraday (0.8.6)
       multipart-post (~> 1.1)
     google-spreadsheet-ruby (0.1.8)
       nokogiri (>= 1.4.3.1)
@@ -84,7 +84,7 @@ GEM
     hashie (1.2.0)
     hike (1.2.1)
     httpauth (0.2.0)
-    i18n (0.6.1)
+    i18n (0.6.2)
     journey (1.0.4)
     json (1.7.5)
     jwt (0.1.5)
@@ -98,23 +98,25 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     method_source (0.8.1)
-    mime-types (1.20.1)
+    mime-types (1.21)
     minitest (4.3.2)
-    mongoid (3.0.21)
-      activemodel (~> 3.1)
-      moped (~> 1.2)
+    mongoid (3.1.2)
+      activemodel (~> 3.2)
+      moped (~> 1.4.2)
       origin (~> 1.0)
       tzinfo (~> 0.3.22)
-    moped (1.3.2)
-    multi_json (1.5.0)
-    multipart-post (1.1.5)
+    moped (1.4.2)
+    multi_json (1.6.1)
+    multi_xml (0.5.3)
+    multipart-post (1.2.0)
     nokogiri (1.5.6)
     oauth (0.4.7)
-    oauth2 (0.8.0)
+    oauth2 (0.9.1)
       faraday (~> 0.8)
       httpauth (~> 0.1)
       jwt (~> 0.1.4)
       multi_json (~> 1.0)
+      multi_xml (~> 0.5)
       rack (~> 1.2)
     origin (1.0.11)
     polyglot (0.3.3)
@@ -122,7 +124,7 @@ GEM
       coderay (~> 1.0.5)
       method_source (~> 0.8)
       slop (~> 3.3.1)
-    rack (1.4.4)
+    rack (1.4.5)
     rack-cache (1.2)
       rack (>= 0.4)
     rack-ssl (1.3.2)
@@ -187,7 +189,7 @@ GEM
     uglifier (1.3.0)
       execjs (>= 0.3.0)
       multi_json (~> 1.0, >= 1.0.2)
-    uuid (2.3.6)
+    uuid (2.3.7)
       macaddr (~> 1.0)
     yamler (0.1.0)
 
