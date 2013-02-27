@@ -107,7 +107,7 @@
         "end_time": 1291166000,
         "code": {
           "code": "bar",
-          "codeSystem": "SNOMED-CT"
+          "code_system": "SNOMED-CT"
         }
       }, 
       "end_time": 1291266000
