@@ -73,8 +73,13 @@ class hqmf.SpecificsManagerSingleton
     entry.specificRow = row
     entry
     
-  intersectSpecifics: (populations...) ->
-    value = @intersectAll(new Boolean(populations[0].isTrue()), populations)
+  intersectSpecifics: (nextPopulation, previousPopulation, occurrenceIDs) ->
+    # we need to pass the episode indicies all the way down through the interesection to the match function
+    # this must be done because we need to ensure that on intersection of populations the * does not allow an episode through
+    # that was not part of a previous population
+    episodeIndices = null
+    episodeIndices = (@getColumnIndex(occurrenceID) for occurrenceID in occurrenceIDs) if occurrenceIDs?
+    value = @intersectAll(new Boolean(nextPopulation.isTrue()), [nextPopulation, previousPopulation], false, episodeIndices)
     value
     
   # Returns a count of the unique events that match the criteria for the supplied
@@ -104,19 +109,19 @@ class hqmf.SpecificsManagerSingleton
       return @maintainSpecifics(new Boolean(false), initial)
     else
       return initial
-  
+
   # Returns a boolean indication of whether all of the supplied population criteria are
   # met
   validate: (intersectedPopulation) ->
     intersectedPopulation.isTrue() and intersectedPopulation.specificContext.hasRows()
   
-  intersectAll: (boolVal, values, negate=false) ->
+  intersectAll: (boolVal, values, negate=false, episodeIndices) ->
     result = new hqmf.SpecificOccurrence
     # add identity row
     result.addIdentityRow()
     for value in values
       if value.specificContext?
-        result = result.intersect(value.specificContext)
+        result = result.intersect(value.specificContext, episodeIndices)
     if negate and (!result.hasRows() or result.hasSpecifics())
       result = result.negate()
       result = result.compactReusedEvents()
@@ -202,11 +207,11 @@ class hqmf.SpecificOccurrence
     value.rows = @rows.concat(other.rows)
     value.removeDuplicateRows()
   
-  intersect: (other) ->
+  intersect: (other, episodeIndices) ->
     value = new hqmf.SpecificOccurrence()
     for leftRow in @rows
       for rightRow in other.rows
-        result = leftRow.intersect(rightRow)
+        result = leftRow.intersect(rightRow, episodeIndices)
         value.rows.push(result) if result?
     value.removeDuplicateRows()
   
@@ -333,8 +338,6 @@ class hqmf.SpecificOccurrence
   addIdentityRow: ->
     @addRows(hqmf.SpecificsManager.identity().rows)
 
-
-
 class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
   constructor: (leftMost, occurrences={}) ->
@@ -370,18 +373,30 @@ class Row
       equal &&= Row.valuesEqual(value, other.values[i])
     equal
 
-  intersect: (other) ->
+  intersect: (other, episodeIndices) ->
     intersectedRow = new Row(@leftMost, {})
     intersectedRow.tempValue = @tempValue
-    allMatch = true
+
+    # if all the episodes are any, then they were not referenced by the parent population.  This occurs when an intersection is done 
+    # against the identity row.  In this case we want to allow the specific occurrences through.  This happens when we intersect against a measure
+    # without a denomninator, and on regular intersections since we start with the identity row in the context.
+    allEpisodesAny = (episodeIndices? && (@allValuesAny(episodeIndices) || other.allValuesAny(episodeIndices)))
+
     for value,i in @values
-      result = Row.match(value, other.values[i])
+      # check if the value is an episode of care.  If so it will be treated differently in the match function
+      isEpisodeOfCare = (episodeIndices? && !allEpisodesAny && episodeIndices.indexOf(i) >= 0)
+      result = Row.match(value, other.values[i], isEpisodeOfCare)
       if result?
         intersectedRow.values[i] = result 
       else
         return undefined
     intersectedRow
   
+  allValuesAny: (indicies) ->
+    for i in indicies
+      return false if @values[i] != hqmf.SpecificsManager.any
+    return true
+
   groupKeyForLeftMost: ->
     @groupKey(@leftMost)
     
@@ -397,11 +412,19 @@ class Row
     keyForGroup
     
   
-  @match: (left, right) ->
-    return right if left == hqmf.SpecificsManager.any
-    return left if right == hqmf.SpecificsManager.any
+  @match: (left, right, isEpisodeOfCare) ->
+    return @checkEpisodeOfCare(right, isEpisodeOfCare) if left == hqmf.SpecificsManager.any
+    return @checkEpisodeOfCare(left, isEpisodeOfCare) if right == hqmf.SpecificsManager.any
     return left if left.id == right.id
     return undefined
+
+  # if we are dealing with an episode of care we don't want to match against the any (*) indicator.  This is because
+  # the any indicator from a previous population indicates that we did not evaluate against that occurrence in a positive path.
+  # this is typically OK with specific occurrences, but not if they represent episodes of care.
+  @checkEpisodeOfCare: (value, isEpisodeOfCare) ->
+    # return the any indicator to signify that the episode of care was unobserved.  This will eliminate it from the counts.
+    return hqmf.SpecificsManager.any if (isEpisodeOfCare)
+    return value
 
   @valuesEqual: (left, right) ->
     return true if !left? and !right?
@@ -417,7 +440,12 @@ class Row
     for match in matches
       occurrences={}
       occurrences[entryKey] = entry
-      occurrences[matchesKey] = match
+      # from unions and crossproducts we may have a matches key that is a hash of object ids mapped to the specific occurrence key.
+      # this is because we may have multiple different specific occurrences on the right hand side if it came from a group
+      if (_.isObject(matchesKey))
+        occurrences[matchesKey[match.id]] = match
+      else
+        occurrences[matchesKey] = match
       rows.push(new Row(entryKey, occurrences))
     rows
     

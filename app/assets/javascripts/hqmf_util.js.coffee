@@ -510,10 +510,13 @@ class CrossProduct extends Array
   constructor: (allEventLists) ->
     super()
     @eventLists = []
+    # keep track of the specific occurrences by encounter ID.  This is used in eventsMatchBounds (specifically in buildRowsForMatching down the _.isObject path)
+    @specific_occurrence = {}
     for eventList in allEventLists
       @eventLists.push eventList
       for event in eventList
         this.push(event)
+        @specific_occurrence[event.id] = eventList.specific_occurrence if eventList.specific_occurrence
   listCount: -> @eventLists.length
   childList: (index) -> @eventLists[index]
 
@@ -525,9 +528,13 @@ XPRODUCT = (eventLists...) ->
 # Create a new list containing all the events from the supplied event lists
 UNION = (eventLists...) ->
   union = []
+  # keep track of the specific occurrences by encounter ID.  This is used in eventsMatchBounds (specifically in buildRowsForMatching down the _.isObject path)
+  specific_occurrence = {}
   for eventList in eventLists
     for event in eventList
+      specific_occurrence[event.id] = eventList.specific_occurrence if eventList.specific_occurrence
       union.push(event)
+  union.specific_occurrence = specific_occurrence unless _.isEmpty(specific_occurrence)
   hqmf.SpecificsManager.unionAll(union, eventLists)
 @UNION = UNION
 
