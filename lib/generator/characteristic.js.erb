@@ -1,4 +1,4 @@
-var value = patient.<%= criteria.property %>(<%= js_for_date_bound(criteria) if criteria.property == :age %>);
+var value = patient.<%= criteria.property %>(<%= js_for_date_bound(criteria) if criteria.property == :age %>) || null;
   <%- if criteria.property == :birthtime -%>
 var events = [value];
     <%- if criteria.temporal_references -%>
