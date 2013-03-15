@@ -646,7 +646,7 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
 
     if hasSpecificOccurrence
       matchingEvents.specific_occurrence = events.specific_occurrence
-      # TODO: well need a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
+      # we use a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
       specificContext.addRows(Row.buildRowsForMatching(events.specific_occurrence, event, bounds.specific_occurrence, matchingBounds))
     else
       # add all stars
