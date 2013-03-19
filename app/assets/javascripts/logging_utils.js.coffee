@@ -2,11 +2,13 @@ class @Logger
   @logger: []
   @rationale: {}
   @info: (string) ->
-    @logger.push("#{Logger.indent()}#{string}")
+    if @enable_logging
+      @logger.push("#{Logger.indent()}#{string}")
   @record: (id, result) ->
-    if result? and typeof(result.isTrue) == 'function'
+    if @enable_rationale and result? and typeof(result.isTrue) == 'function'
       @rationale[id] = result.isTrue()
-  @enabled: true
+  @enable_logging: true
+  @enable_rationale: true
   @initialized: false
   @indentCount = 0
   @indent: ->
@@ -41,8 +43,11 @@ class @Logger
       memo
     , []).join(',')+"]"
     
+@injectLogger = (hqmfjs, enable_logging, enable_rationale) ->
+  Logger.enable_logging = enable_logging
+  Logger.enable_rationale = enable_rationale
 
-@enableMeasureLogging = (hqmfjs) ->
+  # Wrap all of the hqmfjs functions
   _.each(_.functions(hqmfjs), (method) ->
     hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
 
@@ -59,10 +64,10 @@ class @Logger
     );
   );
 
-@enableLogging =->
   if (!Logger.initialized)
     Logger.initialized=true
     
+    # Wrap selected hQuery Patient API functions
     _.each(_.functions(hQuery.Patient.prototype), (method) ->
       if (hQuery.Patient.prototype[method].length == 0)
         hQuery.Patient.prototype[method] = _.wrap(hQuery.Patient.prototype[method], (func) ->
@@ -88,6 +93,7 @@ class @Logger
       return result;
     );
     
+    # Wrap selected HQMF Util functions
     @getCodes = _.wrap(@getCodes, (func, oid) -> 
       codes = func(oid)
       Logger.info("accessed codes: #{oid}")
