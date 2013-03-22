@@ -42,12 +42,36 @@ class @Logger
       memo.push("#{entry.codeSystemName()}:#{entry.code()}");
       memo
     , []).join(',')+"]"
+  @formatSpecificEntry: (object, index) ->
+    if object == hqmf.SpecificsManager.any
+      object
+    else
+      "#{object.id}"
+  @formatSpecificContext: (object) ->
+    displayRows = []
+    if object?.specificContext?.rows?.length
+      displayRows.push(Logger.toJson(item.id for item in hqmf.SpecificsManager.occurrences))
+      for row in object.specificContext.rows
+        do (row) ->
+          displayRow = []
+          for entry, index in row.values
+            do (entry) ->
+              displayRow.push(Logger.formatSpecificEntry(entry, index))
+          displayRows.push(Logger.toJson(displayRow))
+    displayRows
+  @logSpecificContext: (object) ->
+    Logger.indentCount++
+    for row in Logger.formatSpecificContext(object)
+      do (row) ->
+        Logger.info(row)
+    Logger.indentCount--
+    
     
 @injectLogger = (hqmfjs, enable_logging, enable_rationale) ->
   Logger.enable_logging = enable_logging
   Logger.enable_rationale = enable_rationale
 
-  # Wrap all of the hqmfjs functions
+  # Wrap all of the data criteria functions generated from HQMF
   _.each(_.functions(hqmfjs), (method) ->
     hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
 
@@ -59,6 +83,9 @@ class @Logger
 
       Logger.indentCount--
       Logger.info("#{method} -> #{Logger.asBoolean(result)}")
+      if result.specificContext?.rows?.length
+        Logger.info("Specific context")
+        Logger.logSpecificContext(result)
       Logger.record(method,result)
       return result;
     );
@@ -94,6 +121,17 @@ class @Logger
     );
     
     # Wrap selected HQMF Util functions
+    hqmf.SpecificsManagerSingleton.prototype.intersectAll = _.wrap(hqmf.SpecificsManagerSingleton.prototype.intersectAll, (func, boolVal, values, negate=false, episodeIndices) ->
+      func = _.bind(func, this, boolVal, values, negate=false, episodeIndices)
+      result = func(boolVal, values, negate=false, episodeIndices)
+      Logger.info("Intersecting:")
+      for value in values
+        Logger.logSpecificContext(value)
+      Logger.info("Intersected result:")
+      Logger.logSpecificContext(result)
+      return result;
+    );
+    
     @getCodes = _.wrap(@getCodes, (func, oid) -> 
       codes = func(oid)
       Logger.info("accessed codes: #{oid}")
