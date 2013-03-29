@@ -122,8 +122,8 @@ class @Logger
     
     # Wrap selected HQMF Util functions
     hqmf.SpecificsManagerSingleton.prototype.intersectAll = _.wrap(hqmf.SpecificsManagerSingleton.prototype.intersectAll, (func, boolVal, values, negate=false, episodeIndices) ->
-      func = _.bind(func, this, boolVal, values, negate=false, episodeIndices)
-      result = func(boolVal, values, negate=false, episodeIndices)
+      func = _.bind(func, this, boolVal, values, negate, episodeIndices)
+      result = func(boolVal, values, negate, episodeIndices)
       Logger.info("Intersecting:")
       for value in values
         Logger.logSpecificContext(value)
