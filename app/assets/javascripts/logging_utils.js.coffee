@@ -26,10 +26,10 @@ class @Logger
     else
       object
   @toJson: (value) ->
-    if (typeof(tojson) == 'function')
-      tojson(value)
-    else
+    if (typeof(JSON) == 'object')
       JSON.stringify(value)
+    else
+      tojson(value)
   @classNameFor: (object) ->
     funcNameRegex = ///function (.+)\(///;
     results = funcNameRegex.exec(object.constructor.toString());
@@ -171,6 +171,13 @@ class @Logger
       result
     )
 
+    @eventsMatchBounds = _.wrap(@eventsMatchBounds, (func, events, bounds, methodName, range) -> 
+      args = Array.prototype.slice.call(arguments,1)
+      result = func(events, bounds, methodName, range)
+      Logger.info("#{methodName}(Events: #{Logger.stringify(events)}, Bounds: #{Logger.stringify(bounds)}, Range: #{Logger.toJson(range)}) -> #{Logger.stringify(result)}")
+      result
+    )
+
     @atLeastOneFalse = _.wrap(@atLeastOneFalse, (func) -> 
       args = Array.prototype.slice.call(arguments,1)
       Logger.info("called atLeastOneFalse(#{args}):")
@@ -182,9 +189,3 @@ class @Logger
       result
     )
     
-    @eventsMatchBounds = _.wrap(@eventsMatchBounds, (func, events, bounds, methodName, range) -> 
-      args = Array.prototype.slice.call(arguments,1)
-      result = func(events, bounds, methodName, range)
-      Logger.info("#{methodName}(Events: #{Logger.stringify(events)}, Bounds: #{Logger.stringify(bounds)}, Range: #{Logger.toJson(range)}) -> #{Logger.stringify(result)}")
-      result
-    )
