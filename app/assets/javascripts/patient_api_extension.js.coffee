@@ -18,6 +18,10 @@ hQuery.CodedEntry::asTS = ->
   ts.date = this.timeStamp()
   ts
 
+hQuery.Encounter::lengthOfStay = (unit) ->
+  ivl_ts = this.asIVL_TS()
+  ivl_ts.low.difference(ivl_ts.high, unit)
+
 hQuery.CodedEntry::respondTo = (functionName) ->
   typeof(@[functionName]) == "function"
 

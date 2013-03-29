@@ -452,7 +452,8 @@ filterEventsByValue = (events, value) ->
 # Return only those events with a field that matches the supplied value
 filterEventsByField = (events, field, value) ->
   respondingEvents = (event for event in events when event.respondTo(field))
-  result = (event for event in respondingEvents when value.match(event[field]()))
+  unit = value.unit() if value.unit?
+  result = (event for event in respondingEvents when value.match(event[field](unit)))
   hqmf.SpecificsManager.maintainSpecifics(result, events)
 @filterEventsByField = filterEventsByField
 
