@@ -178,6 +178,14 @@ class LibraryFunctionTest < Test::Unit::TestCase
     ts2 = 'new TS("201203010020")'
     assert_equal 70, @context.eval("#{ts1}.difference(#{ts2},'min')")
     
+    ts1 = 'new TS("20120101101010")'
+    ts2 = 'new TS("20120101101030")'
+    assert_equal 0, @context.eval("#{ts1}.difference(#{ts2},'min')")
+    
+    ts1 = 'new TS("20120101100950")'
+    ts2 = 'new TS("20120101101010")'
+    assert_equal 1, @context.eval("#{ts1}.difference(#{ts2},'min')")
+
     # Additional tests from previous version of TJC guidance
     ts4 = 'new TS("20000310")'
     ts5 = 'new TS("20110405")'

@@ -131,7 +131,8 @@ class TS
       
   # Number of whole minutes between the two time stamps (as Date objects)
   @minutesDifference: (earlier, later) ->
-    Math.floor(((later.getTime()-earlier.getTime())/1000)/60)
+    [e,l] = TS.dropSeconds(earlier,later)
+    Math.floor(((l.getTime()-e.getTime())/1000)/60)
     
   # Number of whole hours between the two time stamps (as Date objects)
   @hoursDifference: (earlier, later) ->
