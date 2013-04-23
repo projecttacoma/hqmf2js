@@ -19,7 +19,7 @@ class SpecificsTest < Test::Unit::TestCase
   end
 
 
-  def test_specifics_initialized_proper
+  def test_specifics_initialized_properly
     
     @context.eval('hqmf.SpecificsManager.keyLookup[0]').must_equal 'OccurrenceAEncounter'
     @context.eval('hqmf.SpecificsManager.keyLookup[1]').must_equal 'OccurrenceBEncounter'
@@ -593,11 +593,99 @@ class SpecificsTest < Test::Unit::TestCase
     "
     @context.eval(rows)
     
-    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop3))').must_equal true
-    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop4))').must_equal false
-    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,pop5))').must_equal false
-    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop3f,pop1,pop2))').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1, hqmf.SpecificsManager.intersectSpecifics(pop2,pop3)))').must_equal true
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1, hqmf.SpecificsManager.intersectSpecifics(pop2,pop4)))').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop1, hqmf.SpecificsManager.intersectSpecifics(pop2,pop5)))').must_equal false
+    @context.eval('hqmf.SpecificsManager.validate(hqmf.SpecificsManager.intersectSpecifics(pop3f,hqmf.SpecificsManager.intersectSpecifics(pop1,pop2)))').must_equal false
     
+  end
+
+  def test_episode_of_care_restrictions
+
+    rows = "
+      hqmf.SpecificsManager.initialize({},hqmfjs, {'id':'OccurrenceAEncounter1', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter1'},
+                                                  {'id':'OccurrenceAEncounter2', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter2'},
+                                                  {'id':'OccurrenceAEncounter3', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter3'})
+
+
+      var row1 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1}});
+      var row2 = new Row('OccurrenceAEncounter2',{'OccurrenceAEncounter2':{'id':3}});
+      var row3 = new Row('OccurrenceAEncounter1',{'OccurrenceAEncounter1':{'id':1},'OccurrenceAEncounter2':{'id':3}});
+      var identityRow = hqmf.SpecificsManager.identity().rows[0];
+      
+      var pop1 = new Boolean(true);
+      var pop2 = new Boolean(true);
+      var pop3 = new Boolean(true);
+      var pop4 = new Boolean(true);
+
+      pop1.specificContext = new hqmf.SpecificOccurrence([row1]);
+      pop2.specificContext = new hqmf.SpecificOccurrence([row2]);
+      pop3.specificContext = new hqmf.SpecificOccurrence([row3]);
+      pop4.specificContext = new hqmf.SpecificOccurrence([identityRow]);
+
+      var result = null;
+
+    "
+    @context.eval(rows)
+
+    # test allValuesAny
+    @context.eval('row1.allValuesAny([0,1,2])').must_equal false
+    @context.eval('row1.allValuesAny([1,2])').must_equal true
+    @context.eval('row1.allValuesAny([2])').must_equal true
+    @context.eval('row1.allValuesAny([1])').must_equal true
+    @context.eval('row1.allValuesAny([])').must_equal true
+    @context.eval('identityRow.allValuesAny([0,1,2])').must_equal true
+
+    # test checkEpisodeOfCare
+    @context.eval('Row.checkEpisodeOfCare({id: 1}, true) == hqmf.SpecificsManager.any').must_equal true
+    @context.eval('Row.checkEpisodeOfCare({id: 1}, false) == hqmf.SpecificsManager.any').must_equal false
+    @context.eval('Row.checkEpisodeOfCare({id: 1}, false).id == 1').must_equal true
+
+    # test intersect
+    @context.eval('row1.intersect(row2,[0,1]).allValuesAny([0,1,2])').must_equal true # this is the critical check.  Make sure we drop bad episode of care intersections
+    @context.eval('row1.intersect(row2,[0]).allValuesAny([2])').must_equal true
+    @context.eval('row1.intersect(row2,[0]).values[0].id == 1').must_equal true
+    @context.eval('row1.intersect(row2,[0]).values[1].id == 3').must_equal true
+    @context.eval('row1.intersect(row2,[1]).allValuesAny([2])').must_equal true
+    @context.eval('row1.intersect(row2,[1]).values[0].id == 1').must_equal true
+    @context.eval('row1.intersect(row2,[1]).values[1].id == 3').must_equal true
+
+    @context.eval('identityRow.intersect(row1,[0]).values[0].id == 1').must_equal true
+    @context.eval('identityRow.intersect(row1,[0]).allValuesAny([1,2])').must_equal true
+    @context.eval('row1.intersect(identityRow,[0]).values[0].id == 1').must_equal true
+    @context.eval('row1.intersect(identityRow,[0]).allValuesAny([1,2])').must_equal true
+
+    # make sure we drop a bad strggler for encounter 2
+    @context.eval('row1.intersect(row3,[0,1]).allValuesAny([1,2])').must_equal true
+    @context.eval('row1.intersect(row3,[0,1]).values[0].id == 1').must_equal true
+    
+    # test intersectSpecifics
+
+    @context.eval('hqmf.SpecificsManager.intersectSpecifics(pop1,pop2).specificContext.rows[0].values[0].id == 1').must_equal true
+    @context.eval('hqmf.SpecificsManager.intersectSpecifics(pop1,pop2).specificContext.rows[0].values[1].id == 3').must_equal true
+    @context.eval('hqmf.SpecificsManager.intersectSpecifics(pop1,pop2).specificContext.rows[0].values[2] == hqmf.SpecificsManager.any').must_equal true
+    @context.eval("hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,['OccurrenceAEncounter1','OccurrenceAEncounter2','OccurrenceAEncounter3']).specificContext.rows[0].allValuesAny([0,1,2])").must_equal true
+    @context.eval("result = hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,['OccurrenceAEncounter1']).specificContext.rows[0]")
+    @context.eval('result.allValuesAny([2])').must_equal true
+    @context.eval('result.values[0].id == 1').must_equal true
+    @context.eval('result.values[1].id == 3').must_equal true
+    @context.eval("result = hqmf.SpecificsManager.intersectSpecifics(pop1,pop2,['OccurrenceAEncounter2']).specificContext.rows[0]")
+    @context.eval('result.allValuesAny([2])').must_equal true
+    @context.eval('result.values[0].id == 1').must_equal true
+    @context.eval('result.values[1].id == 3').must_equal true
+
+    @context.eval("result = hqmf.SpecificsManager.intersectSpecifics(pop1,pop4,['OccurrenceAEncounter1']).specificContext.rows[0]")
+    @context.eval('result.values[0].id == 1').must_equal true
+    @context.eval('result.allValuesAny([1,2])').must_equal true
+
+    @context.eval("result = hqmf.SpecificsManager.intersectSpecifics(pop4,pop1,['OccurrenceAEncounter1']).specificContext.rows[0]")
+    @context.eval('result.values[0].id == 1').must_equal true
+    @context.eval('result.allValuesAny([1,2])').must_equal true
+
+    @context.eval("result = hqmf.SpecificsManager.intersectSpecifics(pop1,pop3,['OccurrenceAEncounter1','OccurrenceAEncounter2']).specificContext.rows[0]")
+    @context.eval('result.allValuesAny([1,2])').must_equal true
+    @context.eval('result.values[0].id == 1').must_equal true
+
   end
   
   def test_intersect_all

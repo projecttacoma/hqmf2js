@@ -131,7 +131,8 @@ class TS
       
   # Number of whole minutes between the two time stamps (as Date objects)
   @minutesDifference: (earlier, later) ->
-    Math.floor(((later.getTime()-earlier.getTime())/1000)/60)
+    [e,l] = TS.dropSeconds(earlier,later)
+    Math.floor(((l.getTime()-e.getTime())/1000)/60)
     
   # Number of whole hours between the two time stamps (as Date objects)
   @hoursDifference: (earlier, later) ->
@@ -452,7 +453,8 @@ filterEventsByValue = (events, value) ->
 # Return only those events with a field that matches the supplied value
 filterEventsByField = (events, field, value) ->
   respondingEvents = (event for event in events when event.respondTo(field))
-  result = (event for event in respondingEvents when value.match(event[field]()))
+  unit = value.unit() if value.unit?
+  result = (event for event in respondingEvents when value.match(event[field](unit)))
   hqmf.SpecificsManager.maintainSpecifics(result, events)
 @filterEventsByField = filterEventsByField
 
@@ -510,10 +512,13 @@ class CrossProduct extends Array
   constructor: (allEventLists) ->
     super()
     @eventLists = []
+    # keep track of the specific occurrences by encounter ID.  This is used in eventsMatchBounds (specifically in buildRowsForMatching down the _.isObject path)
+    @specific_occurrence = {}
     for eventList in allEventLists
       @eventLists.push eventList
       for event in eventList
         this.push(event)
+        @specific_occurrence[event.id] = eventList.specific_occurrence if eventList.specific_occurrence
   listCount: -> @eventLists.length
   childList: (index) -> @eventLists[index]
 
@@ -525,9 +530,13 @@ XPRODUCT = (eventLists...) ->
 # Create a new list containing all the events from the supplied event lists
 UNION = (eventLists...) ->
   union = []
+  # keep track of the specific occurrences by encounter ID.  This is used in eventsMatchBounds (specifically in buildRowsForMatching down the _.isObject path)
+  specific_occurrence = {}
   for eventList in eventLists
     for event in eventList
+      specific_occurrence[event.id] = eventList.specific_occurrence if eventList.specific_occurrence
       union.push(event)
+  union.specific_occurrence = specific_occurrence unless _.isEmpty(specific_occurrence)
   hqmf.SpecificsManager.unionAll(union, eventLists)
 @UNION = UNION
 
@@ -639,7 +648,7 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
 
     if hasSpecificOccurrence
       matchingEvents.specific_occurrence = events.specific_occurrence
-      # TODO: well need a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
+      # we use a temporary variable for non specific occurrences on the left so that we can do rejections based on restrictions in the data criteria
       specificContext.addRows(Row.buildRowsForMatching(events.specific_occurrence, event, bounds.specific_occurrence, matchingBounds))
     else
       # add all stars

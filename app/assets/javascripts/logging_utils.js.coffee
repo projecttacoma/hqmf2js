@@ -2,11 +2,13 @@ class @Logger
   @logger: []
   @rationale: {}
   @info: (string) ->
-    @logger.push("#{Logger.indent()}#{string}")
+    if @enable_logging
+      @logger.push("#{Logger.indent()}#{string}")
   @record: (id, result) ->
-    if result? and typeof(result.isTrue) == 'function'
+    if @enable_rationale and result? and typeof(result.isTrue) == 'function'
       @rationale[id] = result.isTrue()
-  @enabled: true
+  @enable_logging: true
+  @enable_rationale: true
   @initialized: false
   @indentCount = 0
   @indent: ->
@@ -24,10 +26,10 @@ class @Logger
     else
       object
   @toJson: (value) ->
-    if (typeof(tojson) == 'function')
-      tojson(value)
-    else
+    if (typeof(JSON) == 'object')
       JSON.stringify(value)
+    else
+      tojson(value)
   @classNameFor: (object) ->
     funcNameRegex = ///function (.+)\(///;
     results = funcNameRegex.exec(object.constructor.toString());
@@ -40,29 +42,61 @@ class @Logger
       memo.push("#{entry.codeSystemName()}:#{entry.code()}");
       memo
     , []).join(',')+"]"
+  @formatSpecificEntry: (object, index) ->
+    if object == hqmf.SpecificsManager.any
+      object
+    else
+      "#{object.id}"
+  @formatSpecificContext: (object) ->
+    displayRows = []
+    if object?.specificContext?.rows?.length
+      displayRows.push(Logger.toJson(item.id for item in hqmf.SpecificsManager.occurrences))
+      for row in object.specificContext.rows
+        do (row) ->
+          displayRow = []
+          for entry, index in row.values
+            do (entry) ->
+              displayRow.push(Logger.formatSpecificEntry(entry, index))
+          displayRows.push(Logger.toJson(displayRow))
+    displayRows
+  @logSpecificContext: (object) ->
+    Logger.indentCount++
+    for row in Logger.formatSpecificContext(object)
+      do (row) ->
+        Logger.info(row)
+    Logger.indentCount--
     
+    
+@injectLogger = (hqmfjs, enable_logging, enable_rationale) ->
+  Logger.enable_logging = enable_logging
+  Logger.enable_rationale = enable_rationale
 
-@enableMeasureLogging = (hqmfjs) ->
+  # Wrap all of the data criteria functions generated from HQMF
   _.each(_.functions(hqmfjs), (method) ->
-    hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
+    if method != 'initializeSpecifics'
+      hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
 
-      args = Array.prototype.slice.call(arguments,1)
+        args = Array.prototype.slice.call(arguments,1)
 
-      Logger.info("#{method}:")
-      Logger.indentCount++
-      result = func.apply(this, args)
+        Logger.info("#{method}:")
+        Logger.indentCount++
+        result = func.apply(this, args)
 
-      Logger.indentCount--
-      Logger.info("#{method} -> #{Logger.asBoolean(result)}")
-      Logger.record(method,result)
-      return result;
-    );
+        Logger.indentCount--
+        Logger.info("#{method} -> #{Logger.asBoolean(result)}")
+        if result.specificContext?.rows?.length
+          Logger.info("Specific context")
+          Logger.logSpecificContext(result)
+          Logger.info("------")
+        Logger.record(method,result)
+        return result;
+      );
   );
 
-@enableLogging =->
   if (!Logger.initialized)
     Logger.initialized=true
     
+    # Wrap selected hQuery Patient API functions
     _.each(_.functions(hQuery.Patient.prototype), (method) ->
       if (hQuery.Patient.prototype[method].length == 0)
         hQuery.Patient.prototype[method] = _.wrap(hQuery.Patient.prototype[method], (func) ->
@@ -85,6 +119,18 @@ class @Logger
       func = _.bind(func, this, codeSet,start,end)
       result = func(codeSet,start,end)
       Logger.info("matched -> #{Logger.stringify(result)}")
+      return result;
+    );
+    
+    # Wrap selected HQMF Util functions
+    hqmf.SpecificsManagerSingleton.prototype.intersectAll = _.wrap(hqmf.SpecificsManagerSingleton.prototype.intersectAll, (func, boolVal, values, negate=false, episodeIndices) ->
+      func = _.bind(func, this, boolVal, values, negate, episodeIndices)
+      result = func(boolVal, values, negate, episodeIndices)
+      Logger.info("Intersecting (#{values.length}):")
+      for value in values
+        Logger.logSpecificContext(value)
+      Logger.info("Intersected result:")
+      Logger.logSpecificContext(result)
       return result;
     );
     
@@ -127,6 +173,13 @@ class @Logger
       result
     )
 
+    @eventsMatchBounds = _.wrap(@eventsMatchBounds, (func, events, bounds, methodName, range) -> 
+      args = Array.prototype.slice.call(arguments,1)
+      result = func(events, bounds, methodName, range)
+      Logger.info("#{methodName}(Events: #{Logger.stringify(events)}, Bounds: #{Logger.stringify(bounds)}, Range: #{Logger.toJson(range)}) -> #{Logger.stringify(result)}")
+      result
+    )
+
     @atLeastOneFalse = _.wrap(@atLeastOneFalse, (func) -> 
       args = Array.prototype.slice.call(arguments,1)
       Logger.info("called atLeastOneFalse(#{args}):")
@@ -138,9 +191,3 @@ class @Logger
       result
     )
     
-    @eventsMatchBounds = _.wrap(@eventsMatchBounds, (func, events, bounds, methodName, range) -> 
-      args = Array.prototype.slice.call(arguments,1)
-      result = func(events, bounds, methodName, range)
-      Logger.info("#{methodName}(Events: #{Logger.stringify(events)}, Bounds: #{Logger.stringify(bounds)}, Range: #{Logger.toJson(range)}) -> #{Logger.stringify(result)}")
-      result
-    )
