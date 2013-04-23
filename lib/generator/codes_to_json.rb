@@ -1,10 +1,6 @@
 module HQMF2JS
   module Generator
     class CodesToJson      
-      def self.from_xls(code_systems_file)
-        value_sets = HQMF::ValueSet::Parser.new().parse(code_systems_file)
-        from_value_sets(value_sets)
-      end
       
       def self.hash_to_js(hash)
         hash.to_json.gsub(/\"/, "'")
