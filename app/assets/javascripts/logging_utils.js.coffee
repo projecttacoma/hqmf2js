@@ -73,22 +73,24 @@ class @Logger
 
   # Wrap all of the data criteria functions generated from HQMF
   _.each(_.functions(hqmfjs), (method) ->
-    hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
+    if method != 'initializeSpecifics'
+      hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
 
-      args = Array.prototype.slice.call(arguments,1)
+        args = Array.prototype.slice.call(arguments,1)
 
-      Logger.info("#{method}:")
-      Logger.indentCount++
-      result = func.apply(this, args)
+        Logger.info("#{method}:")
+        Logger.indentCount++
+        result = func.apply(this, args)
 
-      Logger.indentCount--
-      Logger.info("#{method} -> #{Logger.asBoolean(result)}")
-      if result.specificContext?.rows?.length
-        Logger.info("Specific context")
-        Logger.logSpecificContext(result)
-      Logger.record(method,result)
-      return result;
-    );
+        Logger.indentCount--
+        Logger.info("#{method} -> #{Logger.asBoolean(result)}")
+        if result.specificContext?.rows?.length
+          Logger.info("Specific context")
+          Logger.logSpecificContext(result)
+          Logger.info("------")
+        Logger.record(method,result)
+        return result;
+      );
   );
 
   if (!Logger.initialized)
@@ -124,7 +126,7 @@ class @Logger
     hqmf.SpecificsManagerSingleton.prototype.intersectAll = _.wrap(hqmf.SpecificsManagerSingleton.prototype.intersectAll, (func, boolVal, values, negate=false, episodeIndices) ->
       func = _.bind(func, this, boolVal, values, negate, episodeIndices)
       result = func(boolVal, values, negate, episodeIndices)
-      Logger.info("Intersecting:")
+      Logger.info("Intersecting (#{values.length}):")
       for value in values
         Logger.logSpecificContext(value)
       Logger.info("Intersected result:")
