@@ -167,7 +167,7 @@ module HQMF2JS
         @doc = doc
       end
       
-      def to_js(population_index=0, codes=nil)
+      def to_js(population_index=0, codes=nil, force_sources=nil)
         population_index ||= 0
         population = @doc.populations[population_index]
         
@@ -184,7 +184,7 @@ module HQMF2JS
 
         OidDictionary = #{oid_dictionary};
         
-        #{js_for_data_criteria()}
+        #{js_for_data_criteria(force_sources)}
 
         // #########################
         // ##### MEASURE LOGIC #####
@@ -236,8 +236,8 @@ module HQMF2JS
       end
       
       # Generate JS for a HQMF2::DataCriteria
-      def js_for_data_criteria
-        HQMF2JS::Generator.render_template('data_criteria', {'all_criteria' => @doc.specific_occurrence_source_data_criteria.concat(@doc.all_data_criteria), 'measure_period' => @doc.measure_period})
+      def js_for_data_criteria(force_sources=nil)
+        HQMF2JS::Generator.render_template('data_criteria', {'all_criteria' => @doc.specific_occurrence_source_data_criteria(force_sources).concat(@doc.all_data_criteria), 'measure_period' => @doc.measure_period})
       end
       
       def self.library_functions(check_crosswalk=false)
