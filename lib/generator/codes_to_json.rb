@@ -1,6 +1,7 @@
 module HQMF2JS
   module Generator
     class CodesToJson      
+
       
       def self.hash_to_js(hash)
         hash.to_json.gsub(/\"/, "'")

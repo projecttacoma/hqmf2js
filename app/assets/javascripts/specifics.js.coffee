@@ -41,7 +41,11 @@ class hqmf.SpecificsManagerSingleton
   
   identity: ->
     new hqmf.SpecificOccurrence([new Row(undefined)])
-    
+
+  setIfNull: (events,subsets) ->
+    if (!events.specificContext? || events.length == 0)
+      events.specificContext=hqmf.SpecificsManager.identity()
+      
   getColumnIndex: (occurrenceID) ->
     columnIndex = @indexLookup[occurrenceID]
     if typeof columnIndex == "undefined"
@@ -54,7 +58,7 @@ class hqmf.SpecificsManagerSingleton
   extractEventsForLeftMost: (rows) ->
     events = []
     for row in rows
-      events.push(@extractEvent(row.leftMost, row))
+      events.push(@extractEvent(row.leftMost, row)) if row.leftMost? || row.tempValue?
     events
   
   extractEvents: (key, rows) ->
@@ -324,9 +328,15 @@ class hqmf.SpecificOccurrence
 
   RECENT: ->
     @applySubset(RECENT)
+
+  hasLeftMost: ->
+    for row in @rows
+      if row.leftMost? || row.tempValue?
+        return true
+    return false
     
   applySubset: (func) ->
-    return this if !@hasSpecifics()
+    return this if !@hasSpecifics() || !@hasLeftMost()
     resultRows = []
     groupedRows = @group()
     for groupKey, group of groupedRows
