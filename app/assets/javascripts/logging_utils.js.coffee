@@ -4,9 +4,15 @@ class @Logger
   @info: (string) ->
     if @enable_logging
       @logger.push("#{Logger.indent()}#{string}")
+
   @record: (id, result) ->
     if @enable_rationale and result? and typeof(result.isTrue) == 'function'
-      @rationale[id] = result.isTrue()
+      if result.isTrue() and result.length
+        json_results = _.map(result,(item) -> {id: item.id, json: item.json})
+        @rationale[id] = {results: json_results }
+      else  
+        @rationale[id] = result.isTrue()
+
   @enable_logging: true
   @enable_rationale: true
   @initialized: false
