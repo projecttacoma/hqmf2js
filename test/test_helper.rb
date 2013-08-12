@@ -1,4 +1,4 @@
-require 'cover_me'
+require_relative "./simplecov"
 require 'test/unit'
 require 'turn'
 

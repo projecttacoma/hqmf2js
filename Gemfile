@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem 'rails', '3.2.9'
+gem 'rails'
 
 group :assets do
   gem 'sass-rails'
@@ -14,7 +14,7 @@ gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-d
 #gem 'health-data-standards', :path => '../health-data-standards'
 
 gem 'nokogiri'
-gem 'sprockets', '~> 2.2.2'
+gem 'sprockets'
 gem 'coffee-script'
 gem 'uglifier'
 gem 'tilt'
@@ -22,9 +22,10 @@ gem 'rake'
 gem 'pry'
 
 group :test do
+  gem 'simplecov', :require => false
+
   gem 'minitest'
   gem 'turn', :require => false
-  gem 'cover_me', '~> 1.2.0'
   gem 'awesome_print', :require => 'ap'
   
   platforms :ruby do
