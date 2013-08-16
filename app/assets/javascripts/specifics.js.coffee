@@ -198,7 +198,17 @@ class hqmf.SpecificOccurrence
     for columnIndex in columnIndices
       for row in @rows
         event = row.values[columnIndex]
-        eventIds.push(event.id) if event != hqmf.SpecificsManager.any and not (event.id in eventIds)
+        if event != hqmf.SpecificsManager.any and not (event.id in eventIds)
+          onlyOneMatch = true
+          # we want to check that we do not have multiple episodes of care matching on this row.  If we do, then that means
+          # that we have a reliance on multiple episodes of care for this row when we can only rely on one.  If we have multiple
+          # then we want to disregard this row.
+          if (columnIndices.length > 1)
+            for columnIndexInside in columnIndices
+              onlyOneMatch = false if (columnIndexInside != columnIndex and row.values[columnIndexInside] != hqmf.SpecificsManager.any)
+
+          if onlyOneMatch
+            eventIds.push(event.id)
     eventIds.length
   
   hasExactRow: (other) ->

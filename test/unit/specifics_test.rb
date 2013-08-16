@@ -231,8 +231,11 @@ class SpecificsTest < Test::Unit::TestCase
       var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':20}});
       var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':{'id':20}});
       var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':{'id':30}});
+      var row4 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':'*'});
+      var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':2},'OccurrenceBEncounter':'*'});
+      var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':3},'OccurrenceBEncounter':'*'});
       
-      var specific = new hqmf.SpecificOccurrence([row1,row2,row3]);
+      var specific = new hqmf.SpecificOccurrence([row1,row2,row3,row4,row5,row6]);
       specific.addIdentityRow();
 
       var pop = new Boolean(true);
@@ -252,7 +255,9 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('hqmf.SpecificsManager.validate(pop)').must_equal true
     @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter"], pop)').must_equal 3
     @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceBEncounter"], pop)').must_equal 2
-    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter", "OccurrenceBEncounter"], pop)').must_equal 5
+    # this should be 3 and not 5 because we are doing a multiple encounter episode check.  The OccurrenceB rows should be dropped since
+    # we cannot have multiple values defined on a single row for a multi encounter episode check for unique.
+    @context.eval('hqmf.SpecificsManager.countUnique(["OccurrenceAEncounter", "OccurrenceBEncounter"], pop)').must_equal 3
     @context.eval('hqmf.SpecificsManager.countUnique(null, pop)').must_equal 1
   end
 
