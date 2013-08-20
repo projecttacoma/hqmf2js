@@ -53,6 +53,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
     @context.eval('typeof hQuery.Patient.prototype.activeDiagnoses').must_equal "function"
     @context.eval('typeof hQuery.Patient.prototype.inactiveDiagnoses').must_equal "function"
     @context.eval('typeof hQuery.Patient.prototype.resolvedDiagnoses').must_equal "function"
+    @context.eval('typeof hQuery.Patient.prototype.getEvents').must_equal "function"
   end
 
   def test_code_list

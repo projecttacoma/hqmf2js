@@ -129,6 +129,10 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 1, @context.eval("hqmfjs.allDiabetes(numeratorPatient).length")
   end
   
+  def test_cached_access
+    assert_equal 3, @context.eval('numeratorPatient.getEvents("results", [], false, "2.16.840.1.113883.3.464.1.72", null, null).length')
+  end
+  
   def test_converted_utils
     # Filter events by value - HbA1C as an example
     events = 'numeratorPatient.results().match(getCodes("2.16.840.1.113883.3.464.1.72"))'

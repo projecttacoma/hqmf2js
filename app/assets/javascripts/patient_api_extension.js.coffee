@@ -7,6 +7,18 @@ hQuery.Patient::allDevices = -> this.conditions().concat(this.procedures()).conc
 hQuery.Patient::activeDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['active'])
 hQuery.Patient::inactiveDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['inactive'])
 hQuery.Patient::resolvedDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['resolved'])
+hQuery.Patient::getEvents = (type, statuses, negated, valueSetOid, startDate, endDate) ->
+  events = this[type]()
+  if statuses && statuses.length > 0
+    events = events.withStatuses(statuses)
+  if negated
+    events = events.withNegation()
+  else
+    events = events.withoutNegation()
+  if valueSetOid
+    codes = getCodes(valueSetOid)
+    events = events.match(codes, startDate, endDate)
+  events
 hQuery.CodedEntry::asIVL_TS = ->
   tsLow = new TS()
   tsLow.date = this.startDate() || this.date() || null
