@@ -130,7 +130,7 @@ class HqmfJavascriptTest < Test::Unit::TestCase
   end
   
   def test_cached_access
-    assert_equal 3, @context.eval('numeratorPatient.getEvents("results", [], false, "2.16.840.1.113883.3.464.1.72", null, null).length')
+    assert_equal 3, @context.eval('numeratorPatient.getEvents("results", [], true, false, null, getCodes("2.16.840.1.113883.3.464.1.72"), null, null).length')
   end
   
   def test_converted_utils

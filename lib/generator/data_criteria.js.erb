@@ -8,10 +8,10 @@ var <%=  js_name(criteria) %> = <%= js_for_value(criteria.value) %>;
 <%- all_criteria.select {|c| c.type != :variable}.each do |criteria| -%>
 hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
   <%- if criteria.type == :characteristic and !criteria.property.nil? -%>
-<%= js_for_characteristic(criteria) %>
+<%= js_for_characteristic(criteria) -%>
   <%- else -%>
     <%- if criteria.type != :derived -%>
-<%= js_for_patient_data(criteria) %>
+<%= js_for_patient_data(criteria) -%>
     <%- else # derived criteria -%>
 <%= js_for_derived_data(criteria) %>
     <%- end -%>

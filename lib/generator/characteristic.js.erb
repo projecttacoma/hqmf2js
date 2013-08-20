@@ -1,19 +1,19 @@
-var value = patient.<%= criteria.property %>(<%= js_for_date_bound(criteria) if criteria.property == :age %>) || null;
-  <%- if criteria.property == :birthtime -%>
-var events = [value];
-    <%- if criteria.temporal_references -%>
-      <%- criteria.temporal_references.each do |temporal_reference| -%>
-events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
-      <%- end -%>
+  var value = patient.<%= criteria.property %>(<%= js_for_date_bound(criteria) if criteria.property == :age %>) || null;
+<%- if criteria.property == :birthtime -%>
+  var events = [value];
+  <%- if criteria.temporal_references -%>
+    <%- criteria.temporal_references.each do |temporal_reference| -%>
+  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
     <%- end -%>
-events.specificContext=hqmf.SpecificsManager.identity();
-return events;
-  <%- elsif criteria.property == :expired or criteria.property == :clinicalTrialParticipant -%>
-matching = matchingValue(value, 'true');
-matching.specificContext=hqmf.SpecificsManager.identity();
-return matching
-  <%- else -%>
-matching = matchingValue(value, <%= js_for_bounds(criteria.value) %>);
-matching.specificContext=hqmf.SpecificsManager.identity();
-return matching;
   <%- end -%>
+  events.specificContext=hqmf.SpecificsManager.identity();
+  return events;
+<%- elsif criteria.property == :expired or criteria.property == :clinicalTrialParticipant -%>
+  matching = matchingValue(value, 'true');
+  matching.specificContext=hqmf.SpecificsManager.identity();
+  return matching;
+<%- else -%>
+  matching = matchingValue(value, <%= js_for_bounds(criteria.value) %>);
+  matching.specificContext=hqmf.SpecificsManager.identity();
+  return matching;
+<%- end -%>
