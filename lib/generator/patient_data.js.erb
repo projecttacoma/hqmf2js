@@ -16,7 +16,7 @@
 <%= ", \"statuses\": #{statuses}" if statuses %> <%- -%>
 <%= ", \"includeEventsWithoutStatus\": #{includeEventsWithoutStatus}" if includeEventsWithoutStatus %> <%- -%>
 <%= ", \"negated\": #{criteria.negation}" if criteria.negation %> <%- -%>
-<%= ", \"negationValueSetId\": \"#{negationValueSetId}\"" if negated && negationValueSetId %> <%- -%>
+<%= ", \"negationValueSetId\": \"#{negationValueSetId}\"" if criteria.negation && negationValueSetId %> <%- -%>
 <%= ", \"valueSetId\": \"#{valueSetId}\"" if valueSetId %> <%- -%>
 <%= ", \"valueSet\": #{valueSet}" if valueSet %> <%- -%>
 <%= ", \"start\": #{start}" if start %> <%- -%>
