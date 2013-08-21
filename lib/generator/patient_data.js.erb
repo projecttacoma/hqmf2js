@@ -1,6 +1,7 @@
 <%- eventType = patient_api_method(criteria) -%>
-<%- codes = js_for_code_list(criteria) -%>
-<%- negation_codes = criteria.negation_code_list_id ? "getCodes(\"#{criteria.negation_code_list_id}\")" : nil -%>
+<%- valueSetId = criteria.code_list_id -%>
+<%- valueSet = criteria.inline_code_list ? js_for_code_list(criteria) : nil -%>
+<%- negationValueSetId = criteria.negation_code_list_id -%>
 <%- statuses = criteria.status ? "[\"#{criteria.status}\"]" : nil -%>
 <%- includeEventsWithoutStatus = criteria.hard_status ? false : true -%>
 <%- start = nil -%>
@@ -15,8 +16,9 @@
 <%= ", \"statuses\": #{statuses}" if statuses %> <%- -%>
 <%= ", \"includeEventsWithoutStatus\": #{includeEventsWithoutStatus}" if includeEventsWithoutStatus %> <%- -%>
 <%= ", \"negated\": #{criteria.negation}" if criteria.negation %> <%- -%>
-<%= ", \"negationCodes\": #{negation_codes}" if negated && negationCodes %> <%- -%>
-<%= ", \"valueSet\": #{codes}" if codes %> <%- -%>
+<%= ", \"negationValueSetId\": \"#{negationValueSetId}\"" if negated && negationValueSetId %> <%- -%>
+<%= ", \"valueSetId\": \"#{valueSetId}\"" if valueSetId %> <%- -%>
+<%= ", \"valueSet\": #{valueSet}" if valueSet %> <%- -%>
 <%= ", \"start\": #{start}" if start %> <%- -%>
 <%= ", \"stop\": #{stop}" if stop %>};
   var events = patient.getEvents(eventCriteria);

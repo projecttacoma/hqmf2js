@@ -12,10 +12,14 @@ hQuery.Patient::getEvents = (eventCriteria) ->
   if eventCriteria.statuses && eventCriteria.statuses.length > 0
     events = events.withStatuses(eventCriteria.statuses, eventCriteria.includeEventsWithoutStatus)
   if eventCriteria.negated
-    events = events.withNegation(eventCriteria.negationCodes)
+    codes = getCodes(eventCriteria.negationValueSetId)
+    events = events.withNegation(codes)
   else
     events = events.withoutNegation()
-  if eventCriteria.valueSet
+  if eventCriteria.valueSetId
+    codes = getCodes(eventCriteria.valueSetId)
+    events = events.match(codes, eventCriteria.start, eventCriteria.stop, true)
+  else if eventCriteria.valueSet
     events = events.match(eventCriteria.valueSet, eventCriteria.start, eventCriteria.stop, true)
   events
   

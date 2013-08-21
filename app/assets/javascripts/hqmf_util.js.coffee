@@ -530,7 +530,8 @@ XPRODUCT = (eventLists...) ->
 # Create a new list containing all the events from the supplied event lists
 UNION = (eventLists...) ->
   union = []
-  # keep track of the specific occurrences by encounter ID.  This is used in eventsMatchBounds (specifically in buildRowsForMatching down the _.isObject path)
+  # keep track of the specific occurrences by encounter ID.  This is used in 
+  # eventsMatchBounds (specifically in buildRowsForMatching down the _.isObject path)
   specific_occurrence = {}
   for eventList in eventLists
     for event in eventList
