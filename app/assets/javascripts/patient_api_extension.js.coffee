@@ -21,6 +21,8 @@ hQuery.Patient::getEvents = (eventCriteria) ->
     events = events.match(codes, eventCriteria.start, eventCriteria.stop, true)
   else if eventCriteria.valueSet
     events = events.match(eventCriteria.valueSet, eventCriteria.start, eventCriteria.stop, true)
+  if eventCriteria.specificOccurrence
+    events.specific_occurrence = eventCriteria.specificOccurrence
   events
   
 hQuery.CodedEntry::asIVL_TS = ->
