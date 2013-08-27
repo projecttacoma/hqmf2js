@@ -408,27 +408,41 @@ class ANYNonNull
     val != null
 @ANYNonNull = ANYNonNull
 
+invokeAll = (patient, initialSpecificContext, fns) ->
+  values = []
+  for fn in fns
+    if typeof(fn.isTrue)=='function' || typeof(fn)=='boolean' # true for child preconditions, not data criteria fns
+      values.push(fn)
+    else
+      values.push(fn(patient, initialSpecificContext))
+  values
+@invokeAll = invokeAll
+  
 # Returns true if one or more of the supplied values is true
-atLeastOneTrue = (precondition, values...) ->
+atLeastOneTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
+  values = invokeAll(patient, initialSpecificContext, valueFns)
   trueValues = (value for value in values when value && value.isTrue())
   trueValues.length>0
   hqmf.SpecificsManager.unionAll(new Boolean(trueValues.length>0), values)
 @atLeastOneTrue = atLeastOneTrue
-  
+
 # Returns true if all of the supplied values are true
-allTrue = (precondition, values...) ->
+allTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
+  values = invokeAll(patient, initialSpecificContext, valueFns)
   trueValues = (value for value in values when value && value.isTrue())
   hqmf.SpecificsManager.intersectAll(new Boolean(trueValues.length>0 && trueValues.length==values.length), values)
 @allTrue = allTrue
   
 # Returns true if one or more of the supplied values is false
-atLeastOneFalse = (precondition, values...) ->
+atLeastOneFalse = (precondition, patient, initialSpecificContext, valueFns...) ->
+  values = invokeAll(patient, initialSpecificContext, valueFns)
   falseValues = (value for value in values when value.isFalse())
   hqmf.SpecificsManager.intersectAll(new Boolean(falseValues.length>0), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 # Returns true if all of the supplied values are false
-allFalse = (precondition, values...) ->
+allFalse = (precondition, patient, initialSpecificContext, valueFns...) ->
+  values = invokeAll(patient, initialSpecificContext, valueFns)
   falseValues = (value for value in values when value.isFalse())
   hqmf.SpecificsManager.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse
