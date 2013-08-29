@@ -147,7 +147,8 @@ class hqmf.SpecificsManagerSingleton
     
     if negate and (!result.hasRows() or result.hasSpecifics())
       result = result.negate() 
-      # this is a little odd, but it appears when we have a negation with specifics we can ignore the logical result of the negation.  See comment in intersectAll.
+      # this is a little odd, but it appears when we have a negation with specifics we can 
+      # ignore the logical result of the negation.  See comment in intersectAll.
       # we need to verify that we actually have some occurrences
       boolVal = new Boolean(true) if @occurrences.length > 0
     boolVal.specificContext = result
