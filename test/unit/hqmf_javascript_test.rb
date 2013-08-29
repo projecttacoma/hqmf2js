@@ -1,4 +1,5 @@
 require_relative '../test_helper'
+require 'hquery-patient-api'
 
 class HqmfJavascriptTest < Test::Unit::TestCase
   def setup
@@ -53,6 +54,11 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     local_context.eval('typeof hqmfjs.IPP != undefined').must_equal true
     local_context.eval('typeof hqmfjs.NUMER != undefined').must_equal true
     local_context.eval('typeof hqmfjs.DENOM != undefined').must_equal true
+  end
+
+  def test_to_js_method_without_codes
+    value = @converter.to_js(0,nil)
+    assert !value.match(/<%= oid_dictionary %>/).nil?
   end
   
   def test_converted_hqmf
@@ -134,6 +140,13 @@ class HqmfJavascriptTest < Test::Unit::TestCase
     assert_equal 3, @context.eval("numeratorPatient.getEvents(#{eventCriteria}).length")
   end
   
+  def test_measure_with_observ
+    measure = HQMF::Document.from_json(JSON.parse(File.read(File.join('test','fixtures','json','0495.json'))))
+    c = HQMF2JS::Generator::JS.new(measure)
+    result = c.js_for('OBSERV',HQMF::PopulationCriteria::OBSERV)
+    assert !result.match(/hqmfjs.OBSERV = function/).nil?
+  end
+
   def test_converted_utils
     # Filter events by value - HbA1C as an example
     events = 'numeratorPatient.results().match(getCodes("2.16.840.1.113883.3.464.1.72"))'
