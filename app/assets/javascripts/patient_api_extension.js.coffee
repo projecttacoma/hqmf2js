@@ -8,19 +8,33 @@ hQuery.Patient::activeDiagnoses = -> this.conditions().concat(this.socialHistori
 hQuery.Patient::inactiveDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['inactive'])
 hQuery.Patient::resolvedDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['resolved'])
 hQuery.Patient::getEvents = (eventCriteria) ->
-  events = this[eventCriteria.type]()
+  this.cache ||= {}
+  cacheKey = eventCriteria.type
+  if !this.cache[cacheKey]
+    this.cache[cacheKey] = this[eventCriteria.type]()
+  events = this.cache[cacheKey]
   if eventCriteria.statuses && eventCriteria.statuses.length > 0
-    events = events.withStatuses(eventCriteria.statuses, eventCriteria.includeEventsWithoutStatus)
-  if eventCriteria.negated
-    codes = getCodes(eventCriteria.negationValueSetId)
-    events = events.withNegation(codes)
-  else
-    events = events.withoutNegation()
+    cacheKey = cacheKey + "_" + String(eventCriteria.statuses)
+    if !this.cache[cacheKey]
+      this.cache[cacheKey] = events.withStatuses(eventCriteria.statuses, eventCriteria.includeEventsWithoutStatus)
+    events = this.cache[cacheKey]
+  cacheKey = cacheKey + "_" + String(eventCriteria.negated) + String(eventCriteria.negationValueSetId)
+  if !this.cache[cacheKey]
+    if eventCriteria.negated
+      codes = getCodes(eventCriteria.negationValueSetId)
+      this.cache[cacheKey] = events.withNegation(codes)
+    else
+      this.cache[cacheKey] = events.withoutNegation()
+  events = this.cache[cacheKey]
   if eventCriteria.valueSetId
-    codes = getCodes(eventCriteria.valueSetId)
-    events = events.match(codes, eventCriteria.start, eventCriteria.stop, true)
+    cacheKey = cacheKey + "_" + String(eventCriteria.valueSetId) + "_" + String(eventCriteria.start) + "_" + String(eventCriteria.stop)
+    if !this.cache[cacheKey]
+      codes = getCodes(eventCriteria.valueSetId)
+      this.cache[cacheKey] = events.match(codes, eventCriteria.start, eventCriteria.stop, true)
+    events = this.cache[cacheKey]
   else if eventCriteria.valueSet
     events = events.match(eventCriteria.valueSet, eventCriteria.start, eventCriteria.stop, true)
+  events = events.slice(0) # clone cached array before we add on specific occurrence
   if eventCriteria.specificOccurrence
     events.specific_occurrence = eventCriteria.specificOccurrence
   events
