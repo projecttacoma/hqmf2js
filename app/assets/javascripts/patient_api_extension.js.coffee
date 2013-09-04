@@ -7,31 +7,27 @@ hQuery.Patient::allDevices = -> this.conditions().concat(this.procedures()).conc
 hQuery.Patient::activeDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['active'])
 hQuery.Patient::inactiveDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['inactive'])
 hQuery.Patient::resolvedDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['resolved'])
-hQuery.Patient::getEvents = (eventCriteria) ->
+hQuery.Patient::getAndCacheEvents = (key, that, fn, args...) ->
   this.cache ||= {}
+  if !this.cache[key]
+    this.cache[key] = fn.apply(that, args)
+  this.cache[key]
+hQuery.Patient::getEvents = (eventCriteria) ->
   cacheKey = eventCriteria.type
-  if !this.cache[cacheKey]
-    this.cache[cacheKey] = this[eventCriteria.type]()
-  events = this.cache[cacheKey]
+  events = this.getAndCacheEvents(cacheKey, this, this[eventCriteria.type])
   if eventCriteria.statuses && eventCriteria.statuses.length > 0
     cacheKey = cacheKey + "_" + String(eventCriteria.statuses)
-    if !this.cache[cacheKey]
-      this.cache[cacheKey] = events.withStatuses(eventCriteria.statuses, eventCriteria.includeEventsWithoutStatus)
-    events = this.cache[cacheKey]
+    events = this.getAndCacheEvents(cacheKey, events, events.withStatuses, eventCriteria.statuses, eventCriteria.includeEventsWithoutStatus)
   cacheKey = cacheKey + "_" + String(eventCriteria.negated) + String(eventCriteria.negationValueSetId)
-  if !this.cache[cacheKey]
-    if eventCriteria.negated
-      codes = getCodes(eventCriteria.negationValueSetId)
-      this.cache[cacheKey] = events.withNegation(codes)
-    else
-      this.cache[cacheKey] = events.withoutNegation()
-  events = this.cache[cacheKey]
+  if eventCriteria.negated
+    codes = getCodes(eventCriteria.negationValueSetId)
+    events = this.getAndCacheEvents(cacheKey, events, events.withNegation, codes)
+  else
+    events = this.getAndCacheEvents(cacheKey, events, events.withoutNegation)
   if eventCriteria.valueSetId
     cacheKey = cacheKey + "_" + String(eventCriteria.valueSetId) + "_" + String(eventCriteria.start) + "_" + String(eventCriteria.stop)
-    if !this.cache[cacheKey]
-      codes = getCodes(eventCriteria.valueSetId)
-      this.cache[cacheKey] = events.match(codes, eventCriteria.start, eventCriteria.stop, true)
-    events = this.cache[cacheKey]
+    codes = getCodes(eventCriteria.valueSetId)
+    events = this.getAndCacheEvents(cacheKey, events, events.match, codes, eventCriteria.start, eventCriteria.stop, true)
   else if eventCriteria.valueSet
     events = events.match(eventCriteria.valueSet, eventCriteria.start, eventCriteria.stop, true)
   events = events.slice(0) # clone cached array before we add on specific occurrence
