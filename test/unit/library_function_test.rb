@@ -17,31 +17,31 @@ class LibraryFunctionTest < Test::Unit::TestCase
   end
   
   def test_all_true
-    @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal false
-    @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false)).isTrue()').must_equal false
-    @context.eval('allTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal true
-    @context.eval('allTrue(1,null,null).isTrue()').must_equal false
+    @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal false
+    @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false))().isTrue()').must_equal false
+    @context.eval('allTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal true
+    @context.eval('allTrue(1,null,null)().isTrue()').must_equal false
   end
   
   def test_at_least_one_true
-    @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
-    @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal true
-    @context.eval('atLeastOneTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal false
-    @context.eval('atLeastOneTrue(1,null,null).isTrue()').must_equal false
+    @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
+    @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal true
+    @context.eval('atLeastOneTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal false
+    @context.eval('atLeastOneTrue(1,null,null)().isTrue()').must_equal false
   end
   
   def test_all_false
-    @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
-    @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false)).isTrue()').must_equal false
-    @context.eval('allFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal false
-    @context.eval('allFalse(1,null,null).isTrue()').must_equal false
+    @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
+    @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false))().isTrue()').must_equal false
+    @context.eval('allFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal false
+    @context.eval('allFalse(1,null,null)().isTrue()').must_equal false
   end
   
   def test_at_least_one_false
-    @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
-    @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true)).isTrue()').must_equal false
-    @context.eval('atLeastOneFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false)).isTrue()').must_equal true
-    @context.eval('atLeastOneFalse(1,null,null).isTrue()').must_equal false
+    @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
+    @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal false
+    @context.eval('atLeastOneFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
+    @context.eval('atLeastOneFalse(1,null,null)().isTrue()').must_equal false
   end
   
   def test_patient_extensions

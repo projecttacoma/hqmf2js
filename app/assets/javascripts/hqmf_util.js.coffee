@@ -421,25 +421,27 @@ invokeAll = (patient, initialSpecificContext, fns) ->
   
 # Returns true if one or more of the supplied values is true
 atLeastOneTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
-  values = invokeAll(patient, initialSpecificContext, valueFns)
-  trueValues = (value for value in values when value && value.isTrue())
-  hqmf.SpecificsManager.unionAll(new Boolean(trueValues.length>0), values)
+  ->
+    values = invokeAll(patient, initialSpecificContext, valueFns)
+    trueValues = (value for value in values when value && value.isTrue())
+    hqmf.SpecificsManager.unionAll(new Boolean(trueValues.length>0), values)
 @atLeastOneTrue = atLeastOneTrue
 
 # Returns true if all of the supplied values are true
 allTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
-  values = []
-  for valueFn in valueFns
-    value = invokeOne(patient, initialSpecificContext, valueFn)
-    if value.isFalse()
-      break
-    values.push(value)
-  if values.length==valueFns.length
-    hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0), values)
-  else
-    value = new Boolean(false)
-    value.specificContext = hqmf.SpecificsManager.empty()
-    value
+  ->
+    values = []
+    for valueFn in valueFns
+      value = invokeOne(patient, initialSpecificContext, valueFn)
+      if value.isFalse()
+        break
+      values.push(value)
+    if values.length==valueFns.length
+      hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0), values)
+    else
+      value = new Boolean(false)
+      value.specificContext = hqmf.SpecificsManager.empty()
+      value
 @allTrue = allTrue
   
 # Returns true if one or more of the supplied values is false
@@ -447,22 +449,24 @@ atLeastOneFalse = (precondition, patient, initialSpecificContext, valueFns...) -
 #   values = invokeAll(patient, initialSpecificContext, valueFns)
 #   falseValues = (value for value in values when value.isFalse())
 #   hqmf.SpecificsManager.intersectAll(new Boolean(falseValues.length>0), values, true)
-  values = []
-  hasFalse = false
-  for valueFn in valueFns
-    value = invokeOne(patient, initialSpecificContext, valueFn)
-    values.push(value)
-    if value.isFalse()
-      hasFalse = true
-      break
-  hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0 && hasFalse), values, true)
+  ->
+    values = []
+    hasFalse = false
+    for valueFn in valueFns
+      value = invokeOne(patient, initialSpecificContext, valueFn)
+      values.push(value)
+      if value.isFalse()
+        hasFalse = true
+        break
+    hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0 && hasFalse), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 # Returns true if all of the supplied values are false
 allFalse = (precondition, patient, initialSpecificContext, valueFns...) ->
-  values = invokeAll(patient, initialSpecificContext, valueFns)
-  falseValues = (value for value in values when value.isFalse())
-  hqmf.SpecificsManager.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
+  ->
+    values = invokeAll(patient, initialSpecificContext, valueFns)
+    falseValues = (value for value in values when value.isFalse())
+    hqmf.SpecificsManager.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse
   
 # Return true if compareTo matches value
