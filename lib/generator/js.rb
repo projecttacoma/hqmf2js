@@ -166,6 +166,10 @@ module HQMF2JS
       def initialize(doc)
         @doc = doc
       end
+
+      def self.map_reduce_utils
+        File.read(File.expand_path(File.join('..', '..', "assets",'javascripts','libraries','map_reduce_utils.js'), __FILE__))
+      end
       
       def to_js(population_index=0, codes=nil, force_sources=nil)
         population_index ||= 0
@@ -177,10 +181,19 @@ module HQMF2JS
           oid_dictionary = "<%= oid_dictionary %>"
         end
         
+        sub_ids = ('a'..'zz').to_a
+        sub_id = @doc.populations.size > 1 ? "'#{sub_ids[population_index]}'" : "null";
+
+
         "
         // #########################
         // ##### DATA ELEMENTS #####
         // #########################
+
+        hqmfjs.nqf_id = '#{@doc.id}';
+        hqmfjs.hqmf_id = '#{@doc.hqmf_id}';
+        hqmfjs.sub_id = #{sub_id};
+        if (typeof(test_id) == 'undefined') hqmfjs.test_id = null;
 
         OidDictionary = #{oid_dictionary};
         

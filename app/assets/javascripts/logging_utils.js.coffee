@@ -104,20 +104,21 @@ class @Logger
     
     # Wrap selected hQuery Patient API functions
     _.each(_.functions(hQuery.Patient.prototype), (method) ->
-      if (hQuery.Patient.prototype[method].length == 0)
-        hQuery.Patient.prototype[method] = _.wrap(hQuery.Patient.prototype[method], (func) ->
-          Logger.info("called patient.#{method}():")
-          func = _.bind(func, this)
-          result = func()
-          Logger.info("patient.#{method}() -> #{Logger.stringify(result)}")
-          return result;);
-      else
-        hQuery.Patient.prototype[method] = _.wrap(hQuery.Patient.prototype[method], (func) ->
-          args = Array.prototype.slice.call(arguments,1)
-          Logger.info("called patient.#{method}(#{args}):")
-          result = func.apply(this, args)
-          Logger.info("patient.#{method}(#{args}) -> #{Logger.stringify(result)}")
-          return result;);
+      if method != 'getEvents' && method != 'getAndCacheEvents'
+        if (hQuery.Patient.prototype[method].length == 0)
+          hQuery.Patient.prototype[method] = _.wrap(hQuery.Patient.prototype[method], (func) ->
+            Logger.info("called patient.#{method}():")
+            func = _.bind(func, this)
+            result = func()
+            Logger.info("patient.#{method}() -> #{Logger.stringify(result)}")
+            return result;);
+        else
+          hQuery.Patient.prototype[method] = _.wrap(hQuery.Patient.prototype[method], (func) ->
+            args = Array.prototype.slice.call(arguments,1)
+            Logger.info("called patient.#{method}(#{args}):")
+            result = func.apply(this, args)
+            Logger.info("patient.#{method}(#{args}) -> #{Logger.stringify(result)}")
+            return result;);
         
     );
     
