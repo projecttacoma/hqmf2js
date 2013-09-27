@@ -253,25 +253,30 @@ module HQMF2JS
         HQMF2JS::Generator.render_template('data_criteria', {'all_criteria' => @doc.specific_occurrence_source_data_criteria(force_sources).concat(@doc.all_data_criteria), 'measure_period' => @doc.measure_period})
       end
       
-      def self.library_functions(check_crosswalk=false)
+      def self.library_functions(check_crosswalk=false, include_underscore=true)
         ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
         Tilt::CoffeeScriptTemplate.default_bare = true 
         ctx.append_path "app/assets/javascripts"
         
-        libraries = ["// #########################\n// ###### Underscore.js #######\n// #######################\n",
-                     ctx.find_asset('underscore').to_s,
-                     "// #########################\n// ###### PATIENT API #######\n// #########################\n",
-                     HqueryPatientApi::Generator.patient_api_javascript.to_s,
-                     "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
-                     ctx.find_asset('specifics').to_s,
-                     "// #########################\n// ### LIBRARY FUNCTIONS ####\n// #########################\n",
-                     ctx.find_asset('hqmf_util').to_s, 
-                     "// #########################\n// ### PATIENT EXTENSION ####\n// #########################\n",
-                     ctx.find_asset('patient_api_extension').to_s,
-                     "// #########################\n// ## CUSTOM CALCULATIONS ###\n// #########################\n",
-                     ctx.find_asset('custom_calculations').to_s,
-                     "// #########################\n// ##### LOGGING UTILS ######\n// #########################\n",
-                     ctx.find_asset('logging_utils').to_s]
+        libraries = []
+
+        if include_underscore
+          libraries += ["// #########################\n// ###### Underscore.js #######\n// #######################\n",
+                        ctx.find_asset('underscore').to_s]
+        end
+
+        libraries += ["// #########################\n// ###### PATIENT API #######\n// #########################\n",
+                      HqueryPatientApi::Generator.patient_api_javascript.to_s,
+                      "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
+                      ctx.find_asset('specifics').to_s,
+                      "// #########################\n// ### LIBRARY FUNCTIONS ####\n// #########################\n",
+                      ctx.find_asset('hqmf_util').to_s, 
+                      "// #########################\n// ### PATIENT EXTENSION ####\n// #########################\n",
+                      ctx.find_asset('patient_api_extension').to_s,
+                      "// #########################\n// ## CUSTOM CALCULATIONS ###\n// #########################\n",
+                      ctx.find_asset('custom_calculations').to_s,
+                      "// #########################\n// ##### LOGGING UTILS ######\n// #########################\n",
+                      ctx.find_asset('logging_utils').to_s]
 
         # check for code set crosswalks
         if (check_crosswalk)
