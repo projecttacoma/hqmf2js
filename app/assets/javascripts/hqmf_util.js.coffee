@@ -415,13 +415,19 @@ invokeOne = (patient, initialSpecificContext, fn) ->
     fn(patient, initialSpecificContext)
 @invokeOne = invokeOne
 
+evalUnlessShortCircuit = (fn) ->
+  # if we are short circuiting then return the function uncalled, if we are not then call the function and
+  # evaluate the tree.  If uncalled, from here the function will only be called if required
+  if (Logger.short_circuit) then fn else fn()
+@evalUnlessShortCircuit = evalUnlessShortCircuit
+
 invokeAll = (patient, initialSpecificContext, fns) ->
   (invokeOne(patient, initialSpecificContext, fn) for fn in fns)
 @invokeAll = invokeAll
   
 # Returns true if one or more of the supplied values is true
 atLeastOneTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
-  ->
+  evalUnlessShortCircuit ->
     values = invokeAll(patient, initialSpecificContext, valueFns)
     trueValues = (value for value in values when value && value.isTrue())
     hqmf.SpecificsManager.unionAll(new Boolean(trueValues.length>0), values)
@@ -429,13 +435,14 @@ atLeastOneTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
 
 # Returns true if all of the supplied values are true
 allTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
-  ->
+  evalUnlessShortCircuit ->
     values = []
     for valueFn in valueFns
       value = invokeOne(patient, initialSpecificContext, valueFn)
       if value.isFalse()
-        break
-      values.push(value)
+        break if Logger.short_circuit
+      else
+        values.push(value)
     if values.length==valueFns.length
       hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0), values)
     else
@@ -449,7 +456,7 @@ atLeastOneFalse = (precondition, patient, initialSpecificContext, valueFns...) -
 #   values = invokeAll(patient, initialSpecificContext, valueFns)
 #   falseValues = (value for value in values when value.isFalse())
 #   hqmf.SpecificsManager.intersectAll(new Boolean(falseValues.length>0), values, true)
-  ->
+  evalUnlessShortCircuit ->
     values = []
     hasFalse = false
     for valueFn in valueFns
@@ -457,13 +464,13 @@ atLeastOneFalse = (precondition, patient, initialSpecificContext, valueFns...) -
       values.push(value)
       if value.isFalse()
         hasFalse = true
-        break
+        break if Logger.short_circuit
     hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0 && hasFalse), values, true)
 @atLeastOneFalse = atLeastOneFalse
   
 # Returns true if all of the supplied values are false
 allFalse = (precondition, patient, initialSpecificContext, valueFns...) ->
-  ->
+  evalUnlessShortCircuit ->
     values = invokeAll(patient, initialSpecificContext, valueFns)
     falseValues = (value for value in values when value.isFalse())
     hqmf.SpecificsManager.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)

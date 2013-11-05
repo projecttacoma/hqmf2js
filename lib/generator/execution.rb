@@ -100,11 +100,12 @@ module HQMF2JS
           // clear out logger
           Logger.logger = [];
           Logger.rationale={};
+          if (typeof short_circuit == 'undefined') short_circuit = true;
         
           // turn on logging if it is enabled
           if (enable_logging || enable_rationale) {
-            injectLogger(hqmfjs, enable_logging, enable_rationale);
-          }
+            injectLogger(hqmfjs, enable_logging, enable_rationale, short_circuit);
+          } 
         }
 
         try {

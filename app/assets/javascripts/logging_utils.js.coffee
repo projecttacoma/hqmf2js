@@ -15,6 +15,7 @@ class @Logger
 
   @enable_logging: true
   @enable_rationale: true
+  @short_circuit: true
   @initialized: false
   @indentCount = 0
   @indent: ->
@@ -73,9 +74,10 @@ class @Logger
     Logger.indentCount--
     
     
-@injectLogger = (hqmfjs, enable_logging, enable_rationale) ->
+@injectLogger = (hqmfjs, enable_logging, enable_rationale, short_circuit) ->
   Logger.enable_logging = enable_logging
   Logger.enable_rationale = enable_rationale
+  Logger.short_circuit = short_circuit
 
   # Wrap all of the data criteria functions generated from HQMF
   _.each(_.functions(hqmfjs), (method) ->
