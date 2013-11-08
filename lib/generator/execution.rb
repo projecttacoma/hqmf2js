@@ -12,13 +12,9 @@ module HQMF2JS
         end
       end
 
-      def self.measure_codes(measure)
-        HQMF2JS::Generator::CodesToJson.from_value_sets(measure.value_sets)
-      end
-
       # Note that the JS returned by this function is not included when using the in-browser
       # debugger. See app/views/measures/debug.js.erb for the in-browser equivalent.
-      def self.measure_js(measure, population_index, check_crosswalk=false)
+      def self.measure_js(hqmf_document, population_index, options)
         "function() {
           var patient = this;
           var effective_date = <%= effective_date %>;
@@ -37,16 +33,24 @@ module HQMF2JS
           hqmfjs.effective_date = effective_date;
           hqmfjs.test_id = test_id;
       
-          #{logic(measure, population_index, false, check_crosswalk)}
+          #{logic(hqmf_document, population_index, options)}
         };
         "
       end
 
 
-      def self.logic(measure, population_index=0, load_codes=false, check_crosswalk=false)
-        gen = HQMF2JS::Generator::JS.new(measure.as_hqmf_model)
-        codes = measure_codes(measure) if load_codes
-        force_sources = measure.force_sources
+      def self.logic(hqmf_document, population_index=0, options)
+
+        value_sets=options[:value_sets]
+        episode_ids=options[:episode_ids]
+        continuous_variable=options[:continuous_variable]
+        force_sources=options[:force_sources]
+        custom_functions=options[:custom_functions]
+        check_crosswalk=options[:check_crosswalk]
+
+        gen = HQMF2JS::Generator::JS.new(hqmf_document)
+        codes = HQMF2JS::Generator::CodesToJson.from_value_sets(value_sets) if value_sets
+        force_sources = force_sources
 
         if check_crosswalk
           crosswalk_check = "result = hqmf.SpecificsManager.maintainSpecifics(new Boolean(result.isTrue() && patient_api.validateCodeSystems()), result);"
@@ -59,7 +63,7 @@ module HQMF2JS
 
         #{gen.to_js(population_index, codes, force_sources)}
         
-        var occurrenceId = #{quoted_string_array_or_null(measure.episode_ids)};
+        var occurrenceId = #{quoted_string_array_or_null(episode_ids)};
 
         hqmfjs.initializeSpecifics(patient_api, hqmfjs)
         
@@ -82,7 +86,7 @@ module HQMF2JS
           return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);
         }
         var observ = function(specific_context) {
-          #{observation_function(measure, population_index)}
+          #{observation_function(custom_functions, population_index)}
         }
         
         var executeIfAvailable = function(optionalFunction, patient_api) {
@@ -109,7 +113,7 @@ module HQMF2JS
         }
 
         try {
-          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, observ, occurrenceId,#{measure.continuous_variable});
+          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, observ, occurrenceId,#{continuous_variable});
         } catch(err) {
           print(err.stack);
           throw err;
@@ -118,7 +122,7 @@ module HQMF2JS
         "
       end
 
-      def self.observation_function(measure, population_index)
+      def self.observation_function(custom_functions, population_index)
 
         result = "
           var observFunc = hqmfjs.#{HQMF::PopulationCriteria::OBSERV}
@@ -127,8 +131,8 @@ module HQMF2JS
           else
             return [];"
 
-        if (measure.custom_functions && measure.custom_functions[HQMF::PopulationCriteria::OBSERV])
-          result = "return #{measure.custom_functions[HQMF::PopulationCriteria::OBSERV]}(patient_api, hqmfjs)"
+        if (custom_functions && custom_functions[HQMF::PopulationCriteria::OBSERV])
+          result = "return #{custom_functions[HQMF::PopulationCriteria::OBSERV]}(patient_api, hqmfjs)"
         end
 
         result
