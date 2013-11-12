@@ -490,7 +490,7 @@ anyMatchingValue = (event, valueToMatch) ->
 # Return only those events whose value matches the supplied value
 filterEventsByValue = (events, value) ->
   matchingEvents = (event for event in events when (anyMatchingValue(event, value)))
-  matchingEvents
+  hqmf.SpecificsManager.maintainSpecifics(matchingEvents, events)
 @filterEventsByValue = filterEventsByValue
 
 # Return only those events with a field that matches the supplied value
