@@ -439,16 +439,24 @@ allTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
     values = []
     for valueFn in valueFns
       value = invokeOne(patient, initialSpecificContext, valueFn)
-      if value.isFalse()
-        break if Logger.short_circuit
-      else
-        values.push(value)
-    if values.length==valueFns.length
-      hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0), values)
+      # break if the we have a false value and we're short circuiting.  
+      #If we're not short circuiting then we want to calculate everything
+      break if value.isFalse() && Logger.short_circuit
+      values.push(value)
+    trueValues = (value for value in values when value && value.isTrue())
+    if trueValues.length==valueFns.length
+      hqmf.SpecificsManager.intersectAll(new Boolean(trueValues.length>0), trueValues)
     else
-      value = new Boolean(false)
-      value.specificContext = hqmf.SpecificsManager.empty()
-      value
+      # only intersect on false if we are not short circuiting.
+      # if we are not short circuiting then we want to have the specifics context returned for rationale
+      if Logger.short_circuit
+        value = new Boolean(false)
+        value.specificContext = hqmf.SpecificsManager.empty()
+        value
+      else
+        hqmf.SpecificsManager.intersectAll(new Boolean(false), values)
+
+
 @allTrue = allTrue
   
 # Returns true if one or more of the supplied values is false

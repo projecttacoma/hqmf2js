@@ -159,6 +159,14 @@ class hqmf.SpecificsManagerSingleton
     newElement.specificContext = existingElement.specificContext
     newElement.specific_occurrence = existingElement.specific_occurrence
     newElement
+
+  flattenToIds: (specificContext) ->
+    results = []
+    specificContext.flattenToIds()
+
+  storeFinal: (key, result, target) ->
+    target[key] = hqmf.SpecificsManager.flattenToIds(result.specificContext)
+
     
 @hqmf.SpecificsManager = new hqmf.SpecificsManagerSingleton
 
@@ -359,6 +367,12 @@ class hqmf.SpecificOccurrence
   addIdentityRow: ->
     @addRows(hqmf.SpecificsManager.identity().rows)
 
+  flattenToIds: ->
+    result = []
+    for row in @rows
+      result.push(row.flattenToIds())
+    result
+
 class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
   constructor: (leftMost, occurrences={}) ->
@@ -478,6 +492,16 @@ class Row
       occurrences[entryKey] = entry
       rows.push(new Row(entryKey, occurrences))
     rows
+
+  flattenToIds: ->
+    result = []
+    for value in @values
+      if (value == hqmf.SpecificsManager.any)
+        result.push(value)
+      else
+        result.push(value.id)
+    result
+
   
 @Row = Row
   
