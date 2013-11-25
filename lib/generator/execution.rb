@@ -22,7 +22,7 @@ module HQMF2JS
           var enable_rationale = <%= enable_rationale %>;
 
         <% if (!test_id.nil? && test_id.class==Moped::BSON::ObjectId) %>
-          var test_id = new ObjectId(\"<%= test_id %>}\");
+          var test_id = new ObjectId(\"<%= test_id %>\");
         <% else %>
           var test_id = null;
         <% end %>
