@@ -52,6 +52,7 @@ class TS
     else
       earlier = @date
       later = ts.asDate()
+    return Number.MAX_VALUE if !earlier? || !later?
     if granularity=="a"
       TS.yearsDifference(earlier,later)
     else if granularity=="mo"
