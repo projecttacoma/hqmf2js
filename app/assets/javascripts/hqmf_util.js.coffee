@@ -92,6 +92,9 @@ class TS
       [a,b] = TS.dropSeconds(@date, other.date)
       a.getTime() > b.getTime()
 
+  equals: (other) ->
+    (@date==null && other.date==null) || (@date.getTime()==other.date.getTime())
+
   # Returns whether this TS is before or concurrent with the supplied TS ignoring seconds
   beforeOrConcurrent: (other) ->  
     if @date==null || other.date==null
@@ -399,6 +402,10 @@ class IVL_TS
       @low.asDate() && other.high.asDate() && @low.withinSameMinute(other.high)
     else
       false
+
+  equals: (other) ->
+    (@low==null && other.low==null) || (@low.equals(other.low)) && (@high==null && other.high==null) || (@high.equals(other.high))
+
 @IVL_TS = IVL_TS
 
 # Used to represent a value that will match any other value that is not null.
@@ -587,7 +594,9 @@ UNION = (eventLists...) ->
   specific_occurrence = {}
   for eventList in eventLists
     for event in eventList
-      specific_occurrence[event.id] = eventList.specific_occurrence if eventList.specific_occurrence
+      if eventList.specific_occurrence
+        specific_occurrence[event.id] ||= []
+        specific_occurrence[event.id].push eventList.specific_occurrence 
       union.push(event)
   union.specific_occurrence = specific_occurrence unless _.isEmpty(specific_occurrence)
   hqmf.SpecificsManager.unionAll(union, eventLists)
@@ -798,39 +807,52 @@ applySpecificOccurrenceSubset = (operator, result, range, calculateSpecifics) ->
       result.specificContext = result.specificContext[operator]()
   result
 
+uniqueEvents = (events) ->
+  hash = {}
+  (hash[event.id] = event for event in events)
+  _.values(hash)
+@uniqueEvents = uniqueEvents
+
+# if we have multiple events at the same exact time and they happen to be the one selected by FIRST, RECENT, etc
+# then we want to select all of these issues as the first, most recent, etc.
+selectConcurrent = (target, events) ->
+  targetIVL = target.asIVL_TS()
+  uniqueEvents((result for result in events when result.asIVL_TS().equals(targetIVL)))
+@selectConcurrent = selectConcurrent
+
 FIRST = (events) ->
   result = []
-  result = [events.sort(dateSortAscending)[0]] if (events.length > 0)
+  result = selectConcurrent(events.sort(dateSortAscending)[0], events) if (events.length > 0)
   applySpecificOccurrenceSubset('FIRST',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @FIRST = FIRST
 
 SECOND = (events) ->
   result = []
-  result = [events.sort(dateSortAscending)[1]] if (events.length > 1)
+  result = selectConcurrent(events.sort(dateSortAscending)[1], events) if (events.length > 1)
   applySpecificOccurrenceSubset('SECOND',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @SECOND = SECOND
 
 THIRD = (events) ->
   result = []
-  result = [events.sort(dateSortAscending)[2]] if (events.length > 2)
+  result = selectConcurrent(events.sort(dateSortAscending)[2], events) if (events.length > 2)
   applySpecificOccurrenceSubset('THIRD',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @THIRD = THIRD
 
 FOURTH = (events) ->
   result = []
-  result = [events.sort(dateSortAscending)[3]] if (events.length > 3)
+  result = selectConcurrent(events.sort(dateSortAscending)[3], events) if (events.length > 3)
   applySpecificOccurrenceSubset('FOURTH',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @FOURTH = FOURTH
 
 FIFTH = (events) ->
   result = []
-  result = [events.sort(dateSortAscending)[4]] if (events.length > 4)
+  result = selectConcurrent(events.sort(dateSortAscending)[4], events) if (events.length > 4)
   applySpecificOccurrenceSubset('FIFTH',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @FIFTH = FIFTH
 
 RECENT = (events) ->
   result = []
-  result = [events.sort(dateSortDescending)[0]] if (events.length > 0)
+  result = selectConcurrent(events.sort(dateSortDescending)[0], events) if (events.length > 0)
   applySpecificOccurrenceSubset('RECENT',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @RECENT = RECENT
   

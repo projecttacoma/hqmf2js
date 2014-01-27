@@ -360,8 +360,7 @@ class hqmf.SpecificOccurrence
     groupedRows = @group()
     for groupKey, group of groupedRows
       entries = func(hqmf.SpecificsManager.extractEventsForLeftMost(group))
-      if entries.length > 0
-        resultRows.push(entries[0].specificRow)
+      resultRows.push(entry.specificRow) for entry in entries
     new hqmf.SpecificOccurrence(resultRows)
   
   addIdentityRow: ->
@@ -473,15 +472,18 @@ class Row
   @buildRowsForMatching: (entryKey, entry, matchesKey, matches) ->
     rows = []
     for match in matches
-      occurrences={}
-      occurrences[entryKey] = entry
+
       # from unions and crossproducts we may have a matches key that is a hash of object ids mapped to the specific occurrence key.
       # this is because we may have multiple different specific occurrences on the right hand side if it came from a group
-      if (_.isObject(matchesKey))
-        occurrences[matchesKey[match.id]] = match
-      else
-        occurrences[matchesKey] = match
-      rows.push(new Row(entryKey, occurrences))
+      # we may also have the same event mapping to multiple occurrences, so if we have a hash the value will be an array.
+      # we make both the UNION and CROSS casses look the same as the standard case by turning the standard into an array
+      matchKeys = (if _.isObject(matchesKey) then matchesKey[match.id] else [matchesKey])
+      if (matchKeys)
+        for matchKey in matchKeys
+          occurrences = {}
+          occurrences[entryKey] = entry
+          occurrences[matchKey] = match
+          rows.push(new Row(entryKey, occurrences))
     rows
     
   # build specific for a given entry (there are no temporal references)
