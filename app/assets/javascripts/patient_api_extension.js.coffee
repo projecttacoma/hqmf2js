@@ -7,6 +7,9 @@ hQuery.Patient::allDevices = -> this.conditions().concat(this.procedures()).conc
 hQuery.Patient::activeDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['active'])
 hQuery.Patient::inactiveDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['inactive'])
 hQuery.Patient::resolvedDiagnoses = -> this.conditions().concat(this.socialHistories()).withStatuses(['resolved'])
+hQuery.Patient::deathdate = ->
+    hQuery.dateFromUtcSeconds this.json["deathdate"]
+
 hQuery.CodedEntry::asIVL_TS = ->
   tsLow = new TS()
   tsLow.date = this.startDate() || this.date() || null

@@ -552,6 +552,154 @@
                 ]
             }
         },
+     "dead4MonthsBeforeMeasurePeriod": {
+          "title": "Deceased",
+          "description": "Patient Characteristic Expired: Deceased",
+          "standard_category": "individual_characteristic",
+          "qds_data_type": "individual_characteristic",
+          "code_list_id": "2.16.840.1.113883.3.67.1.101.11.721",
+          "property": "expired",
+          "type": "characteristic",
+          "definition": "patient_characteristic_expired",
+          "hard_status": false,
+          "negation": false,
+          "source_data_criteria": "PatientCharacteristicExpiredDeceased",
+          "inline_code_list": {
+            "SNOMED-CT": [
+              "18632008",
+              "371828006"
+            ]
+          },
+          "temporal_references": [
+            {
+              "type": "SBS",
+              "reference": "MeasurePeriod",
+              "range": {
+                "type": "IVL_PQ",
+                "low": {
+                  "type": "PQ",
+                  "unit": "mo",
+                  "value": "4",
+                  "inclusive?": true,
+                  "derived?": false
+                }
+              }
+            }
+          ]
+        },
+     "dead3MonthsBeforeMeasurePeriod": {
+          "title": "Deceased",
+          "description": "Patient Characteristic Expired: Deceased",
+          "standard_category": "individual_characteristic",
+          "qds_data_type": "individual_characteristic",
+          "code_list_id": "2.16.840.1.113883.3.67.1.101.11.721",
+          "property": "expired",
+          "type": "characteristic",
+          "definition": "patient_characteristic_expired",
+          "hard_status": false,
+          "negation": false,
+          "source_data_criteria": "PatientCharacteristicExpiredDeceased",
+          "inline_code_list": {
+            "SNOMED-CT": [
+              "18632008",
+              "371828006"
+            ]
+          },
+          "temporal_references": [
+            {
+              "type": "SBS",
+              "reference": "MeasurePeriod",
+              "range": {
+                "type": "IVL_PQ",
+                "low": {
+                  "type": "PQ",
+                  "unit": "mo",
+                  "value": "3",
+                  "inclusive?": true,
+                  "derived?": false
+                }
+              }
+            }
+          ]
+        },
+
+    "dead3MonthsAfterMeasurePeriod": {
+          "title": "Deceased",
+          "description": "Patient Characteristic Expired: Deceased",
+          "standard_category": "individual_characteristic",
+          "qds_data_type": "individual_characteristic",
+          "code_list_id": "2.16.840.1.113883.3.67.1.101.11.721",
+          "property": "expired",
+          "type": "characteristic",
+          "definition": "patient_characteristic_expired",
+          "hard_status": false,
+          "negation": false,
+          "source_data_criteria": "PatientCharacteristicExpiredDeceased",
+          "inline_code_list": {
+            "SNOMED-CT": [
+              "18632008",
+              "371828006"
+            ]
+          },
+          "temporal_references": [
+            {
+              "type": "SAS",
+              "reference": "MeasurePeriod",
+              "range": {
+                "type": "IVL_PQ",
+                "low": {
+                  "type": "PQ",
+                  "unit": "mo",
+                  "value": "3",
+                  "inclusive?": true,
+                  "derived?": false
+                }
+              }
+            }
+          ]
+        },
+    "deadBetween5and6MonthsDuringMeasurePeriod": {
+          "title": "Deceased",
+          "description": "Patient Characteristic Expired: Deceased",
+          "standard_category": "individual_characteristic",
+          "qds_data_type": "individual_characteristic",
+          "code_list_id": "2.16.840.1.113883.3.67.1.101.11.721",
+          "property": "expired",
+          "type": "characteristic",
+          "definition": "patient_characteristic_expired",
+          "hard_status": false,
+          "negation": false,
+          "source_data_criteria": "PatientCharacteristicExpiredDeceased",
+          "inline_code_list": {
+            "SNOMED-CT": [
+              "18632008",
+              "371828006"
+            ]
+          },
+          "temporal_references": [
+            {
+              "type": "SAS",
+              "reference": "MeasurePeriod",
+              "range": {
+                "type": "IVL_PQ",
+                "low": {
+                  "type": "PQ",
+                  "unit": "mo",
+                  "value": "5",
+                  "inclusive?": true,
+                  "derived?": false
+                },
+             "high": {
+                  "type": "PQ",
+                  "unit": "mo",
+                  "value": "6",
+                  "inclusive?": true,
+                  "derived?": false
+                }
+              }
+            }
+          ]
+        },
         "genderMale": {
             "title": "Gender",
             "standard_category": "individual_characteristic",
