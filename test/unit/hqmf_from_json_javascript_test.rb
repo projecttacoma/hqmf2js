@@ -80,7 +80,6 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
     
     # Results
     assert_equal 2, @context.eval("hqmfjs.HbA1C(numeratorPatient).length")
-     puts @context.eval("hqmfjs.DiabetesMedAdministeredFor7Days")
     # Medications
     assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministered(numeratorPatient).length")
     assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministeredFor7Days(numeratorPatient).length")
