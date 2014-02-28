@@ -159,10 +159,10 @@
       }, 
       "description": "Insulin", 
       "time": 1278475200,
-      "cumulativeMedicationDuration" : {
-        "scalar": 6,
-        "unit": "d"
-      }
+      "administrationTiming" : {"period": {"unit": "h", "value": 8 }},
+      "fulfillmentHistory": [
+          {"dispenseDate": 1278475200, "quantityDispensed" : {"value" :"15"}}
+         ]
     }, 
     {
       "codes": {
