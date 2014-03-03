@@ -44,7 +44,7 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getUTCMonth()")
     assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCFullYear()")
     assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCMonth()")
-  
+   
     # Age functions - Fixture is 37.1
     assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient).isTrue()")
     assert @context.eval("hqmfjs.ageBetween30and39(numeratorPatient).isTrue()")
@@ -116,7 +116,6 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
     
     # Results
     assert_equal 2, @context.eval("hqmfjs.HbA1C(numeratorPatient).length")
-    
     # Medications
     assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministered(numeratorPatient).length")
     assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministeredFor7Days(numeratorPatient).length")
