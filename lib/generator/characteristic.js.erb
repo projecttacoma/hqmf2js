@@ -8,7 +8,18 @@ events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.re
     <%- end -%>
 events.specificContext=hqmf.SpecificsManager.identity();
 return events;
-  <%- elsif criteria.property == :expired or criteria.property == :clinicalTrialParticipant -%>
+  <%- elsif criteria.property == :expired %>
+  var return_value = matchingValue(value, 'true');
+
+    <%- if criteria.temporal_references -%>
+  var events = [patient.deathdate()]; 
+        <%- criteria.temporal_references.each do |temporal_reference| -%>
+  return_value = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
+        <%- end -%>
+      <%- end -%>
+return_value.specificContext=hqmf.SpecificsManager.identity();
+return return_value
+  <%- elsif criteria.property == :clinicalTrialParticipant -%>
 matching = matchingValue(value, 'true');
 matching.specificContext=hqmf.SpecificsManager.identity();
 return matching
