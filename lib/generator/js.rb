@@ -288,6 +288,13 @@ module HQMF2JS
 
       end
   
+      # Allow crosswalk functionality to be loaded separately from main JS libraries
+      def self.crosswalk_functions
+        ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
+        Tilt::CoffeeScriptTemplate.default_bare = true
+        ctx.append_path "app/assets/javascripts"
+        ctx.find_asset('crosswalk').to_s
+      end
     end
   
     # Simple class to issue monotonically increasing integer identifiers
