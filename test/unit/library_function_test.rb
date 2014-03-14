@@ -501,11 +501,11 @@ class LibraryFunctionTest < Test::Unit::TestCase
   
   def test_ordinal_operators
     # Ordinal operators
-    ts20100101 = '{"timeStamp": function() {return new Date(2010,0,1);}}'
-    ts20100201 = '{"timeStamp": function() {return new Date(2010,1,1);}}'
-    ts20100301 = '{"timeStamp": function() {return new Date(2010,2,1);}}'
-    ts20100401 = '{"timeStamp": function() {return new Date(2010,3,1);}}'
-    ts20100501 = '{"timeStamp": function() {return new Date(2010,4,1);}}'
+    ts20100101 = '{"timeStamp": function() {return new Date(2010,0,1);}, "asIVL_TS": function() {return new IVL_TS(new TS("20100101"), new TS("20100101"));}}'
+    ts20100201 = '{"timeStamp": function() {return new Date(2010,1,1);}, "asIVL_TS": function() {return new IVL_TS(new TS("20100201"), new TS("20100201"));}}'
+    ts20100301 = '{"timeStamp": function() {return new Date(2010,2,1);}, "asIVL_TS": function() {return new IVL_TS(new TS("20100301"), new TS("20100301"));}}'
+    ts20100401 = '{"timeStamp": function() {return new Date(2010,3,1);}, "asIVL_TS": function() {return new IVL_TS(new TS("20100401"), new TS("20100401"));}}'
+    ts20100501 = '{"timeStamp": function() {return new Date(2010,4,1);}, "asIVL_TS": function() {return new IVL_TS(new TS("20100501"), new TS("20100501"));}}'
     events0 = "[]"
     events1 = "[#{ts20100101}]"
     events2 = "[#{ts20100101},#{ts20100201}]"
