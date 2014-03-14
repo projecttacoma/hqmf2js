@@ -161,8 +161,7 @@ class hqmf.SpecificsManagerSingleton
     newElement
 
   flattenToIds: (specificContext) ->
-    results = []
-    specificContext.flattenToIds()
+    specificContext?.flattenToIds() || []
 
   storeFinal: (key, result, target) ->
     target[key] = hqmf.SpecificsManager.flattenToIds(result.specificContext)

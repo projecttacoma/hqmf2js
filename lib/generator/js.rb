@@ -206,7 +206,7 @@ module HQMF2JS
         #{js_initialize_specifics(@doc.source_data_criteria)}
 
         // INITIAL PATIENT POPULATION
-        #{js_for(population[HQMF::PopulationCriteria::IPP], HQMF::PopulationCriteria::IPP, true)}
+        #{js_for(population[HQMF::PopulationCriteria::IPP], HQMF::PopulationCriteria::IPP)}
         // DENOMINATOR
         #{js_for(population[HQMF::PopulationCriteria::DENOM], HQMF::PopulationCriteria::DENOM, true)}
         // NUMERATOR
