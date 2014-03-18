@@ -44,7 +44,7 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
     assert_equal 0, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().low.asDate().getUTCMonth()")
     assert_equal 2011, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCFullYear()")
     assert_equal 11, @context.eval("hqmfjs.MeasurePeriod()[0].asIVL_TS().high.asDate().getUTCMonth()")
-  
+   
     # Age functions - Fixture is 37.1
     assert @context.eval("hqmfjs.ageBetween17and64(numeratorPatient).isTrue()")
     assert @context.eval("hqmfjs.ageBetween30and39(numeratorPatient).isTrue()")
@@ -53,6 +53,42 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("hqmfjs.ageBetween40and49(numeratorPatient).isTrue()")
     assert !@context.eval("hqmfjs.ageBetween50and59(numeratorPatient).isTrue()")
     assert !@context.eval("hqmfjs.ageBetween60and64(numeratorPatient).isTrue()")
+
+    
+    # record does not have a death date so false
+    assert !@context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
+    
+    @context.eval("numeratorPatient.json['deathdate']=#{Time.utc(2010,11).to_i}")
+    assert !@context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
+    
+    @context.eval("numeratorPatient.json['deathdate']=#{Time.utc(2010,10).to_i}")
+    assert @context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
+    
+    @context.eval("numeratorPatient.json['deathdate']=#{Time.utc(2011,2).to_i}")
+    assert !@context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
+    
+    @context.eval("numeratorPatient.json['deathdate']=#{Time.utc(2011,4).to_i}")
+    assert !@context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
+    assert @context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
+    
+    @context.eval("numeratorPatient.json['deathdate']=#{Time.utc(2011,6).to_i}")
+    assert !@context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
+    assert @context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
+    assert @context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
+    
+    @context.eval("numeratorPatient.json['deathdate']=#{Time.utc(2011,9).to_i}")
+    assert !@context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
+    assert @context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
+    assert !@context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
     
     # Birthdate function
     assert_equal 1, @context.eval("hqmfjs.birthdateThirtyYearsBeforeMeasurementPeriod(numeratorPatient)").count
@@ -80,7 +116,6 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
     
     # Results
     assert_equal 2, @context.eval("hqmfjs.HbA1C(numeratorPatient).length")
-    
     # Medications
     assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministered(numeratorPatient).length")
     assert_equal 1, @context.eval("hqmfjs.DiabetesMedAdministeredFor7Days(numeratorPatient).length")
