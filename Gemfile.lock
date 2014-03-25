@@ -62,7 +62,7 @@ GEM
     execjs (1.4.0)
       multi_json (~> 1.0)
     hike (1.2.3)
-    hquery-patient-api (1.0.3)
+    hquery-patient-api (1.0.4)
     i18n (0.6.9)
     journey (1.0.4)
     json (1.8.1)
@@ -163,7 +163,7 @@ DEPENDENCIES
   coffee-rails
   coffee-script
   health-data-standards!
-  hquery-patient-api (= 1.0.3)
+  hquery-patient-api (= 1.0.4)
   minitest
   nokogiri
   pry
