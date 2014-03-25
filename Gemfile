@@ -9,12 +9,8 @@ group :assets do
   gem 'uglifier'
 end
 
-#gem 'hquery-patient-api', :git => 'https://github.com/pophealth/patientapi.git', :branch => 'develop'
-#gem 'hquery-patient-api', :path => '../patientapi'
 gem 'hquery-patient-api', '1.0.3'
-
 gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'master'
-#gem 'health-data-standards', :path => '../health-data-standards'
 
 gem 'nokogiri'
 gem 'sprockets'
