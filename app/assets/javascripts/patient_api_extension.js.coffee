@@ -64,9 +64,9 @@ hQuery.AdministrationTiming::dosesPerDay = () ->
       1/p.value()
 
 
-hQuery.Fulfillment::daysInRange = (dateRange,doesPerDay) ->
+hQuery.Fulfillment::daysInRange = (dateRange,dose, dosesPerDay) ->
   # this will give us the number of days this fullfilment was for
-  totalDays = this.quantityDispensed().value()/doesPerDay
+  totalDays = this.quantityDispensed().value()/dose/dosesPerDay
   totalDays = 0 if isNaN(totalDays)
   endDate = new Date(this.dispenseDate().getTime() + (totalDays*60*60*24*1000)) 
   high = if dateRange && dateRange.high then dateRange.high.asDate() else endDate
@@ -94,8 +94,9 @@ hQuery.Fulfillment::daysInRange = (dateRange,doesPerDay) ->
 # date range
 hQuery.Medication::fulfillmentTotals = (dateRange)->
   dpd = this.administrationTiming().dosesPerDay()
+  dose = this.dose().value()
   this.fulfillmentHistory().reduce (t, s) -> 
-    t + s.daysInRange(dateRange,dpd)
+    t + s.daysInRange(dateRange,dose,dpd)
   , 0  
   
 hQuery.Medication::cumulativeMedicationDuration = (dateRange) ->
@@ -103,7 +104,7 @@ hQuery.Medication::cumulativeMedicationDuration = (dateRange) ->
   #doses not total amount. Will need to flush this out more at a later point in time. 
   #Considering that liquid meds are probaly dispensed as total volume ex 325ml with a dose of 
   #say 25ml per dose.  Will definatley need to revisit this.  
-  this.fulfillmentTotals(dateRange) if this.administrationTiming()
+  this.fulfillmentTotals(dateRange) if this.administrationTiming() && this.dose()
 
 
 
