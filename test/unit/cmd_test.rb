@@ -27,44 +27,46 @@ class CmdTest < Test::Unit::TestCase
     ebs =  @context.eval(%{ var ebs =  new hQuery.Fulfillment({"dispenseDate": #{Time.utc(2009,02,02).to_i} , "quantityDispensed" : {"value" :"30"}}) })
     ece =  @context.eval(%{ var ece = new hQuery.Fulfillment({"dispenseDate": #{Time.utc(2010,12,21).to_i} , "quantityDispensed" : {"value" :"30"}}) })
     
-    assert_equal 10 , @context.eval("during.daysInRange(range,   perDay)"), "Should be 10 days during"
-    assert_equal 10 ,  @context.eval("scs.daysInRange(range,   perDay)"), "Should be 10 days starting concurrent with the start range"
-    assert_equal  3, @context.eval("sbs.daysInRange(range,   perDay)"), "Should be 4 days overlap for starting before the start of the range"
-    assert_equal  0, @context.eval("sae.daysInRange(range,  perDay)"), "Should be 0 days starting after end"
-    assert_equal  6, @context.eval("eae.daysInRange(range,  perDay)"), "Should be 6 days overlap ending after the end of date range"
-    assert_equal  0, @context.eval("ebs.daysInRange(range,  perDay)"), "Should be 0 days  overlap ending before the start of the date range"
-    assert_equal  10, @context.eval("ece.daysInRange(range,   perDay)"), "Should be 10 days when ending concurrent with the end"
+    assert_equal 10 , @context.eval("during.daysInRange(range, 1,  perDay)"), "Should be 10 days during"
+    assert_equal 10 ,  @context.eval("scs.daysInRange(range,  1,  perDay)"), "Should be 10 days starting concurrent with the start range"
+    assert_equal  3, @context.eval("sbs.daysInRange(range,  1,  perDay)"), "Should be 4 days overlap for starting before the start of the range"
+    assert_equal  0, @context.eval("sae.daysInRange(range, 1,  perDay)"), "Should be 0 days starting after end"
+    assert_equal  6, @context.eval("eae.daysInRange(range, 1,  perDay)"), "Should be 6 days overlap ending after the end of date range"
+    assert_equal  0, @context.eval("ebs.daysInRange(range, 1,  perDay)"), "Should be 0 days  overlap ending before the start of the date range"
+    assert_equal  10, @context.eval("ece.daysInRange(range, 1,   perDay)"), "Should be 10 days when ending concurrent with the end"
 
     @context.eval("var perDay = 1/3;") #every 3 days
 
-    assert_equal 90 , @context.eval("during.daysInRange(range,   perDay)"), "Should be 10 days during"
-    assert_equal 90 , @context.eval("scs.daysInRange(range,   perDay)"), "Should be 10 days starting concurrent with the start range"
-    assert_equal  90-7,  @context.eval("sbs.daysInRange(range,   perDay)"), "Should be 4 days overlap for starting before the start of the range"
-    assert_equal  0,  @context.eval("sae.daysInRange(range,  perDay)"), "Should be 0 days starting after end"
-    assert_equal  6,  @context.eval("eae.daysInRange(range,  perDay)"), "Should be 6 days overlap starting after the end of date range"
-    assert_equal  0,  @context.eval("ebs.daysInRange(range,  perDay)"), "Should be 0 days  overlap ending before the start of the date range"
-    assert_equal  10, @context.eval("ece.daysInRange(range,   perDay)"), "Should be 10 days when ending concurrent with the end"
+    assert_equal 90 , @context.eval("during.daysInRange(range, 1,   perDay)"), "Should be 10 days during"
+    assert_equal 90 , @context.eval("scs.daysInRange(range, 1,   perDay)"), "Should be 10 days starting concurrent with the start range"
+    assert_equal  90-7,  @context.eval("sbs.daysInRange(range, 1,   perDay)"), "Should be 4 days overlap for starting before the start of the range"
+    assert_equal  0,  @context.eval("sae.daysInRange(range, 1,  perDay)"), "Should be 0 days starting after end"
+    assert_equal  6,  @context.eval("eae.daysInRange(range, 1,  perDay)"), "Should be 6 days overlap starting after the end of date range"
+    assert_equal  0,  @context.eval("ebs.daysInRange(range, 1,  perDay)"), "Should be 0 days  overlap ending before the start of the date range"
+    assert_equal  10, @context.eval("ece.daysInRange(range, 1,   perDay)"), "Should be 10 days when ending concurrent with the end"
 
     @context.eval("range = new IVL_TS(null, new TS('20101231'))")
-    assert_equal 90, @context.eval("during.daysInRange(range,   perDay)"), "Should be 90 when not supplied a start date"
+    assert_equal 90, @context.eval("during.daysInRange(range, 1,   perDay)"), "Should be 90 when not supplied a start date"
     
     @context.eval("range = new IVL_TS(new TS('20100301'), null)")
-    assert_equal 63, @context.eval("during.daysInRange(range,   perDay)"), "Should be 90 when not supplied an end date date"
+    assert_equal 63, @context.eval("during.daysInRange(range, 1,   perDay)"), "Should be 90 when not supplied an end date date"
     
   end
 
   def test_cumulativeMedicationDuration
     medication1 = %{
       {
+        "dose" : {"unit" : "mg", "value" : "5"},
         "administrationTiming" :{'period' : {'unit': 'h' , 'value': 8 }},
         "fulfillmentHistory": [
-          {"dispenseDate": #{Time.utc(2010,01,01).to_i} , "quantityDispensed" : {"value" :"30"}}
+          {"dispenseDate": #{Time.utc(2010,01,01).to_i} , "quantityDispensed" : {"value" :"150", "unit" : "mg"}}
          ]
       }
     }
 
     medication2 = %{
         {
+          "dose" : {"unit" : "mg", "value" : "1"},
           "administrationTiming" :{'period' : {'unit': 'h' , 'value': 8 }},
           "fulfillmentHistory": [
             {"dispenseDate": #{Time.utc(2010,01,01).to_i} , "quantityDispensed" : {"value" :"30"}},
@@ -75,6 +77,7 @@ class CmdTest < Test::Unit::TestCase
 
     no_history = %{
         {
+          "dose" : {"unit" : "mg", "value" : "5"},
           "administrationTiming" :{'period' : {'unit': 'h' , 'value': 8 }},
           "fulfillmentHistory": []
         }
