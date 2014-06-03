@@ -375,8 +375,6 @@ class hqmf.SpecificOccurrence
 class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
   constructor: (leftMost, occurrences={}) ->
-    #left most can be an object if we have a temporal reference on a grouping data criteria
-    #throw "left most key must be a string or undefined was: #{leftMost}" if typeof(leftMost) != 'string' and typeof(leftMost) != 'undefined'
     @length = hqmf.SpecificsManager.occurrences.length
     @values = []
     @leftMost = leftMost
