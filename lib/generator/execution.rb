@@ -70,6 +70,12 @@ module HQMF2JS
         var population = function() {
           return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::IPP}, patient_api);
         }
+        var stratification = null;
+        if (hqmfjs.#{HQMF::PopulationCriteria::STRAT}) {
+          stratification = function() {
+            return hqmf.SpecificsManager.setIfNull(executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::STRAT}, patient_api));
+          }
+        }
         var denominator = function() {
           return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::DENOM}, patient_api);
         }
@@ -113,7 +119,7 @@ module HQMF2JS
         }
 
         try {
-          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, observ, occurrenceId,#{continuous_variable});
+          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, observ, occurrenceId,#{continuous_variable},stratification);
         } catch(err) {
           print(err.stack);
           throw err;

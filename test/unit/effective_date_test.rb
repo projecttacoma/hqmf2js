@@ -3,9 +3,8 @@ require_relative '../test_helper'
 class EffectiveDateTest < Test::Unit::TestCase
   def setup
     # Open a path to all of our fixtures
-    hqmf_contents = File.open("test/fixtures/NQF59New.xml").read
-    
-    doc = HQMF::Parser.parse(hqmf_contents, HQMF::Parser::HQMF_VERSION_2)
+    model = JSON.parse(File.open("test/fixtures/NQF59New.json").read)
+    doc = HQMF::Document.from_json(model)
     
     # First compile the CoffeeScript that enables our converted HQMF JavaScript
     ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))

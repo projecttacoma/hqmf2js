@@ -184,6 +184,7 @@ module HQMF2JS
         sub_ids = ('a'..'zz').to_a
         sub_id = @doc.populations.size > 1 ? "'#{sub_ids[population_index]}'" : "null";
 
+        stratified = !population[HQMF::PopulationCriteria::STRAT].nil?
 
         "
         // #########################
@@ -207,6 +208,8 @@ module HQMF2JS
 
         // INITIAL PATIENT POPULATION
         #{js_for(population[HQMF::PopulationCriteria::IPP], HQMF::PopulationCriteria::IPP)}
+        // STRATIFICATION
+        #{(stratified ? js_for(population[HQMF::PopulationCriteria::STRAT], HQMF::PopulationCriteria::STRAT, true) : 'hqmfjs.'+HQMF::PopulationCriteria::STRAT+'=null;')}
         // DENOMINATOR
         #{js_for(population[HQMF::PopulationCriteria::DENOM], HQMF::PopulationCriteria::DENOM, true)}
         // NUMERATOR

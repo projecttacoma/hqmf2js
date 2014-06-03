@@ -42,9 +42,10 @@ class hqmf.SpecificsManagerSingleton
   identity: ->
     new hqmf.SpecificOccurrence([new Row(undefined)])
 
-  setIfNull: (events,subsets) ->
+  setIfNull: (events) ->
     if (!events.specificContext? || events.length == 0)
       events.specificContext=hqmf.SpecificsManager.identity()
+    events
       
   getColumnIndex: (occurrenceID) ->
     columnIndex = @indexLookup[occurrenceID]
@@ -374,7 +375,6 @@ class hqmf.SpecificOccurrence
 class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
   constructor: (leftMost, occurrences={}) ->
-    throw "left most key must be a string or undefined was: #{leftMost}" if typeof(leftMost) != 'string' and typeof(leftMost) != 'undefined'
     @length = hqmf.SpecificsManager.occurrences.length
     @values = []
     @leftMost = leftMost
