@@ -10,9 +10,14 @@ namespace :hqmf do
     FileUtils.mkdir_p File.join(".","tmp",'js')
     file = File.expand_path(args.hqmf)
     version = args.hqmf_version || HQMF::Parser::HQMF_VERSION_1
+
     filename = Pathname.new(file).basename
-    doc = HQMF::Parser.parse(File.open(file).read, version)
-    
+    if (version == HQMF::Parser::HQMF_VERSION_1)
+      doc = HQMF::Parser::V1Parser.new.parse(File.open(file).read, version)
+    else
+      doc = HQMF::Parser::V2Parser.new.parse(File.open(file).read, version)
+    end
+
     gen = HQMF2JS::Generator::JS.new(doc)
 
     out_file = File.join(".","tmp",'js',"#{filename}.js")
