@@ -14,7 +14,7 @@ module HQMF2JS
           code_sets = {}
           value_set.concepts.each do |code_set|
             code_sets[code_set.code_system_name] ||= []
-            code_sets[code_set.code_system_name].concat(code_set.code.to_a)
+            code_sets[code_set.code_system_name] << code_set.code
           end
           
           translation[value_set.oid] = code_sets
