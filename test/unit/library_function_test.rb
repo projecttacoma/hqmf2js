@@ -340,6 +340,21 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert_equal 2, @context.eval("XPRODUCT(#{events0},#{events2}).length")
     assert_equal 2, @context.eval("XPRODUCT(#{events0},#{events2}).eventLists.length")
   end
+
+  def test_intersection
+    # XPRODUCT
+    events0 = '[]'
+    events1 = '[{id:1}]'
+    events2 = '[{id:2},{id:3},{id:4}]'
+    events3 = '[{id:3},{id:5}]'
+    assert_equal 0, @context.eval("INTERSECT().length")
+    assert_equal 0, @context.eval("INTERSECT(#{events0}).length")
+    assert_equal 3, @context.eval("INTERSECT(#{events2}).length")
+    assert_equal 0, @context.eval("INTERSECT(#{events1},#{events2}).length")
+    assert_equal 0, @context.eval("INTERSECT(#{events0},#{events2}).length")
+    assert_equal 1, @context.eval("INTERSECT(#{events2},#{events3}).length")
+    assert_equal 0, @context.eval("INTERSECT(#{events2},#{events3},#{events1}).length")
+  end
   
   def test_temporal_operators
     # Events and bounds for temporal operators
