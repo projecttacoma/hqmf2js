@@ -615,6 +615,12 @@ class CrossProduct extends Array
         @specific_occurrence[event.id] = eventList.specific_occurrence if eventList.specific_occurrence
   listCount: -> @eventLists.length
   childList: (index) -> @eventLists[index]
+  intersect: ->
+    result = @childList(0) || []
+    for index in [1...@listCount()] by 1
+      currentIds = @childList(index).map((event) -> event.id)
+      result = result.filter((event) -> currentIds.indexOf(event.id) >= 0)
+    result
 
 # Create a CrossProduct of the supplied event lists.
 XPRODUCT = (eventLists...) ->
@@ -636,6 +642,11 @@ UNION = (eventLists...) ->
   union.specific_occurrence = specific_occurrence unless _.isEmpty(specific_occurrence)
   hqmf.SpecificsManager.unionAll(union, eventLists)
 @UNION = UNION
+
+# Create a CrossProduct of the supplied event lists.
+INTERSECT = (eventLists...) ->
+  hqmf.SpecificsManager.intersectAll((new CrossProduct(eventLists)).intersect(), eventLists)
+@INTERSECT = INTERSECT
 
 # Return true if the number of events matches the supplied range
 COUNT = (events, range) ->
