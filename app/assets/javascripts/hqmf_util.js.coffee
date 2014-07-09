@@ -771,6 +771,7 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
   matchingEvents = []
   matchingEvents.specific_occurrence = events.specific_occurrence
   for event in events
+    continue unless event
     matchingBounds=eventMatchesBounds(event, bounds, methodName, range)
     matchingEvents.push(event) if matchingBounds.length > 0
 
