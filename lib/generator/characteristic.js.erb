@@ -6,7 +6,7 @@
   events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
     <%- end -%>
   <%- end -%>
-  events.specificContext=hqmf.SpecificsManager.identity();
+  events.specificContext=events.specificContext||hqmf.SpecificsManager.identity();
   return events;
  <%- elsif criteria.property == :expired %>
   var return_value = matchingValue(value, 'true');
