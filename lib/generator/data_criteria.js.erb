@@ -17,6 +17,9 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
     <%- end -%>
     <%- if criteria.value -%>
   events = filterEventsByValue(events, <%= js_for_bounds(criteria.value) %>);
+    <%- elsif is_result_criteria(criteria) -%>
+  // force a check of results for result types so that performed does not bleed into results
+  events = filterEventsByValue(events, new ANYNonNull());
     <%- end -%>
     <%- if criteria.field_values.present?
           criteria.field_values.keys.each do |field| -%>

@@ -56,6 +56,11 @@ module HQMF2JS
           'denormalizeEventsByLocation'
         end
       end
+
+      def is_result_criteria(criteria)
+        settings = HQMF::DataCriteria.get_settings_for_definition(criteria.definition, criteria.status)
+        settings && settings['sub_category'] == 'result'
+      end
       
       def js_for_value(value)
         if value
