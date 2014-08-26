@@ -47,26 +47,24 @@ hQuery.CodedEntry::includesCodeFrom = (codeSet) ->
   oneTrue
 
 instrumentTrueCrosswalk = (hqmfjs) ->
-  # CrosswalkManager.clearValidateCodeSystemData()
-  # _.each(_.functions(hqmfjs), (method) ->
-  #   hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
+  # Wrap all of the data criteria functions generated from HQMF
+  _.each(_.functions(hqmfjs), (method) ->
+    if method != 'initializeSpecifics'
+      hqmfjs[method] = _.wrap(hqmfjs[method], (func) ->
 
-  #     args = Array.prototype.slice.call(arguments,1)
+        args = Array.prototype.slice.call(arguments,1)
 
-  #     results = func.apply(this, args)
-  #     tmp_results = results
-  #     tmp_results = [results] unless _.isArray(tmp_results)
+        isDataCriteria = method.match(/precondition_[0-9]+/)
 
-  #     _.each(tmp_results, (result) ->
-  #       if result.json? && CrosswalkManager.tmpTrueMatchedSystems[result.id]?
-  #         tmpTrueMatchedSystems = CrosswalkManager.tmpTrueMatchedSystems[result.id]
-  #         CrosswalkManager.trueMatchedSystems[result.id] = {} unless CrosswalkManager.trueMatchedSystems[result.id]
-  #         Logger.info("TRUE_MATCHED: #{result.json['description']} - #{_.keys(tmpTrueMatchedSystems)}!!!")
-  #         _.each(_.keys(tmpTrueMatchedSystems), (key) ->
-  #           CrosswalkManager.trueMatchedSystems[result.id][key] = CrosswalkManager.trueMatchedSystems[result.id][key] || tmpTrueMatchedSystems[key]
-  #         )
-  #     )
-  #     results
-  #   )
-  # )
+        if isDataCriteria
+          tmpCrosswalk = $.extend(true, {}, CrosswalkManager.matchedSystems)
+
+        result = func.apply(this, args)
+
+        if isDataCriteria && result.isFalse()
+          CrosswalkManager.matchedSystems = tmpCrosswalk
+
+        return result;
+      );
+  );
 @instrumentTrueCrosswalk = instrumentTrueCrosswalk
