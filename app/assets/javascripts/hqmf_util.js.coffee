@@ -1008,12 +1008,10 @@ MAX = (events, range) ->
 
 DATEDIFF = (events, range) ->
   return hqmf.SpecificsManager.maintainSpecifics(new Boolean(false), events) if events.length < 2
-  intervalMap = {}
-  intervals = (getIVL(event) for event in events)
-  intervalMap["#{interval.low?.date.getTime()}_#{interval.high?.date.getTime()}"] = interval for interval in intervals
-  intervals = _.values(intervalMap)
-  throw "cannot calculate against more than 2 events" if intervals.length > 2
-  hqmf.SpecificsManager.maintainSpecifics(new Boolean(withinRange('DATEDIFF', intervals[0], intervals[1], range)), events)
+  events = events.sort(dateSortAscending)
+  # events are now sorted, DATEDIFF is between first and last event
+  # throw "cannot calculate against more than 2 events" if events.length > 2
+  hqmf.SpecificsManager.maintainSpecifics(new Boolean(withinRange('DATEDIFF', getIVL(events[0]), getIVL(events[events.length - 1]), range)), events)
 @DATEDIFF = DATEDIFF
 
 # Calculate the set of time differences in minutes between pairs of events
