@@ -590,9 +590,23 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert_equal true, @context.eval('DATETIMEDIFF([diffEvent2,diffEvent1],range4).isTrue()')
     assert_equal true, @context.eval('DATETIMEDIFF([diffEvent1,diffEvent1],range4).isTrue()')
 
-    
-    # false test
-    
+
+    @context.eval("
+      var ts1 = new TS('20100101100000');
+      var ts2 = new TS('20100101101000');
+      var ts3 = new TS('20100101103000');
+      
+      var ddEvents1 = [{'id': 1, 'asTS': function() {return ts1;}}];
+      var ddEvents2 = [{'id': 20, 'asTS': function() {return ts2;}}];
+      var ddEvents3 = [{'id': 30, 'asTS': function() {return ts3;}, 'timeStamp': function() {return ts3.date}}, {'id': 20, 'asTS': function() {return ts2;}, 'timeStamp': function() {return ts2.date}}];
+    ");
+
+    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents2)).length').must_equal 1
+    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents2))[0]').must_equal 10
+    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents3)).length').must_equal 1
+    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents3))[0]').must_equal 30
+    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents2,ddEvents3)).length').must_equal 1
+    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents2,ddEvents3))[0]').must_equal 20
     
   end
   

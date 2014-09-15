@@ -1032,25 +1032,31 @@ TIMEDIFF = (events, range, initialSpecificContext) ->
     throw "TIMEDIFF can only process 2 lists of events"
   eventList1 = events.childList(0)
   eventList2 = events.childList(1)
-  eventIndex1 = hqmf.SpecificsManager.getColumnIndex(eventList1.specific_occurrence)
-  eventIndex2 = hqmf.SpecificsManager.getColumnIndex(eventList2.specific_occurrence)
-  eventMap1 = {}
-  eventMap2 = {}
-  for event in eventList1
-    eventMap1[event.id] = event
-  for event in eventList2
-    eventMap2[event.id] = event
-  results = []
-  for row in initialSpecificContext.rows
-    event1 = row.values[eventIndex1]
-    event2 = row.values[eventIndex2]
-    if event1 and event2 and event1 != hqmf.SpecificsManager.any and event2 != hqmf.SpecificsManager.any 
-      # The maps contain the actual events we want to work with since these may contain
-      # time shifted clones of the events in the specificContext, e.g. via adjustBoundsForField
-      shiftedEvent1 = eventMap1[event1.id]
-      shiftedEvent2 = eventMap2[event2.id]
-      if shiftedEvent1 and shiftedEvent2
-        results.push(shiftedEvent1.asTS().difference(shiftedEvent2.asTS(), 'min'))
+  eventIndex1 = hqmf.SpecificsManager.getColumnIndex(eventList1.specific_occurrence) if eventList1.specific_occurrence
+  eventIndex2 = hqmf.SpecificsManager.getColumnIndex(eventList2.specific_occurrence) if eventList2.specific_occurrence
+  if (eventIndex1? && eventIndex2?)
+    eventMap1 = {}
+    eventMap2 = {}
+    for event in eventList1
+      eventMap1[event.id] = event
+    for event in eventList2
+      eventMap2[event.id] = event
+    results = []
+    for row in initialSpecificContext.rows
+      event1 = row.values[eventIndex1]
+      event2 = row.values[eventIndex2]
+      if event1 and event2 and event1 != hqmf.SpecificsManager.any and event2 != hqmf.SpecificsManager.any 
+        # The maps contain the actual events we want to work with since these may contain
+        # time shifted clones of the events in the specificContext, e.g. via adjustBoundsForField
+        shiftedEvent1 = eventMap1[event1.id]
+        shiftedEvent2 = eventMap2[event2.id]
+        if shiftedEvent1 and shiftedEvent2
+          results.push(shiftedEvent1.asTS().difference(shiftedEvent2.asTS(), 'min'))
+  else
+    if (eventList1.length > 0 && eventList2.length > 0)
+      event1 = eventList1.sort(dateSortAscending)[0]
+      event2 = eventList2.sort(dateSortAscending)[eventList2.length - 1]
+      results = [event1.asTS().difference(event2.asTS(), 'min')]
   results
 @TIMEDIFF = TIMEDIFF
 
