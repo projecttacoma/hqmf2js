@@ -20,6 +20,7 @@ module HQMF2JS
           var effective_date = <%= effective_date %>;
           var enable_logging = <%= enable_logging %>;
           var enable_rationale = <%= enable_rationale %>;
+          var short_circuit = <%= short_circuit %>;
 
         <% if (!test_id.nil? && test_id.class==Moped::BSON::ObjectId) %>
           var test_id = new ObjectId(\"<%= test_id %>\");
