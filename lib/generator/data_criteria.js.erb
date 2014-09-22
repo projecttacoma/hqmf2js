@@ -23,7 +23,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
     <%- end -%>
     <%- if criteria.field_values.present?
           criteria.field_values.keys.each do |field| -%>
-  events = <%= field_library_method(field) %>(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
+  events = <%= field_library_method(field, criteria.field_values[field]) %>(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
       <%- end -%>
     <%- end -%>
     <%- if criteria.temporal_references and criteria.temporal_references.length > 0 -%>

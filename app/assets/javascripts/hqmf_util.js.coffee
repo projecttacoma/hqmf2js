@@ -287,6 +287,17 @@ class IVL_PQ
 # Represents an HL7 time interval
 class IVL_TS
   constructor: (@low, @high) ->
+
+  # support comparison to another Date for static dates
+  match: (other) ->
+    return false unless other?
+    other = getTS(other, @low?.inclusive || @high?.inclusive)
+    if @low && @low.inclusive && @high && @high.inclusive
+      @low.equals(other) && @high.equals(other)
+    else if @low
+      @low.before(other)
+    else if @high
+      @high.after(other)
   
   # add an offset to the upper and lower bounds
   add: (pq) ->
@@ -672,6 +683,16 @@ getIVL = (eventOrTimeStamp) ->
     ts.date = eventOrTimeStamp
     new IVL_TS(ts, ts)
 @getIVL = getIVL
+
+# Convert any JS Date into a TS
+getTS = (date, inclusive=false) ->
+  if date.asDate
+    date
+  else
+    ts = new TS(null, inclusive)
+    ts.date = date
+    ts
+@getTS = getTS
 
 eventAccessor = {  
   'DURING': 'low',

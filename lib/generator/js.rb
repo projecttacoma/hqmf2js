@@ -46,9 +46,9 @@ module HQMF2JS
         HQMF::DataCriteria::FIELDS[field_name][:coded_entry_method].to_s.camelize(:lower)
       end
       
-      def field_library_method(field_name)
+      def field_library_method(field_name, value=nil)
         field_type = HQMF::DataCriteria::FIELDS[field_name][:field_type]
-        if field_type == :value
+        if field_type == :value || !value.nil? && value.type == 'IVL_TS'
           'filterEventsByField'
         elsif field_type == :timestamp
           'adjustBoundsForField'
@@ -79,6 +79,8 @@ module HQMF2JS
               else
                 "new PQ(#{value.value}, null, #{value.inclusive?})"
               end
+            elsif value.type=='TS'
+              "new TS(\"#{value.value}\", #{value.inclusive?})"
             elsif value.type=='ANYNonNull'
               "new #{value.type}()"
             elsif value.respond_to?(:unit) && value.unit != nil
@@ -96,7 +98,8 @@ module HQMF2JS
 
       def js_for_bounds(bounds)
         if (bounds.respond_to?(:low) && bounds.respond_to?(:high))
-          "new IVL_PQ(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
+          type = bounds.type || 'IVL_PQ'
+          "new #{type}(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
         else
           "#{js_for_value(bounds)}"
         end
