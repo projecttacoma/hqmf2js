@@ -28,7 +28,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
     <%- end -%>
     <%- if criteria.temporal_references and criteria.temporal_references.length > 0 -%>
       <%- criteria.temporal_references.each do |temporal_reference| -%>
-  if (events.length > 0 || !short_circuit) events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
+  if (events.length > 0 || !Logger.short_circuit) events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
       <%- end -%>
   if (events.length == 0) events.specificContext=hqmf.SpecificsManager.empty();
     <%- else # no temporal refs -%>
