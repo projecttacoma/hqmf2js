@@ -1050,7 +1050,13 @@ DATEDIFF = (events, range) ->
 # combination of events
 TIMEDIFF = (events, range, initialSpecificContext) ->
   if events.listCount() != 2
-    throw "TIMEDIFF can only process 2 lists of events"
+    if events.listCount() && events.eventLists[0].length >= 2
+      eventList = events.eventLists[0]
+      event1 = eventList.sort(dateSortAscending)[0]
+      event2 = eventList.sort(dateSortAscending)[eventList.length - 1]
+      return [event1.asTS().difference(event2.asTS(), 'min')]
+    else
+      throw "TIMEDIFF can only process 2 lists of events"
   eventList1 = events.childList(0)
   eventList2 = events.childList(1)
   eventIndex1 = hqmf.SpecificsManager.getColumnIndex(eventList1.specific_occurrence) if eventList1.specific_occurrence
