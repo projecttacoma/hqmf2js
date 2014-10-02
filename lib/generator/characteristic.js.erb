@@ -28,6 +28,10 @@ return return_value
   matching = matchingValue(value, 'true');
   matching.specificContext=hqmf.SpecificsManager.identity();
   return matching;
+<%- elsif criteria.property == :race -%>
+  matching = new Boolean(value.includedIn(<%=criteria.inline_code_list.to_json%>));
+  matching.specificContext=hqmf.SpecificsManager.identity();
+  return matching;
 <%- else -%>
   matching = matchingValue(value, <%= js_for_bounds(criteria.value) %>);
   matching.specificContext=hqmf.SpecificsManager.identity();
