@@ -13,17 +13,15 @@
   <%- end -%>
   events.specificContext=events.specificContext||hqmf.SpecificsManager.identity();
   return events;
- <%- elsif criteria.property == :expired %>
-  var return_value = matchingValue(value, 'true');
-
+<%- elsif criteria.property == :expired -%>
+  var events = value ? [patient.deathdate()] : [];
     <%- if criteria.temporal_references -%>
-  var events = [patient.deathdate()]; 
-        <%- criteria.temporal_references.each do |temporal_reference| -%>
-  return_value = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
-        <%- end -%>
+      <%- criteria.temporal_references.each do |temporal_reference| -%>
+  events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
       <%- end -%>
-return_value.specificContext=hqmf.SpecificsManager.identity();
-return return_value  
+    <%- end -%>
+  events.specificContext=events.specificContext||hqmf.SpecificsManager.identity();
+  return events
 <%- elsif criteria.property == :clinicalTrialParticipant -%>
   matching = matchingValue(value, 'true');
   matching.specificContext=hqmf.SpecificsManager.identity();
