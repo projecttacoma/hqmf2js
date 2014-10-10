@@ -26,6 +26,9 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
   events = <%= field_library_method(field, criteria.field_values[field]) %>(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
       <%- end -%>
     <%- end -%>
+    <%- if ['transfer_from','transfer_to'].include?(criteria.definition) -%>
+  events = denormalizeEventsByTransfer(events, '<%=criteria.definition.camelize(:lower)%>');
+    <%- end -%>
     <%- if criteria.temporal_references and criteria.temporal_references.length > 0 -%>
       <%- criteria.temporal_references.each do |temporal_reference| -%>
   if (events.length > 0 || !Logger.short_circuit) events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);
