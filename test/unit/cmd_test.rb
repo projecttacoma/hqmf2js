@@ -92,4 +92,45 @@ class CmdTest < Test::Unit::TestCase
   end
 
 
+  def test_active_days
+
+    @context.eval("var active = new ActiveDays()")
+    @context.eval("var ivl = new IVL_TS(new TS('20101001'), new TS('20101031'))")
+    @context.eval("active.add_ivlts(ivl)")
+
+    assert_equal 31, @context.eval("active.days_active(ivl.low,ivl.high).length")
+
+    @context.eval(" ivl = new IVL_TS(new TS('20101001'), new TS('20101010'))")
+    assert_equal 10, @context.eval("active.days_active(ivl.low,ivl.high).length")
+
+    @context.eval(" ivl = new IVL_TS(new TS('20101001'), new TS('20101110'))")
+    assert_equal 31, @context.eval("active.days_active(ivl.low,ivl.high).length")
+
+    @context.eval(" ivl = new IVL_TS(new TS('20101031'), new TS('20101110'))")
+    assert_equal 1, @context.eval("active.days_active(ivl.low,ivl.high).length")
+    
+    @context.eval(" ivl = new IVL_TS(new TS('20101110'), new TS('20110110'))")
+    @context.eval("active.add_ivlts(ivl)")
+
+    @context.eval(" ivl = new IVL_TS(new TS('20101031'), new TS('20101113'))")
+    assert_equal 5, @context.eval("active.days_active(ivl.low,ivl.high).length")
+    
+
+    @context.eval(" ivl = new IVL_TS(new TS('20101102'), new TS('20101113'))")
+    assert_equal 4, @context.eval("active.days_active(ivl.low,ivl.high).length")
+
+
+    @context.eval(" ivl = new IVL_TS(new TS('20100101'), new TS('20110113'))")
+    assert_equal 93, @context.eval("active.days_active(ivl.low,ivl.high).length")
+
+    @context.eval("ivl = new IVL_TS(new TS('20101110'), new TS('20110110'))")
+    @context.eval("active.add_ivlts(ivl)")
+
+    @context.eval(" ivl = new IVL_TS(new TS('20100101'), new TS('20110113'))")
+    assert_equal 93, @context.eval("active.days_active(ivl.low,ivl.high).length")
+
+
+
+  end
+
 end
