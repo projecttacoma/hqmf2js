@@ -1093,7 +1093,6 @@ class ActiveDays
 
   constructor: ->
     @active_days=[]
-    @log =[]
 
   reset: ->
     @active_days=[]
@@ -1102,24 +1101,19 @@ class ActiveDays
     @add_range(ivlts.low,ivlts.high)
 
   add_range: (low,high) ->
-    @log.push("LOW: " + low + "     HIGH:  " + high)
     start = @as_date(low)
     end = @as_date(high)
-    @log.push("start: " + start + "     end:  " + end)
     days = (end.getTime()-start.getTime())/(1000*60*60*24) #number of days between dates
     days += 1  # the above calculation only accounts for the days between and up to the end need to add the start back on
-    @log.push("days: " + days)
     @add_days_from(start,days)
 
   add_days_from: (start, number_of_days) ->
-    @log.push("ADD_DAYS -- START: " + start  + "   DAYS " + number_of_days)
     for x in[0..number_of_days-1]
       diff = (1000*60*60*24)*x
       @add_date(new Date((start.getTime() + diff))) 
      
 
   add_date: (_date)->
-    @log.push( "ADD_DATE: " + _date)
     date = @as_date(_date)
     formated_date = @format_date(date)
     if @active_days[formated_date]
@@ -1177,11 +1171,8 @@ class CMD extends  ActiveDays
       @add_medication(m)
 
   add_medication: (medication) ->
-    @log.push("ADD MEDICATION ")
     dose = medication.dose().value()
     dosesPerDay = medication.administrationTiming().dosesPerDay()
-    @log.push("DOSE " + dose )
-    @log.push("DPD " + dosesPerDay)
     if @calculation_type == "order"
       for oi in medication.orderInformation()
          totalDays = oi.quantityOrdered().value()/dose/dosesPerDay
@@ -1191,13 +1182,10 @@ class CMD extends  ActiveDays
           @add_days_from(startDate,totalDays*fills)
     else
       history = medication.fulfillmentHistory()
-      @log.push("FH length " + history.length)
       for fh in history
-         @log.push("FH  QD " + fh.quantityDispensed().value() )
+
          totalDays = fh.quantityDispensed().value()/dose/dosesPerDay
-         @log.push("TOTAL_DAYS  " + totalDays)
          if !isNaN(totalDays)
-           @log.push("TOTAL_DAYS  " + totalDays)
            startDate = new Date(fh.dispenseDate())
            @add_days_from(startDate,totalDays)
 
