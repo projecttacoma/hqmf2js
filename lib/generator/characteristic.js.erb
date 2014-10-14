@@ -21,7 +21,7 @@
       <%- end -%>
     <%- end -%>
   events.specificContext=events.specificContext||hqmf.SpecificsManager.identity();
-  return events
+  return events;
 <%- elsif criteria.property == :clinicalTrialParticipant -%>
   matching = matchingValue(value, 'true');
   matching.specificContext=hqmf.SpecificsManager.identity();
