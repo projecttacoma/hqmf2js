@@ -86,6 +86,7 @@ class LibraryFunctionTest < Test::Unit::TestCase
     ts = 'new TS("20110101")'
     ts2 = 'new TS("20100101")'
     ts3 = 'new TS("20120101")'
+    ts4 = '(function(){var ts=new TS();ts.date=null;return ts;})()' # set up a null date
     assert_equal 2011, @context.eval("#{ts}.asDate().getUTCFullYear()")
     assert_equal 0, @context.eval("#{ts}.asDate().getUTCMonth()")
     assert_equal 1, @context.eval("#{ts}.asDate().getUTCDate()")
@@ -101,6 +102,9 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert !@context.eval("#{ts}.after(#{ts3})")
     assert @context.eval("#{ts}.beforeOrConcurrent(#{ts})")
     assert @context.eval("#{ts}.afterOrConcurrent(#{ts})")
+    assert @context.eval("#{ts4}.equals(#{ts4})")
+    assert !@context.eval("#{ts3}.equals(#{ts4})")
+    assert !@context.eval("#{ts4}.equals(#{ts3})")
     
     # The following tests are taken from the Joint Commission guidance on time difference
     # calculations
@@ -269,7 +273,39 @@ class LibraryFunctionTest < Test::Unit::TestCase
     ivl1 = 'new IVL_TS(new TS("20120310"), new TS("20120320"))'
     ivl2 = 'new IVL_TS(new TS("20120312"), new TS("20120320"))'
     assert @context.eval("#{ivl2}.DURING(#{ivl1})")
+    assert !@context.eval("#{ivl1}.equals(#{ivl2})")
     assert_equal 2010, @context.eval('getIVL(new Date(Date.UTC(2010,1,1))).low.asDate().getUTCFullYear()')
+  end
+
+  def test_ivl_ts_null
+    ts1 = 'new TS("20120310")'
+    ts2 = 'new TS("20120320")'
+    null_ts = '(function(){var ts=new TS();ts.date=null;return ts;})()'
+    ivl = "new IVL_TS(#{ts1}, #{ts2})"
+    ivl_null_low = "new IVL_TS(#{null_ts}, #{ts2})"
+    ivl_null_high = "new IVL_TS(#{ts1}, #{null_ts})"
+    ivl_null_both = "new IVL_TS(#{null_ts}, #{null_ts})"
+
+    assert @context.eval("#{ivl}.equals(#{ivl})")
+    assert @context.eval("#{ivl_null_low}.equals(#{ivl_null_low})")
+    assert @context.eval("#{ivl_null_high}.equals(#{ivl_null_high})")
+    assert @context.eval("#{ivl_null_both}.equals(#{ivl_null_both})")
+
+    assert !@context.eval("#{ivl}.equals(#{ivl_null_low})")
+    assert !@context.eval("#{ivl}.equals(#{ivl_null_high})")
+    assert !@context.eval("#{ivl}.equals(#{ivl_null_both})")
+
+    assert !@context.eval("#{ivl_null_low}.equals(#{ivl})")
+    assert !@context.eval("#{ivl_null_low}.equals(#{ivl_null_high})")
+    assert !@context.eval("#{ivl_null_low}.equals(#{ivl_null_both})")
+
+    assert !@context.eval("#{ivl_null_high}.equals(#{ivl})")
+    assert !@context.eval("#{ivl_null_high}.equals(#{ivl_null_low})")
+    assert !@context.eval("#{ivl_null_high}.equals(#{ivl_null_both})")
+
+    assert !@context.eval("#{ivl_null_both}.equals(#{ivl})")
+    assert !@context.eval("#{ivl_null_both}.equals(#{ivl_null_low})")
+    assert !@context.eval("#{ivl_null_both}.equals(#{ivl_null_high})")
   end
   
   def test_any_non_null

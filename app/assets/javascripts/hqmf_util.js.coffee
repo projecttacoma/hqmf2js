@@ -93,7 +93,7 @@ class TS
       a.getTime() > b.getTime()
 
   equals: (other) ->
-    (@date==null && other.date==null) || (@date.getTime()==other.date.getTime())
+    (@date==null && other.date==null) || (@date!=null && other.date!=null && @date.getTime()==other.date.getTime())
 
   # Returns whether this TS is before or concurrent with the supplied TS ignoring seconds
   beforeOrConcurrent: (other) ->  
@@ -458,7 +458,8 @@ class IVL_TS
      this.EAS(other) ||  this.ECWS(other)
 
   equals: (other) ->
-    (@low==null && other.low==null) || (@low.equals(other.low)) && (@high==null && other.high==null) || (@high.equals(other.high))
+    ((@low == null && other.low == null) || (@low != null && @low.equals(other.low))) &&
+    ((@high == null && other.high == null) || (@high != null && @high.equals(other.high)))
 
 @IVL_TS = IVL_TS
 
