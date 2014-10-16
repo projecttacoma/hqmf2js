@@ -60,6 +60,7 @@ class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
     assert !@context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
     assert !@context.eval("hqmfjs.deadBetween5and6MonthsDuringMeasurePeriod(numeratorPatient).isTrue()")
     
+    @context.eval("numeratorPatient.json['expired']=true")
     @context.eval("numeratorPatient.json['deathdate']=#{Time.utc(2010,11).to_i}")
     assert !@context.eval("hqmfjs.dead3MonthsBeforeMeasurePeriod(numeratorPatient).isTrue()")
     assert !@context.eval("hqmfjs.dead3MonthsAfterMeasurePeriod(numeratorPatient).isTrue()")
