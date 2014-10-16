@@ -1050,10 +1050,9 @@ DATEDIFF = (events, range) ->
 # combination of events
 TIMEDIFF = (events, range, initialSpecificContext) ->
   if events.listCount() != 2
-    if events.listCount() && events.eventLists[0].length >= 2
-      eventList = events.eventLists[0]
-      event1 = eventList.sort(dateSortAscending)[0]
-      event2 = eventList.sort(dateSortAscending)[eventList.length - 1]
+    if events.length >= 2
+      event1 = events.sort(dateSortAscending)[0]
+      event2 = events.sort(dateSortAscending)[events.length - 1]
       return [event1.asTS().difference(event2.asTS(), 'min')]
     else
       throw "TIMEDIFF can only process 2 lists of events"
