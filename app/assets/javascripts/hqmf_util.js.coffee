@@ -1050,6 +1050,7 @@ DATEDIFF = (events, range) ->
 # combination of events
 TIMEDIFF = (events, range, initialSpecificContext) ->
   if events.listCount() != 2
+    # handle nested events for Unions
     if events.length >= 2
       event1 = events.sort(dateSortAscending)[0]
       event2 = events.sort(dateSortAscending)[events.length - 1]
