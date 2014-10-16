@@ -1088,7 +1088,111 @@ DATETIMEDIFF = (events, range, initialSpecificContext) ->
     TIMEDIFF(events, range, initialSpecificContext)
 @DATETIMEDIFF = DATETIMEDIFF
 
+#used to collect a number of days a series of date ranges may be active: Such as overlap issues with CMD
+class ActiveDays
+
+  constructor: ->
+    @active_days=[]
+
+  reset: ->
+    @active_days=[]
+
+  add_ivlts: (ivlts)->
+    @add_range(ivlts.low,ivlts.high)
+
+  add_range: (low,high) ->
+    start = @as_date(low)
+    end = @as_date(high)
+    days = (end.getTime()-start.getTime())/(1000*60*60*24) #number of days between dates
+    days += 1  # the above calculation only accounts for the days between and up to the end need to add the start back on
+    @add_days_from(start,days)
+
+  add_days_from: (start, number_of_days) ->
+    for x in[0..number_of_days-1]
+      diff = (1000*60*60*24)*x
+      @add_date(new Date((start.getTime() + diff))) 
+     
+
+  add_date: (_date)->
+    date = @as_date(_date)
+    formated_date = @format_date(date)
+    if @active_days[formated_date]
+      @active_days[formated_date]["count"] +=1
+    else 
+      @active_days[formated_date]={date: formated_date, count: 1}   
+
+  days_active: (low,high)->
+    start = @as_date(low)
+    end = @as_date(high)
+    formated_start = @format_date(start)
+    formated_end = @format_date(end)
+    days = @active_days.slice(formated_start,formated_end+1).filter (e)-> e # the filter removes all nulls,0, and empty strings
+    days 
+
+  format_date: (date)->
+    #format the date as an integer in the format of yyyymmdd  ex 20141010 
+    ds = ""+date.getFullYear()
+    month = date.getMonth() + 1
+    day = date.getDate() 
+    ds +=  if  month < 10 then "0"+ month else  month
+    ds += if day < 10 then "0"+ day else day
+    parseInt(ds)
+
+  date_diff: (low,high) ->
+      
+
+  as_date: (date)->
+    if date instanceof TS
+      new Date(date.asDate().getTime())
+    else 
+      new Date(date.getTime())
+
+  print_days_in_range: (low,high) ->
+    start = @as_date(low)
+    end = @as_date(high)
+    formated_start = @format_date(start)
+    formated_end = @format_date(end)
+    str = "Start :"+start.toString()+"\n"
+    str+= "End :"+end.toString()+"\n"
+    str += "Start :"+formated_start+"\n"
+    str+= "End :"+formated_end+"\n"
+    for x in  @days_active(low,high)
+      str+="Date: "+x["date"]+ "  count: "+x["count"]+"\n"
+    str  
+
+@ActiveDays = ActiveDays
+
+
+class CMD extends  ActiveDays
+
+  constructor:(@medications,@calculation_type) ->
+    super()
+    for m in @medications
+      @add_medication(m)
+
+  add_medication: (medication) ->
+    dose = medication.dose().value()
+    dosesPerDay = medication.administrationTiming().dosesPerDay()
+    if @calculation_type == "order"
+      for oi in medication.orderInformation()
+         totalDays = oi.quantityOrdered().value()/dose/dosesPerDay
+         if !isNaN(totalDays)
+          startDate = new Date(oi.orderDateTime())
+          fills = oi.fills() || 1
+          @add_days_from(startDate,totalDays*fills)
+    else
+      history = medication.fulfillmentHistory()
+      for fh in history
+
+         totalDays = fh.quantityDispensed().value()/dose/dosesPerDay
+         if !isNaN(totalDays)
+           startDate = new Date(fh.dispenseDate())
+           @add_days_from(startDate,totalDays)
+
+
 @OidDictionary = {};
 
 hqmfjs = hqmfjs||{}
 @hqmfjs = @hqmfjs||{};
+
+
