@@ -951,8 +951,7 @@ uniqueEvents = (events) ->
 # if we have multiple events at the same exact time and they happen to be the one selected by FIRST, RECENT, etc
 # then we want to select all of these issues as the first, most recent, etc.
 selectConcurrent = (target, events) ->
-  targetIVL = target.asIVL_TS()
-  uniqueEvents((result for result in events when result.asIVL_TS().equals(targetIVL)))
+  uniqueEvents((result for result in events when target.timeStamp().getTime() == result.timeStamp().getTime()))
 @selectConcurrent = selectConcurrent
 
 FIRST = (events) ->
