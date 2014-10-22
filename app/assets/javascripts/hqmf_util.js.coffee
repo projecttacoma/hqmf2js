@@ -613,6 +613,18 @@ denormalizeEventsByLocation = (events, field) ->
   hqmf.SpecificsManager.maintainSpecifics(result, events)
 @denormalizeEventsByLocation = denormalizeEventsByLocation
 
+# Creates a new set of events with one location per event. Input events with more than
+# one location will be duplicated once per location and each resulting event will
+# be assigned one location. Start and end times of the event will be adjusted to match the
+# value of the supplied field
+denormalizeEventsByTransfer = (events, field) ->
+  respondingEvents = (event for event in events when event.respondTo(field) and event[field]())
+  denormalizedEvents = (denormalizeEvent(event) for event in respondingEvents)
+  denormalizedEvents = [].concat denormalizedEvents...
+  result = adjustBoundsForField(denormalizedEvents, 'transferTime')
+  hqmf.SpecificsManager.maintainSpecifics(result, events)
+@denormalizeEventsByTransfer = denormalizeEventsByTransfer
+
 # Utility method to obtain the value set for an OID
 getCodes = (oid) ->
   codes = OidDictionary[oid]

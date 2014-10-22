@@ -54,6 +54,17 @@ hQuery.Encounter::lengthOfStay = (unit) ->
   ivl_ts = this.asIVL_TS()
   ivl_ts.low.difference(ivl_ts.high, unit)
 
+hQuery.Encounter::transferTime = () ->
+  transfer = (@json['transferFrom'] || @json['transferTo'])
+  time = transfer.time if transfer
+  if time
+    hQuery.dateFromUtcSeconds(time)
+  else
+    if @json['transferTo']
+      @endDate()
+    else
+      @startDate()
+
 hQuery.AdministrationTiming::dosesPerDay = () ->
   #figure out the units and value and calculate
   p = this.period()
