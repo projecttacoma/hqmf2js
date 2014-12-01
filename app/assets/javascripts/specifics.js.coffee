@@ -50,7 +50,7 @@ class hqmf.SpecificsManagerSingleton
   getColumnIndex: (occurrenceID) ->
     columnIndex = @indexLookup[occurrenceID]
     if typeof columnIndex == "undefined"
-      throw "Unknown occurrence identifier: "+occurrenceID
+      throw new Error("Unknown occurrence identifier: "+occurrenceID)
     columnIndex
 
   empty: ->
