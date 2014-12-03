@@ -317,6 +317,12 @@ class hqmf.SpecificOccurrence
 
   MAX: (range) ->
     @applyRangeSubset(MAX, range)
+
+  SUM: (range) ->
+    @applyRangeSubset(SUM, range)
+
+  MEDIAN: (range) ->
+    @applyRangeSubset(MEDIAN, range)
     
   applyRangeSubset: (func, range) ->
     return this if !@hasSpecifics()

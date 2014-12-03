@@ -21,9 +21,13 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
   // force a check of results for result types so that performed does not bleed into results
   events = filterEventsByValue(events, new ANYNonNull());
     <%- end -%>
+  fields = [];
     <%- if criteria.field_values.present?
           criteria.field_values.keys.each do |field| -%>
   events = <%= field_library_method(field, criteria.field_values[field]) %>(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
+      <%- end -%>
+      <%- if criteria.subset_operators -%>
+  fields = <%= criteria.field_values.keys.map {|field| field_method(field)} %>;
       <%- end -%>
     <%- end -%>
     <%- if ['transfer_from','transfer_to'].include?(criteria.definition) -%>
@@ -43,7 +47,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
     <%- end -%>
     <%- if criteria.subset_operators -%>
       <%- criteria.subset_operators.select {|subset_operator| subset_operator.type}.each do |subset_operator| -%>
-  events = <%= subset_operator.type %>(events<%= if subset_operator.value then ", #{js_for_bounds(subset_operator.value)}"; elsif subset_operator.type == 'DATETIMEDIFF' then ", null"; end  %>, initialSpecificContext);
+  events = <%= subset_operator.type %>(events<%= if subset_operator.value then ", #{js_for_bounds(subset_operator.value)}"; elsif subset_operator.type == 'DATETIMEDIFF' then ", null"; end  %>, initialSpecificContext<%- if ['SUM','MEDIAN'].include?(subset_operator.type) -%>, fields<%- end -%>);
       <%- end # each operator -%>
     <%- end # subset operators -%>
   return events;
