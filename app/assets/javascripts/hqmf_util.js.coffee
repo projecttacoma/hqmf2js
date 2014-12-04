@@ -1083,12 +1083,13 @@ MAX = (events, range) ->
   applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MAX = MAX
 
-SUM = (events, range, initialSpecificContext, field) ->
+SUM = (events, range, initialSpecificContext, fields) ->
   sum = 0
+  field = fields[0]
   field = 'values' if field == 'result'
   if (events.length > 0)
     if field?.length
-      unit = FIELD_METHOD_UNITS[field[0]] || 'd'
+      unit = FIELD_METHOD_UNITS[field] || 'd'
       sum += event[field]() for event in events.sort(valueSortAscending)
   sum = new PQ(sum, unit, true)
   range.handleTimeUnits(sum)
@@ -1096,12 +1097,13 @@ SUM = (events, range, initialSpecificContext, field) ->
   applySpecificOccurrenceSubset('SUM',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @SUM = SUM
 
-MEDIAN = (events, range, initialSpecificContext, field) ->
+MEDIAN = (events, range, initialSpecificContext, fields) ->
   median = Infinity
+  field = fields[0]
   field = 'values' if field == 'result'
   if (events.length > 0)
     if field?.length
-      unit = FIELD_METHOD_UNITS[field[0]] || 'd'
+      unit = FIELD_METHOD_UNITS[field] || 'd'
       values = ( event[field]() for event in events.sort(valueSortAscending) )
     sorted = _.clone(values).sort((f,s) -> f-s)
     median =  if sorted.length%2 then sorted[Math.floor(sorted.length/2)] else (sorted[sorted.length/2-1]+sorted[sorted.length/2]) /2
