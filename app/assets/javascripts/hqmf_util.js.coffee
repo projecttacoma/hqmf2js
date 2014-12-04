@@ -1070,7 +1070,7 @@ FIELD_METHOD_UNITS = {
 MIN = (events, range) ->
   minValue = Infinity
   if (events.length > 0)
-    minValue = events.sort(valueSortAscending)[0].values()["scalar"]
+    minValue = events.sort(valueSortAscending)[0].value()["scalar"]
   result = new Boolean(range.match(minValue))
   applySpecificOccurrenceSubset('MIN',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MIN = MIN
@@ -1078,7 +1078,7 @@ MIN = (events, range) ->
 MAX = (events, range) ->
   maxValue = -Infinity
   if (events.length > 0)
-    maxValue = events.sort(valueSortDescending)[0].values()["scalar"]
+    maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
   result = new Boolean(range.match(maxValue))
   applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MAX = MAX
