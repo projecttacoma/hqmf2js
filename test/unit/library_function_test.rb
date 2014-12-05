@@ -728,6 +728,8 @@ class LibraryFunctionTest < Test::Unit::TestCase
     field_method = ['cumulativeMedicationDuration']
     assert_equal true, @context.eval("SUM(medications,#{moreThan80},null,#{field_method}).isTrue()")
     assert_equal true, @context.eval("MEDIAN(medications,#{exactly40},null,#{field_method}).isTrue()")
+    assert_equal false, @context.eval("SUM(medications,#{moreThan80},null,null).isTrue()")
+    assert_equal false, @context.eval("MEDIAN(medications,#{exactly40},null,null).isTrue()")
   end
   
   def test_respond_to

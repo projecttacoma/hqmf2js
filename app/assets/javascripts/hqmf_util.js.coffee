@@ -1105,8 +1105,8 @@ MEDIAN = (events, range, initialSpecificContext, fields) ->
     if field
       unit = FIELD_METHOD_UNITS[field] || 'd'
       values = ( event[field]() for event in events.sort(valueSortAscending) )
-    sorted = _.clone(values).sort((f,s) -> f-s)
-    median =  if sorted.length%2 then sorted[Math.floor(sorted.length/2)] else (sorted[sorted.length/2-1]+sorted[sorted.length/2]) /2
+      sorted = _.clone(values).sort((f,s) -> f-s)
+      median =  if sorted.length%2 then sorted[Math.floor(sorted.length/2)] else (sorted[sorted.length/2-1]+sorted[sorted.length/2]) /2
   median = new PQ(median, unit, true)
   range.handleTimeUnits(median)
   result = new Boolean(range.match(median))
