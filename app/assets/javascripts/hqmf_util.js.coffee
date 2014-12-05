@@ -1085,10 +1085,10 @@ MAX = (events, range) ->
 
 SUM = (events, range, initialSpecificContext, fields) ->
   sum = 0
-  field = fields[0]
+  field = fields?[0]
   field = 'values' if field == 'result'
   if (events.length > 0)
-    if field?.length
+    if field
       unit = FIELD_METHOD_UNITS[field] || 'd'
       sum += event[field]() for event in events.sort(valueSortAscending)
   sum = new PQ(sum, unit, true)
@@ -1099,10 +1099,10 @@ SUM = (events, range, initialSpecificContext, fields) ->
 
 MEDIAN = (events, range, initialSpecificContext, fields) ->
   median = Infinity
-  field = fields[0]
+  field = fields?[0]
   field = 'values' if field == 'result'
   if (events.length > 0)
-    if field?.length
+    if field
       unit = FIELD_METHOD_UNITS[field] || 'd'
       values = ( event[field]() for event in events.sort(valueSortAscending) )
     sorted = _.clone(values).sort((f,s) -> f-s)

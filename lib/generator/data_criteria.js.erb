@@ -21,7 +21,6 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
   // force a check of results for result types so that performed does not bleed into results
   events = filterEventsByValue(events, new ANYNonNull());
     <%- end -%>
-  fields = [];
     <%- if criteria.field_values.present?
           criteria.field_values.keys.each do |field| -%>
   events = <%= field_library_method(field, criteria.field_values[field]) %>(events, "<%= field_method(field) %>", <%= js_for_bounds(criteria.field_values[field]) %>);
