@@ -262,8 +262,8 @@ class PQ
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
     @value==val
 
-  # Helper method that maintains current PQ units with other PQ; used for time comparisons
-  handleTimeUnits: (other) ->
+  # Helper method to normalize the current value as a new PQ with 'min' precision
+  normalizeToMins: ->
     TIME_UNITS =
       a: 'years'
       mo: 'months'
@@ -280,13 +280,9 @@ class PQ
       h: 60
       min: 1
       s: 1/60
-    return unless TIME_UNITS[other.unit]?
+    return unless TIME_UNITS[@unit]?
     # use minutes as the default precision
-    @value = @value * TIME_UNITS_MAP[@unit]
-    @unit = 'min'
-    other.value = other.value * TIME_UNITS_MAP[other.unit]
-    other.unit = 'min'
-
+    new PQ(@value * TIME_UNITS_MAP[@unit], 'min', @inclusive)
 @PQ = PQ
   
 # Represents an HL7 interval
@@ -309,10 +305,8 @@ class IVL_PQ
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
 
-  # Helper method for handling time units
-  handleTimeUnits: (other) ->
-    other.handleTimeUnits(@low_pq) if @low_pq
-    other.handleTimeUnits(@high_pq)if @high_pq
+  # Helper method to normalize the current values as a new IVL_PQ with 'min' precision
+  normalizeToMins: -> new IVL_PQ(@low_pq?.normalizeToMins(), @high_pq?.normalizeToMins())
 @IVL_PQ = IVL_PQ
     
 # Represents an HL7 time interval
@@ -1085,31 +1079,40 @@ MAX = (events, range) ->
 
 SUM = (events, range, initialSpecificContext, fields) ->
   sum = 0
+  comparison = range
   field = fields?[0]
   field = 'values' if field == 'result'
   if (events.length > 0)
     if field
       unit = FIELD_METHOD_UNITS[field] || 'd'
-      sum += event[field]() for event in events.sort(valueSortAscending)
-  sum = new PQ(sum, unit, true)
-  range.handleTimeUnits(sum)
-  result = new Boolean(range.match(sum))
+      if field == 'values'
+        sum += event[field]()['scalar'] for event in events
+      else
+        sum += event[field]() for event in events
+        sum = (new PQ(sum, unit, true)).normalizeToMins()
+        comparison = comparison.normalizeToMins()
+  result = new Boolean(comparison.match(sum))
   applySpecificOccurrenceSubset('SUM',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @SUM = SUM
 
 MEDIAN = (events, range, initialSpecificContext, fields) ->
   median = Infinity
+  comparison = range
   field = fields?[0]
   field = 'values' if field == 'result'
   if (events.length > 0)
     if field
       unit = FIELD_METHOD_UNITS[field] || 'd'
-      values = ( event[field]() for event in events.sort(valueSortAscending) )
+      if field == 'values'
+        values = ( event[field]()['scalar'] for event in events )
+      else
+        values = ( event[field]() for event in events )
       sorted = _.clone(values).sort((f,s) -> f-s)
       median =  if sorted.length%2 then sorted[Math.floor(sorted.length/2)] else (sorted[sorted.length/2-1]+sorted[sorted.length/2]) /2
-  median = new PQ(median, unit, true)
-  range.handleTimeUnits(median)
-  result = new Boolean(range.match(median))
+      if field != 'values'
+        median = (new PQ(median, unit, true)).normalizeToMins()
+        comparison = comparison.normalizeToMins()
+  result = new Boolean(comparison.match(median))
   applySpecificOccurrenceSubset('MEDIAN',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MEDIAN = MEDIAN
 
