@@ -719,6 +719,27 @@ class LibraryFunctionTest < Test::Unit::TestCase
     assert !@context.eval("MIN(#{events2},#{between15and25}).isTrue()")
     assert @context.eval("MAX(#{events2},#{between15and25}).isTrue()")
   end
+
+  def test_qdm_functions
+    # SUM and MEDIAN
+    @context.eval('var medications = [{"cumulativeMedicationDuration": function() { return 30;}}, {"cumulativeMedicationDuration": function() {return 40;}}, {"cumulativeMedicationDuration": function() {return 50;}}];')
+    v10 = '{"values": function() {return {"scalar": 10};}}'
+    v20 = '{"values": function() {return {"scalar": 20};}}'
+    events2 = "[#{v10},#{v20}]"
+    moreThan80 = 'new IVL_PQ(new PQ(81,"d"))'
+    exactly15 = 'new IVL_PQ(new PQ(15), new PQ(15))'
+    exactly30 = 'new IVL_PQ(new PQ(30), new PQ(30))'
+    exactly40 = 'new IVL_PQ(new PQ(40,"d"), new PQ(40,"d"))'
+    field_method = ['cumulativeMedicationDuration']
+    assert_equal true, @context.eval("SUM(medications,#{moreThan80},null,#{field_method}).isTrue()")
+    assert_equal true, @context.eval("MEDIAN(medications,#{exactly40},null,#{field_method}).isTrue()")
+    assert_equal false, @context.eval("SUM(medications,#{moreThan80},null,null).isTrue()")
+    assert_equal false, @context.eval("MEDIAN(medications,#{exactly40},null,null).isTrue()")
+    assert_equal true, @context.eval("MEDIAN(#{events2},#{exactly15},null,['result']).isTrue()")
+    assert_equal false, @context.eval("MEDIAN(#{events2},#{moreThan80},null,['result']).isTrue()")
+    assert_equal true, @context.eval("SUM(#{events2},#{exactly30},null,['result']).isTrue()")
+    assert_equal false, @context.eval("SUM(#{events2},#{exactly40},null,['result']).isTrue()")
+  end
   
   def test_respond_to
     assert @context.eval("(new hQuery.Allergy({})).respondTo('severity')")

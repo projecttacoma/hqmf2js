@@ -261,6 +261,28 @@ class PQ
   match: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
     @value==val
+
+  # Helper method to normalize the current value as a new PQ with 'min' precision
+  normalizeToMins: ->
+    TIME_UNITS =
+      a: 'years'
+      mo: 'months'
+      wk: 'weeks'
+      d: 'days'
+      h: 'hours'
+      min: 'minutes'
+      s: 'seconds'
+    TIME_UNITS_MAP =
+      a: 365 * 24 * 60
+      mo: 30 * 24 * 60
+      wk: 7 * 24 * 60
+      d: 24 * 60
+      h: 60
+      min: 1
+      s: 1/60
+    return unless TIME_UNITS[@unit]?
+    # use minutes as the default precision
+    new PQ(@value * TIME_UNITS_MAP[@unit], 'min', @inclusive)
 @PQ = PQ
   
 # Represents an HL7 interval
@@ -282,6 +304,9 @@ class IVL_PQ
   match: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
     (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
+
+  # Helper method to normalize the current values as a new IVL_PQ with 'min' precision
+  normalizeToMins: -> new IVL_PQ(@low_pq?.normalizeToMins(), @high_pq?.normalizeToMins())
 @IVL_PQ = IVL_PQ
     
 # Represents an HL7 time interval
@@ -1031,6 +1056,11 @@ valueSortAscending = (a, b) ->
     va - vb
 @valueSortAscending = valueSortAscending
 
+FIELD_METHOD_UNITS = {
+  'cumulativeMedicationDuration': 'd'
+  'lengthOfStay': 'd'
+}
+
 MIN = (events, range) ->
   minValue = Infinity
   if (events.length > 0)
@@ -1046,6 +1076,45 @@ MAX = (events, range) ->
   result = new Boolean(range.match(maxValue))
   applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
 @MAX = MAX
+
+SUM = (events, range, initialSpecificContext, fields) ->
+  sum = 0
+  comparison = range
+  field = fields?[0]
+  field = 'values' if field == 'result'
+  if (events.length > 0)
+    if field
+      unit = FIELD_METHOD_UNITS[field] || 'd'
+      if field == 'values'
+        sum += event[field]()['scalar'] for event in events
+      else
+        sum += event[field]() for event in events
+        sum = (new PQ(sum, unit, true)).normalizeToMins()
+        comparison = comparison.normalizeToMins()
+  result = new Boolean(comparison.match(sum))
+  applySpecificOccurrenceSubset('SUM',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
+@SUM = SUM
+
+MEDIAN = (events, range, initialSpecificContext, fields) ->
+  median = Infinity
+  comparison = range
+  field = fields?[0]
+  field = 'values' if field == 'result'
+  if (events.length > 0)
+    if field
+      unit = FIELD_METHOD_UNITS[field] || 'd'
+      if field == 'values'
+        values = ( event[field]()['scalar'] for event in events )
+      else
+        values = ( event[field]() for event in events )
+      sorted = _.clone(values).sort((f,s) -> f-s)
+      median =  if sorted.length%2 then sorted[Math.floor(sorted.length/2)] else (sorted[sorted.length/2-1]+sorted[sorted.length/2]) /2
+      if field != 'values'
+        median = (new PQ(median, unit, true)).normalizeToMins()
+        comparison = comparison.normalizeToMins()
+  result = new Boolean(comparison.match(median))
+  applySpecificOccurrenceSubset('MEDIAN',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
+@MEDIAN = MEDIAN
 
 DATEDIFF = (events, range) ->
   return hqmf.SpecificsManager.maintainSpecifics(new Boolean(false), events) if events.length < 2
