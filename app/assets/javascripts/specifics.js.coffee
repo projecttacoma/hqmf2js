@@ -232,11 +232,14 @@ class hqmf.SpecificOccurrence
   
   intersect: (other, episodeIndices) ->
     value = new hqmf.SpecificOccurrence()
+    values = {}
     for leftRow in @rows
       for rightRow in other.rows
         result = leftRow.intersect(rightRow, episodeIndices)
-        value.rows.push(result) if result?
-    value.removeDuplicateRows()
+        values[result.toString()] = result if result?
+    for own key, val of values
+      value.rows.push(val)
+    value
   
   getLeftMost: ->
     leftMost = undefined
@@ -508,6 +511,9 @@ class Row
       else
         result.push(value.id)
     result
+
+  toString: ->
+    this.flattenToIds().join(", ")
 
   
 @Row = Row
