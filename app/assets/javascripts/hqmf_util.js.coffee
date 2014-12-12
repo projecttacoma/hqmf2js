@@ -36,7 +36,7 @@ class TS
     else if pq.unit=="min"
       @date.setUTCMinutes(@date.getUTCMinutes()+pq.value)
     else
-      throw "Unknown time unit: "+pq.unit
+      throw new Error("Unknown time unit: "+pq.unit)
     this
     
   # Returns the difference between this TS and the supplied TS as an absolute
@@ -66,7 +66,7 @@ class TS
     else if granularity=="min"
       TS.minutesDifference(earlier,later)
     else
-      throw "Unknown time unit: "+granularity
+      throw new Error("Unknown time unit: "+granularity)
   
   # Get the value of this TS as a JS Date
   asDate: ->
@@ -291,9 +291,9 @@ class IVL_PQ
   # are supplied the units must match.
   constructor: (@low_pq, @high_pq) ->
     if !@low_pq && !@high_pq
-      throw "Must have a lower or upper bound"
+      throw new Error("Must have a lower or upper bound")
     if @low_pq && @low_pq.unit && @high_pq && @high_pq.unit && @low_pq.unit != @high_pq.unit
-      throw "Mismatched low and high units: "+@low_pq.unit+", "+@high_pq.unit
+      throw new Error("Mismatched low and high units: "+@low_pq.unit+", "+@high_pq.unit)
   unit: ->
     if @low_pq
       @low_pq.unit
@@ -653,7 +653,7 @@ denormalizeEventsByTransfer = (events, field) ->
 # Utility method to obtain the value set for an OID
 getCodes = (oid) ->
   codes = OidDictionary[oid]
-  throw "value set oid could not be found: #{oid}" unless codes?
+  throw new Error("value set oid could not be found: #{oid}") unless codes?
   codes
 @getCodes = getCodes
 
@@ -1137,7 +1137,7 @@ TIMEDIFF = (events, range, initialSpecificContext) ->
       event2 = events.sort(dateSortAscending)[events.length - 1]
       return [event1.asTS().difference(event2.asTS(), 'min')]
     else
-      throw "TIMEDIFF can only process 2 lists of events"
+      throw new Error("TIMEDIFF can only process 2 lists of events")
   eventList1 = events.childList(0)
   eventList2 = events.childList(1)
   eventIndex1 = hqmf.SpecificsManager.getColumnIndex(eventList1.specific_occurrence) if eventList1.specific_occurrence
