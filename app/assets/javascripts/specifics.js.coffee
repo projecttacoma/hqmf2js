@@ -195,11 +195,10 @@ class hqmf.SpecificOccurrence
     result
   
   removeDuplicateRows: () ->
-    deduped = new hqmf.SpecificOccurrence
-    for row in @rows
-      # this could potentially be hasRow to dump even more rows.
-      deduped.addRows([row]) if !deduped.hasExactRow(row)
-    deduped
+    # Uniq rows based on each row's string transformation
+    uniqRows = {}
+    uniqRows[row.toHashKey()] = row for row in @rows
+    new hqmf.SpecificOccurrence(_(uniqRows).values())
     
   # Returns a count of unique events for a supplied column index
   uniqueEvents: (columnIndices) ->
@@ -232,14 +231,11 @@ class hqmf.SpecificOccurrence
   
   intersect: (other, episodeIndices) ->
     value = new hqmf.SpecificOccurrence()
-    values = {}
     for leftRow in @rows
       for rightRow in other.rows
         result = leftRow.intersect(rightRow, episodeIndices)
-        values[result.toString()] = result if result?
-    for own key, val of values
-      value.rows.push(val)
-    value
+        value.rows.push(result) if result?
+    value.removeDuplicateRows()
   
   getLeftMost: ->
     leftMost = undefined
@@ -512,8 +508,8 @@ class Row
         result.push(value.id)
     result
 
-  toString: ->
-    this.flattenToIds().join(", ")
+  toHashKey: ->
+    string = @flattenToIds().join(",") + ",#{@tempValue?.id}"
 
   
 @Row = Row
