@@ -496,7 +496,65 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('specific1.compactReusedEvents().rows.length').must_equal 6
     
   end
-  
+
+  def test_remove_duplicate_rows
+
+    rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':1}});
+      var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':1}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
+      var row4 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
+
+      var specific = new hqmf.SpecificOccurrence([row1,row2,row3,row4]);
+    "
+
+    @context.eval(rows)
+
+    @context.eval('specific.rows.length').must_equal 4
+    @context.eval('specific.removeDuplicateRows().rows.length').must_equal 2
+
+  end
+
+  def test_remove_duplicate_rows_no_duplicates
+
+    rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':1}});
+      var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':3}});
+      var row4 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':4}});
+
+      var specific = new hqmf.SpecificOccurrence([row1,row2,row3,row4]);
+    "
+
+    @context.eval(rows)
+
+    @context.eval('specific.rows.length').must_equal 4
+    @context.eval('specific.removeDuplicateRows().rows.length').must_equal 4
+
+  end
+
+  def test_remove_duplicate_rows_temp_value
+
+    rows = "
+      var row1 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':1},undefined:{'id':1}});
+      var row2 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':1},undefined:{'id':2}});
+      var row3 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2},undefined:{'id':1}});
+      var row4 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2},undefined:{'id':2}});
+      var row5 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':1},undefined:{'id':1}});
+      var row6 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':1},undefined:{'id':2}});
+      var row7 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2},undefined:{'id':1}});
+      var row8 = new Row('OccurrenceAEncounter',{'OccurrenceAEncounter':{'id':1},'OccurrenceBEncounter':{'id':2},undefined:{'id':2}});
+
+      var specific = new hqmf.SpecificOccurrence([row1,row2,row3,row4,row5,row6,row7,row8]);
+    "
+
+    @context.eval(rows)
+
+    @context.eval('specific.rows.length').must_equal 8
+    @context.eval('specific.removeDuplicateRows().rows.length').must_equal 4
+
+  end
+
   def test_row_build_rows_for_matching
     
     events = "
