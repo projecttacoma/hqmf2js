@@ -117,7 +117,19 @@ hQuery.Medication::cumulativeMedicationDuration = (dateRange) ->
   #say 25ml per dose.  Will definatley need to revisit this.  
   this.fulfillmentTotals(dateRange) if this.administrationTiming() && this.dose()
 
+class hQuery.Reference 
+  constructor: (@json) ->
+  referenced_id: -> @json["referenced_id"]
+  referenced_type: -> @json["reference"]
+  type: ->   @json["type"]
 
+
+hQuery.CodedEntry::references = () ->
+  for ref in (@json["references"] || [])
+    new hQuery.Reference(ref)
+
+hQuery.CodedEntry::referencesByType = (type) -> 
+  e for e in @references() when e.type() == type
 
 hQuery.CodedEntry::respondTo = (functionName) ->
   typeof(@[functionName]) == "function"
