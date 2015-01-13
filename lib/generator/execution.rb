@@ -116,7 +116,9 @@ module HQMF2JS
           // turn on logging if it is enabled
           if (enable_logging || enable_rationale) {
             injectLogger(hqmfjs, enable_logging, enable_rationale, short_circuit);
-          } 
+          } else {
+            Logger.enable_rationale = false;
+          }
         }
 
         try {
