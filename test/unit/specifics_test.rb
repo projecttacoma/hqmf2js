@@ -577,9 +577,9 @@ class SpecificsTest < Test::Unit::TestCase
     @context.eval('specific.compactReusedEvents().rows.length').must_equal 7
     @context.eval('var rows = Row.buildRowsForMatching(undefined,entry,boundsKey,bounds)')
     @context.eval('rows.length').must_equal 8
-    @context.eval("rows[0].tempValue.id").must_equal 3
-    @context.eval("rows[5].tempValue.id").must_equal 3
-    @context.eval("rows[0].tempValue.id").must_equal 3
+    @context.eval("rows[0].nonSpecificLeftMost.id").must_equal 3
+    @context.eval("rows[5].nonSpecificLeftMost.id").must_equal 3
+    @context.eval("rows[0].nonSpecificLeftMost.id").must_equal 3
     @context.eval("rows[0].values[1].id").must_equal 1
     @context.eval("rows[5].values[1].id").must_equal 6
   end
@@ -1004,17 +1004,17 @@ class SpecificsTest < Test::Unit::TestCase
     exactly1 = 'new IVL_PQ(new PQ(1), new PQ(1))'
     
     @context.eval("specific1.COUNT(#{moreThanOne}).rows.length").must_equal 5
-    @context.eval("specific1.COUNT(#{moreThanOne}).rows[0].tempValue.id").must_equal '10'
-    @context.eval("specific1.COUNT(#{moreThanOne}).rows[1].tempValue.id").must_equal '11'
-    @context.eval("specific1.COUNT(#{moreThanOne}).rows[2].tempValue.id").must_equal '12'
-    @context.eval("specific1.COUNT(#{moreThanOne}).rows[3].tempValue.id").must_equal '13'
-    @context.eval("specific1.COUNT(#{moreThanOne}).rows[4].tempValue.id").must_equal '14'
+    @context.eval("specific1.COUNT(#{moreThanOne}).rows[0].nonSpecificLeftMost.id").must_equal '10'
+    @context.eval("specific1.COUNT(#{moreThanOne}).rows[1].nonSpecificLeftMost.id").must_equal '11'
+    @context.eval("specific1.COUNT(#{moreThanOne}).rows[2].nonSpecificLeftMost.id").must_equal '12'
+    @context.eval("specific1.COUNT(#{moreThanOne}).rows[3].nonSpecificLeftMost.id").must_equal '13'
+    @context.eval("specific1.COUNT(#{moreThanOne}).rows[4].nonSpecificLeftMost.id").must_equal '14'
     @context.eval("specific1.COUNT(#{lessThanThree}).rows.length").must_equal 3
-    @context.eval("specific1.COUNT(#{lessThanThree}).rows[0].tempValue.id").must_equal '10'
-    @context.eval("specific1.COUNT(#{lessThanThree}).rows[1].tempValue.id").must_equal '11'
-    @context.eval("specific1.COUNT(#{lessThanThree}).rows[2].tempValue.id").must_equal '15'
+    @context.eval("specific1.COUNT(#{lessThanThree}).rows[0].nonSpecificLeftMost.id").must_equal '10'
+    @context.eval("specific1.COUNT(#{lessThanThree}).rows[1].nonSpecificLeftMost.id").must_equal '11'
+    @context.eval("specific1.COUNT(#{lessThanThree}).rows[2].nonSpecificLeftMost.id").must_equal '15'
     @context.eval("specific1.COUNT(#{exactly1}).rows.length").must_equal 1
-    @context.eval("specific1.COUNT(#{exactly1}).rows[0].tempValue.id").must_equal '15'
+    @context.eval("specific1.COUNT(#{exactly1}).rows[0].nonSpecificLeftMost.id").must_equal '15'
     
     @context.eval("specific2.COUNT(#{moreThanOne}).rows.length").must_equal 5
     @context.eval("specific2.COUNT(#{moreThanOne}).rows[0].values[0].id").must_equal '10'
@@ -1037,9 +1037,9 @@ class SpecificsTest < Test::Unit::TestCase
     ##### FIRST
     ###
     @context.eval("specific1.FIRST().rows.length").must_equal 3
-    @context.eval("specific1.FIRST().rows[0].tempValue.id").must_equal '11'
-    @context.eval("specific1.FIRST().rows[1].tempValue.id").must_equal '12'
-    @context.eval("specific1.FIRST().rows[2].tempValue.id").must_equal '15'
+    @context.eval("specific1.FIRST().rows[0].nonSpecificLeftMost.id").must_equal '11'
+    @context.eval("specific1.FIRST().rows[1].nonSpecificLeftMost.id").must_equal '12'
+    @context.eval("specific1.FIRST().rows[2].nonSpecificLeftMost.id").must_equal '15'
     
     @context.eval("specific2.FIRST().rows.length").must_equal 3
     @context.eval("specific2.FIRST().rows[0].values[0].id").must_equal '11'
@@ -1054,9 +1054,9 @@ class SpecificsTest < Test::Unit::TestCase
     ###
 
     @context.eval("specific1.RECENT().rows.length").must_equal 3
-    @context.eval("specific1.RECENT().rows[0].tempValue.id").must_equal '10'
-    @context.eval("specific1.RECENT().rows[1].tempValue.id").must_equal '13'
-    @context.eval("specific1.RECENT().rows[2].tempValue.id").must_equal '15'
+    @context.eval("specific1.RECENT().rows[0].nonSpecificLeftMost.id").must_equal '10'
+    @context.eval("specific1.RECENT().rows[1].nonSpecificLeftMost.id").must_equal '13'
+    @context.eval("specific1.RECENT().rows[2].nonSpecificLeftMost.id").must_equal '15'
     
     @context.eval("specific2.RECENT().rows.length").must_equal 3
     @context.eval("specific2.RECENT().rows[0].values[0].id").must_equal '10'
