@@ -702,7 +702,7 @@ UNION = (eventLists...) ->
 
 # Create a CrossProduct of the supplied event lists.
 INTERSECT = (eventLists...) ->
-  hqmf.SpecificsManager.intersectAll((new CrossProduct(eventLists)).intersect(), eventLists)
+  hqmf.SpecificsManager.intersectAll((new CrossProduct(eventLists)).intersect(), eventLists, false, null, considerLeftMost: true)
 @INTERSECT = INTERSECT
 
 # Return true if the number of events matches the supplied range

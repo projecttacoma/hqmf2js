@@ -59,7 +59,7 @@ class hqmf.SpecificsManagerSingleton
   extractEventsForLeftMost: (rows) ->
     events = []
     for row in rows
-      events.push(@extractEvent(row.leftMost, row)) if row.leftMost? || row.tempValue?
+      events.push(@extractEvent(row.specificLeftMost, row)) if row.specificLeftMost? || row.nonSpecificLeftMost?
     events
   
   extractEvents: (key, rows) ->
@@ -73,7 +73,7 @@ class hqmf.SpecificsManagerSingleton
     if index?
       entry = row.values[index]
     else
-      entry = row.tempValue
+      entry = row.nonSpecificLeftMost
     entry = new hQuery.CodedEntry(entry.json)
     entry.specificRow = row
     entry
@@ -120,13 +120,13 @@ class hqmf.SpecificsManagerSingleton
   validate: (intersectedPopulation) ->
     intersectedPopulation.isTrue() and intersectedPopulation.specificContext.hasRows()
   
-  intersectAll: (boolVal, values, negate=false, episodeIndices) ->
+  intersectAll: (boolVal, values, negate=false, episodeIndices, options = {}) ->
     result = new hqmf.SpecificOccurrence
     # add identity row
     result.addIdentityRow()
     for value in values
       if value.specificContext?
-        result = result.intersect(value.specificContext, episodeIndices)
+        result = result.intersect(value.specificContext, episodeIndices, options)
     if negate and (!result.hasRows() or result.hasSpecifics())
       result = result.negate()
       result = result.compactReusedEvents()
@@ -229,21 +229,21 @@ class hqmf.SpecificOccurrence
     value.rows = @rows.concat(other.rows)
     value.removeDuplicateRows()
   
-  intersect: (other, episodeIndices) ->
+  intersect: (other, episodeIndices, options = {}) ->
     value = new hqmf.SpecificOccurrence()
     for leftRow in @rows
       for rightRow in other.rows
-        result = leftRow.intersect(rightRow, episodeIndices)
+        result = leftRow.intersect(rightRow, episodeIndices, options)
         value.rows.push(result) if result?
     value.removeDuplicateRows()
   
   getLeftMost: ->
-    leftMost = undefined
+    specificLeftMost = undefined
     for row in @rows
-      leftMost = row.leftMost unless leftMost?
-      return undefined if leftMost != row.leftMost
-    leftMost
-  
+      specificLeftMost = row.specificLeftMost unless specificLeftMost?
+      return undefined if specificLeftMost != row.specificLeftMost
+    specificLeftMost
+
   negate: ->
     negatedRows = []
     keys = []
@@ -297,8 +297,8 @@ class hqmf.SpecificOccurrence
   
   finalizeEvents: (eventsContext, boundsContext) ->
     result = this
-    result = result.intersect(eventsContext) if (eventsContext?)
-    result = result.intersect(boundsContext) if (boundsContext?)
+    result = result.intersect(eventsContext) if eventsContext?
+    result = result.intersect(boundsContext) if boundsContext?
     result.compactReusedEvents()
   
   group: ->
@@ -355,7 +355,7 @@ class hqmf.SpecificOccurrence
 
   hasLeftMost: ->
     for row in @rows
-      if row.leftMost? || row.tempValue?
+      if row.specificLeftMost? || row.nonSpecificLeftMost?
         return true
     return false
     
@@ -379,11 +379,11 @@ class hqmf.SpecificOccurrence
 
 class Row
   # {'OccurrenceAEncounter':1, 'OccurrenceBEncounter'2}
-  constructor: (leftMost, occurrences={}) ->
+  constructor: (specificLeftMost, occurrences={}) ->
     @length = hqmf.SpecificsManager.occurrences.length
     @values = []
-    @leftMost = leftMost
-    @tempValue = occurrences[undefined]
+    @specificLeftMost = specificLeftMost
+    @nonSpecificLeftMost = occurrences[undefined]
     for i in [0...@length]
       key = hqmf.SpecificsManager.keyLookup[i]
       value = occurrences[key] || hqmf.SpecificsManager.any
@@ -406,14 +406,25 @@ class Row
   equals: (other) ->
     equal = true;
     
-    equal &&= Row.valuesEqual(@tempValue, other.tempValue)
+    equal &&= Row.valuesEqual(@nonSpecificLeftMost, other.nonSpecificLeftMost)
     for value,i in @values
       equal &&= Row.valuesEqual(value, other.values[i])
     equal
 
-  intersect: (other, episodeIndices) ->
-    intersectedRow = new Row(@leftMost, {})
-    intersectedRow.tempValue = @tempValue
+  intersect: (other, episodeIndices, options = {}) ->
+
+    # When we're calculating an actual intersection, where we're returning a set of events, we want to make sure that rows that reference
+    # disjoint expressions aren't combined; this isn't true if we're calculating a boolean AND, chaining temporal operators, etc
+    if options.considerLeftMost
+      # If rows being intersected have different leftMost values, with neither null, then the rows reference disjoint expressions and can't be intersected
+      return undefined if @specificLeftMost && other.specificLeftMost && !Row.valuesEqual(@specificLeftMost, other.specificLeftMost)
+      return undefined if @nonSpecificLeftMost && other.nonSpecificLeftMost && !Row.valuesEqual(@nonSpecificLeftMost, other.nonSpecificLeftMost)
+      # We can set the result row to leftMost + tempValue of whichever of row has it set, since they'll either be the same or one will be undefined
+      intersectedRow = new Row(@specificLeftMost || other.specificLeftMost, {})
+      intersectedRow.nonSpecificLeftMost = @nonSpecificLeftMost || other.nonSpecificLeftMost
+    else
+      intersectedRow = new Row(@specificLeftMost, {})
+      intersectedRow.nonSpecificLeftMost = @nonSpecificLeftMost
 
     # if all the episodes are any, then they were not referenced by the parent population.  This occurs when an intersection is done 
     # against the identity row.  In this case we want to allow the specific occurrences through.  This happens when we intersect against a measure
@@ -436,7 +447,7 @@ class Row
     return true
 
   groupKeyForLeftMost: ->
-    @groupKey(@leftMost)
+    @groupKey(@specificLeftMost)
     
   groupKey: (key=null) ->
     keyForGroup = ''
@@ -509,7 +520,7 @@ class Row
     result
 
   toHashKey: ->
-    string = @flattenToIds().join(",") + ",#{@tempValue?.id}"
+    @flattenToIds().join(",") + ",#{@specificLeftMost}" + ",#{@nonSpecificLeftMost?.id}"
 
   
 @Row = Row
