@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/projectcypress/health-data-standards.git
-  revision: e81fe10da6a6e48c472a2895faa24ae824056caf
-  branch: fulfills
+  revision: b54a58fb3b6c56fcb6c3f26725380b92ca128eac
+  branch: bonnie_master
   specs:
     health-data-standards (3.4.6)
       activesupport (~> 4.0.0)
@@ -57,7 +57,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.7.0)
-    connection_pool (2.1.0)
+    connection_pool (2.1.1)
     docile (1.1.3)
     erubis (2.7.0)
     execjs (2.1.0)

@@ -103,7 +103,6 @@ module HQMF2JS
           type = bounds.type || 'IVL_PQ'
           "new #{type}(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
         elsif bounds.respond_to?(:reference) 
-          binding.pry
           "hqmfjs.#{bounds.reference.gsub(/\W/, '_')}(patient,initialSpecificContext)"
         else  
           "#{js_for_value(bounds)}"
