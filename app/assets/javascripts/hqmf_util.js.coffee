@@ -597,6 +597,18 @@ filterEventsByField = (events, field, value) ->
   hqmf.SpecificsManager.maintainSpecifics(result, events)
 @filterEventsByField = filterEventsByField
 
+filterEventsByReference = (events,type,possibles) ->
+  p_ids = for p in possibles 
+    p.id
+  matching = []
+  for e in events
+    if e.respondTo("references") 
+      contains = (item for item in e.referencesByType(type) when item.referenced_id() in p_ids)
+      if contains.length > 0
+        matching.push(e)
+  hqmf.SpecificsManager.maintainSpecifics(matching, events)
+@filterEventsByReference = filterEventsByReference
+
 shiftTimes = (event, field) ->
   shiftedEvent = new event.constructor(event.json)
   shiftedEvent.setTimestamp(shiftedEvent[field]())

@@ -54,6 +54,8 @@ module HQMF2JS
           'adjustBoundsForField'
         elsif field_type == :nested_timestamp
           'denormalizeEventsByLocation'
+       elsif field_type == :reference
+          'filterEventsByReference'
         end
       end
 
@@ -100,7 +102,9 @@ module HQMF2JS
         if (bounds.respond_to?(:low) && bounds.respond_to?(:high))
           type = bounds.type || 'IVL_PQ'
           "new #{type}(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
-        else
+        elsif bounds.respond_to?(:reference) 
+          "hqmfjs.#{bounds.reference.gsub(/\W/, '_')}(patient,initialSpecificContext)"
+        else  
           "#{js_for_value(bounds)}"
         end
       end
