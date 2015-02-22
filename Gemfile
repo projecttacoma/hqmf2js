@@ -8,7 +8,7 @@ group :assets do
 end
 
 gem 'hquery-patient-api', '1.0.4'
-gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'bonnie_master'
+gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'master'
 #gem 'health-data-standards', :path => '../health-data-standards'
 
 gem 'nokogiri'
