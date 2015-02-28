@@ -273,6 +273,13 @@ class hqmf.SpecificOccurrence
       newRows.push(myRow) if goodRow
     new hqmf.SpecificOccurrence(newRows)
   
+  # Given a set of events and a specific occurrence, return new specifics removing any
+  # rows containing one of the supplied events at the index of that specific occurrence
+  excludeEventsForSpecific: (events, occurrenceID) ->
+    eventIndex = hqmf.SpecificsManager.getColumnIndex(occurrenceID)
+    rowsToKeep = _(@rows).reject (row) -> _(events).include(row.values[eventIndex])
+    new hqmf.SpecificOccurrence(rowsToKeep)
+
   hasRow: (row) ->
     found = false
     for myRow in @rows

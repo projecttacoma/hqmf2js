@@ -714,7 +714,17 @@ UNION = (eventLists...) ->
 
 # Create a CrossProduct of the supplied event lists.
 INTERSECT = (eventLists...) ->
-  hqmf.SpecificsManager.intersectAll((new CrossProduct(eventLists)).intersect(), eventLists, false, null, considerLeftMost: true)
+  events = hqmf.SpecificsManager.intersectAll((new CrossProduct(eventLists)).intersect(), eventLists, false, null, considerLeftMost: true)
+  # If the logical evaluation of an INTERSECT excludes an event, the resulting specifics
+  # should not include rows that refer to that event where the specific comes from the
+  # leftmost of one of the inputs to the INTERSECT.
+  #
+  # This addresses https://jira.oncprojectracking.org/browse/BONNIE-64
+  for eventList in eventLists when eventList.specific_occurrence # Event lists from logic with a specific as leftmost
+    if _(eventList.specific_occurrence).isString() # UNION can wedge an object in there, we don't handle that
+      excluded = _(eventList).difference(events) # Events that aren't part of the result
+      events.specificContext = events.specificContext.excludeEventsForSpecific(excluded, eventList.specific_occurrence)
+  events
 @INTERSECT = INTERSECT
 
 # Return true if the number of events matches the supplied range
