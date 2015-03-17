@@ -59,7 +59,16 @@ class hqmf.SpecificsManagerSingleton
   extractEventsForLeftMost: (rows) ->
     events = []
     for row in rows
-      events.push(@extractEvent(row.specificLeftMost, row)) if row.specificLeftMost? || row.nonSpecificLeftMost?
+      # row.specificLeftMost can be a hash (if we're handling a UNION) or a string, handle both cases
+      if _.isObject(row.specificLeftMost)
+        # Collect the occurrences that represent the leftmost for the UNION
+        occurrences = _(row.specificLeftMost).chain().values().flatten().uniq().value() # array of occurrence keys across events
+        for occurrence in occurrences
+          index = @indexLookup[occurrence]
+          if index? && row.values[index] && row.values[index] != hqmf.SpecificsManager.any
+            events.push(@extractEvent(occurrence, row))
+      else
+        events.push(@extractEvent(row.specificLeftMost, row)) if row.specificLeftMost? || row.nonSpecificLeftMost?
     events
   
   extractEvents: (key, rows) ->
@@ -308,6 +317,10 @@ class hqmf.SpecificOccurrence
     result = result.intersect(boundsContext) if boundsContext?
     result.compactReusedEvents()
   
+  # Group rows by everything except the leftmost to apply the subset only to the events from the specific
+  # occurrence context rows on the leftmost column. eg for "MOST RECENT: Occurrence A of Lab Result during
+  # Occurrence A of Encounter" we want to group by the encounter and apply the most recent to the set of
+  # lab results per group (ie encounter)
   group: ->
     groupedRows = {}
     for row in @rows
@@ -454,16 +467,20 @@ class Row
     return true
 
   groupKeyForLeftMost: ->
-    @groupKey(@specificLeftMost)
-    
-  groupKey: (key=null) ->
+    # Get the key(s) to group by, handling hash of specifics or single specific
+    if _.isObject(@specificLeftMost)
+      @groupKey(_(@specificLeftMost).chain().values().flatten().value())
+    else
+      @groupKey([@specificLeftMost])
+
+  groupKey: (keys) ->
+    keys = [keys] if _.isString(keys)
     keyForGroup = ''
     for i in [0...@length]
-      value = hqmf.SpecificsManager.any
-      value = @values[i].id if @values[i] != hqmf.SpecificsManager.any 
-      if hqmf.SpecificsManager.keyLookup[i] == key
+      if _(keys).include(hqmf.SpecificsManager.keyLookup[i])
         keyForGroup += "X_"
       else
+        value = if @values[i] != hqmf.SpecificsManager.any then @values[i].id else hqmf.SpecificsManager.any
         keyForGroup += "#{value}_"
     keyForGroup
     
@@ -504,7 +521,7 @@ class Row
         for matchKey in matchKeys
           occurrences = {}
           occurrences[entryKey] = entry
-          occurrences[matchKey] = match
+          occurrences[matchKey] = match if matchKey? # We don't want to track RHS unless it's a specific occurrence
           rows.push(new Row(entryKey, occurrences))
     rows
     
