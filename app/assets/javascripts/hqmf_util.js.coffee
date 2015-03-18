@@ -597,16 +597,22 @@ filterEventsByField = (events, field, value) ->
   hqmf.SpecificsManager.maintainSpecifics(result, events)
 @filterEventsByField = filterEventsByField
 
-filterEventsByReference = (events,type,possibles) ->
-  p_ids = for p in possibles 
-    p.id
+
+# This turns out to work similarly to eventsMatchBounds
+filterEventsByReference = (events, type, possibles) ->
+  specificContext = new hqmf.SpecificOccurrence()
   matching = []
-  for e in events
-    if e.respondTo("references") 
-      contains = (item for item in e.referencesByType(type) when item.referenced_id() in p_ids)
-      if contains.length > 0
-        matching.push(e)
-  hqmf.SpecificsManager.maintainSpecifics(matching, events)
+  matching.specific_occurrence = events.specific_occrrence
+  for event in events when event.respondTo("references")
+    referencedIds = (item.referenced_id() for item in event.referencesByType(type))
+    matchingPossibles = (possible for possible in possibles when possible.id in referencedIds)
+    matching.push(event) if matchingPossibles.length > 0
+    if events.specific_occurrence? || possibles.specific_occurrence?
+      specificContext.addRows(Row.buildRowsForMatching(events.specific_occurrence, event, possibles.specific_occurrence, matchingPossibles))
+    else
+      specificContext.addIdentityRow()
+  matching.specificContext = specificContext.finalizeEvents(events.specificContext, possibles.specificContext)
+  matching
 @filterEventsByReference = filterEventsByReference
 
 shiftTimes = (event, field) ->
