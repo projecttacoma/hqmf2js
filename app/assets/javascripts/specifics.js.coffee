@@ -523,6 +523,14 @@ class Row
           occurrences[entryKey] = entry
           occurrences[matchKey] = match if matchKey? # We don't want to track RHS unless it's a specific occurrence
           rows.push(new Row(entryKey, occurrences))
+      else
+        # Handle case where the match is not a specific occurrence (may have specific occurrences on the RHS)
+        nonSpecificLeftMostRows = _(matches.specificContext.rows).select (r) -> r.nonSpecificLeftMost?.id == match.id
+        entryOccurrences = {}
+        entryOccurrences[entryKey] = entry
+        for nonSpecificLeftMostRow in nonSpecificLeftMostRows
+          result = nonSpecificLeftMostRow.intersect(new Row(entryKey, entryOccurrences))
+          rows.push(result) if result?
     rows
     
   # build specific for a given entry (there are no temporal references)
