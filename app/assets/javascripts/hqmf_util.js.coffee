@@ -1,6 +1,6 @@
 # Represents an HL7 timestamp
 class TS
-  
+
   # Create a new TS instance
   # hl7ts - an HL7 TS value as a string, e.g. 20121023131023 for
   # Oct 23, 2012 at 13:10:23.
@@ -18,7 +18,7 @@ class TS
       @date = new Date(Date.UTC(year, month, day, hour, minute))
     else
       @date = new Date()
-  
+
   # Add a time period to th and return it
   # pq - a time period as an instance of PQ. Supports units of a (year), mo (month),
   # wk (week), d (day), h (hour) and min (minute).
@@ -38,11 +38,11 @@ class TS
     else
       throw new Error("Unknown time unit: "+pq.unit)
     this
-    
+
   # Returns the difference between this TS and the supplied TS as an absolute
   # number using the supplied granularity. E.g. if granularity is specified as year
   # then it will return the number of years between this TS and the supplied TS.
-  # granularity - specifies the granularity of the difference. Supports units 
+  # granularity - specifies the granularity of the difference. Supports units
   # of a (year), mo (month), wk (week), d (day), h (hour) and min (minute).
   difference: (ts, granularity) ->
     earlier = later = null
@@ -67,13 +67,13 @@ class TS
       TS.minutesDifference(earlier,later)
     else
       throw new Error("Unknown time unit: "+granularity)
-  
+
   # Get the value of this TS as a JS Date
   asDate: ->
     @date
-    
+
   # Returns whether this TS is before the supplied TS ignoring seconds
-  before: (other) -> 
+  before: (other) ->
     if @date==null || other.date==null
       return false
     if other.inclusive
@@ -96,7 +96,7 @@ class TS
     (@date==null && other.date==null) || (@date!=null && other.date!=null && @date.getTime()==other.date.getTime())
 
   # Returns whether this TS is before or concurrent with the supplied TS ignoring seconds
-  beforeOrConcurrent: (other) ->  
+  beforeOrConcurrent: (other) ->
     if @date==null || other.date==null
       return false
     [a,b] = TS.dropSeconds(@date, other.date)
@@ -108,13 +108,13 @@ class TS
       return false
     [a,b] = TS.dropSeconds(@date, other.date)
     a.getTime() >= b.getTime()
-    
+
   # Return whether this TS and the supplied TS are within the same minute (i.e.
   # same timestamp when seconds are ignored)
   withinSameMinute: (other) ->
     [a,b] = TS.dropSeconds(@date, other.date)
     a.getTime()==b.getTime()
-    
+
   # Number of whole years between the two time stamps (as Date objects)
   @yearsDifference: (earlier, later) ->
     if (later.getUTCMonth() < earlier.getUTCMonth())
@@ -125,34 +125,34 @@ class TS
       later.getUTCFullYear()-earlier.getUTCFullYear()-1
     else
       later.getUTCFullYear()-earlier.getUTCFullYear()
-      
+
   # Number of whole months between the two time stamps (as Date objects)
   @monthsDifference: (earlier, later) ->
     if (later.getUTCDate() >= earlier.getUTCDate())
       (later.getUTCFullYear()-earlier.getUTCFullYear())*12+later.getUTCMonth()-earlier.getUTCMonth()
     else
       (later.getUTCFullYear()-earlier.getUTCFullYear())*12+later.getUTCMonth()-earlier.getUTCMonth()-1
-      
+
   # Number of whole minutes between the two time stamps (as Date objects)
   @minutesDifference: (earlier, later) ->
     [e,l] = TS.dropSeconds(earlier,later)
     Math.floor(((l.getTime()-e.getTime())/1000)/60)
-    
+
   # Number of whole hours between the two time stamps (as Date objects)
   @hoursDifference: (earlier, later) ->
     Math.floor(TS.minutesDifference(earlier,later)/60)
-  
+
   # Number of days betweem the two time stamps (as Date objects)
   @daysDifference: (earlier, later) ->
     # have to discard time portion for day difference calculation purposes
     e = new Date(Date.UTC(earlier.getUTCFullYear(), earlier.getUTCMonth(), earlier.getUTCDate()))
     l = new Date(Date.UTC(later.getUTCFullYear(), later.getUTCMonth(), later.getUTCDate()))
     Math.floor(TS.hoursDifference(e,l)/24)
-    
+
   # Number of whole weeks between the two time stmaps (as Date objects)
   @weeksDifference: (earlier, later) ->
     Math.floor(TS.daysDifference(earlier,later)/7)
-    
+
   # Drop the seconds from the supplied timeStamps (as Date objects)
   # returns the new time stamps with seconds set to 0 as an array
   @dropSeconds: (timeStamps...) ->
@@ -184,7 +184,7 @@ fieldOrContainerValue = (value, fieldName, defaultToValue=true) ->
 # Represents an HL7 CD value
 class CD
   constructor: (@code, @system) ->
-  
+
   # Returns whether the supplied code matches this one.
   match: (codeOrHash) ->
     # We might be passed a simple code value like "M" or a CodedEntry
@@ -199,11 +199,11 @@ class CD
     else
       c1==c2
 @CD = CD
-    
-# Represents a list of codes 
+
+# Represents a list of codes
 class CodeList
   constructor: (@codes) ->
-  
+
   # Returns whether the supplied code matches any of the contained codes
   match: (codeOrHash) ->
     # We might be passed a simple code value like "M" or a CodedEntry
@@ -223,14 +223,14 @@ class CodeList
           result = true
     result
 @CodeList = CodeList
-    
+
 # Represents and HL7 physical quantity
 class PQ
   constructor: (@value, @unit, @inclusive=true) ->
-  
+
   # Helper method to make a PQ behave like a patient API value
   scalar: -> @value
-  
+
   # Returns whether this is less than the supplied value
   lessThan: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
@@ -256,7 +256,7 @@ class PQ
   greaterThanOrEqual: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
     @value>=val
-    
+
   # Returns whether this is equal to the supplied value or hash
   match: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
@@ -284,7 +284,7 @@ class PQ
     # use minutes as the default precision
     new PQ(@value * TIME_UNITS_MAP[@unit], 'min', @inclusive)
 @PQ = PQ
-  
+
 # Represents an HL7 interval
 class IVL_PQ
   # Create a new instance, must supply either a lower or upper bound and if both
@@ -299,7 +299,7 @@ class IVL_PQ
       @low_pq.unit
     else
       @high_pq.unit
-      
+
   # Return whether the supplied scalar or patient API hash value is within this range
   match: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
@@ -308,7 +308,7 @@ class IVL_PQ
   # Helper method to normalize the current values as a new IVL_PQ with 'min' precision
   normalizeToMins: -> new IVL_PQ(@low_pq?.normalizeToMins(), @high_pq?.normalizeToMins())
 @IVL_PQ = IVL_PQ
-    
+
 # Represents an HL7 time interval
 class IVL_TS
   constructor: (@low, @high) ->
@@ -323,7 +323,7 @@ class IVL_TS
       @low.before(other)
     else if @high
       @high.after(other)
-  
+
   # add an offset to the upper and lower bounds
   add: (pq) ->
     if @low
@@ -331,10 +331,10 @@ class IVL_TS
     if @high
       @high.add(pq)
     this
-  
+
   # During: this low is after other low and this high is before other high
   DURING: (other) -> this.SDU(other) && this.EDU(other)
-  
+
   # Overlap: this overlaps with other
   OVERLAP: (other) ->
     if @high.date == null && other.high.date == null
@@ -345,59 +345,59 @@ class IVL_TS
       !this.EBS(other)
     else
       this.SDU(other) || this.EDU(other) || (this.SBS(other) && this.EAE(other))
-  
+
   # Concurrent: this low and high are the same as other low and high
   CONCURRENT: (other) -> this.SCW(other) && this.ECW(other)
-  
+
   # Starts Before Start: this low is before other low
-  SBS: (other) -> 
+  SBS: (other) ->
     if @low && other.low
       @low.before(other.low)
     else
       false
-      
+
   # Starts After Start: this low is after other low
-  SAS: (other) -> 
+  SAS: (other) ->
     if @low && other.low
       @low.after(other.low)
     else
       false
-      
+
   # Starts Before End: this low is before other high
   SBE: (other) ->
     if @low && other.high
       @low.before(other.high)
     else
       false
-      
+
   # Starts After End: this low is after other high
-  SAE: (other) -> 
+  SAE: (other) ->
     if @low && other.high
       @low.after(other.high)
     else
       false
 
   # Starts During: this low is between other low and high
-  SDU: (other) -> 
+  SDU: (other) ->
     if @low && other.low && other.high
       @low.afterOrConcurrent(other.low) && @low.beforeOrConcurrent(other.high)
     else
       false
 
-  #starts before or during: this low is less than the other low or the other high. 
+  #starts before or during: this low is less than the other low or the other high.
   #if other does not have a high or does not have a low this will return false
   SBDU: (other) ->
      this.SBS(other) ||  this.SDU(other)
 
   # Starts Concurrent With: this low is the same as other low ignoring seconds
-  SCW: (other) -> 
+  SCW: (other) ->
     if @low && other.low
       @low.asDate() && other.low.asDate() && @low.withinSameMinute(other.low)
     else
       false
 
    # Starts Concurrent With End: this low is the same as other high ignoring seconds
-  SCWE: (other) -> 
+  SCWE: (other) ->
     if @low && other.high
       @low.asDate() && other.high.asDate() && @low.withinSameMinute(other.high)
     else
@@ -405,9 +405,9 @@ class IVL_TS
 
     #Starts Before or Concurrent with: this low is <= other low
   SBCW: (other) ->
-     this.SBS(other) ||  this.SCW(other)  
+     this.SBS(other) ||  this.SCW(other)
 
-  SBCWE: (other) -> 
+  SBCWE: (other) ->
      this.SBE(other) ||  this.SCWE(other)
   # Starts After or Concurrent with other: this low is >= other low
   SACW: (other) ->
@@ -415,7 +415,7 @@ class IVL_TS
 
   # Starts After or Concurrent with End : This low is >= other high
   SACWE: (other) ->
-     this.SAE(other) ||  this.SCWE(other)   
+     this.SAE(other) ||  this.SCWE(other)
 
 
   # Ends Before Start: this high is before other low
@@ -426,19 +426,19 @@ class IVL_TS
       false
 
   # Ends After Start: this high is after other low
-  EAS: (other) -> 
+  EAS: (other) ->
     if @high && other.low
       @high.after(other.low)
     else
       false
-      
+
   # Ends Before End: this high is before other high
-  EBE: (other) -> 
+  EBE: (other) ->
     if @high && other.high
       @high.before(other.high)
     else
       false
-      
+
   # Ends After End: this high is after other high
   EAE: (other) ->
     if @high && other.high
@@ -447,19 +447,19 @@ class IVL_TS
       false
 
   # Ends During: this high is between other low and high
-  EDU: (other) -> 
+  EDU: (other) ->
     if @high && other.low && other.high
       @high.afterOrConcurrent(other.low) && @high.beforeOrConcurrent(other.high)
     else
       false
-      
+
   # Ends Concurrent With: this high is the same as other high ignoring seconds
-  ECW: (other) -> 
+  ECW: (other) ->
     if @high && other.high
       @high.asDate() && other.high.asDate() && @high.withinSameMinute(other.high)
     else
       false
-      
+
   # Ends Concurrent With Start: this high is the same as other low ignoring seconds
   ECWS: (other) ->
     if @high && other.low
@@ -474,12 +474,12 @@ class IVL_TS
      this.EBE(other) ||  this.ECW(other)
 
   EACW: (other) ->
-     this.EAE(other) ||  this.ECW(other)  
+     this.EAE(other) ||  this.ECW(other)
 
   EBCWS: (other) ->
      this.EBS(other) ||  this.ECWS(other)
 
-  EACWS: (other) ->  
+  EACWS: (other) ->
      this.EAS(other) ||  this.ECWS(other)
 
   equals: (other) ->
@@ -512,7 +512,7 @@ evalUnlessShortCircuit = (fn) ->
 invokeAll = (patient, initialSpecificContext, fns) ->
   (invokeOne(patient, initialSpecificContext, fn) for fn in fns)
 @invokeAll = invokeAll
-  
+
 # Returns true if one or more of the supplied values is true
 atLeastOneTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
   evalUnlessShortCircuit ->
@@ -527,7 +527,7 @@ allTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
     values = []
     for valueFn in valueFns
       value = invokeOne(patient, initialSpecificContext, valueFn)
-      # break if the we have a false value and we're short circuiting.  
+      # break if the we have a false value and we're short circuiting.
       #If we're not short circuiting then we want to calculate everything
       break if value.isFalse() && Logger.short_circuit
       values.push(value)
@@ -546,7 +546,7 @@ allTrue = (precondition, patient, initialSpecificContext, valueFns...) ->
 
 
 @allTrue = allTrue
-  
+
 # Returns true if one or more of the supplied values is false
 atLeastOneFalse = (precondition, patient, initialSpecificContext, valueFns...) ->
 #   values = invokeAll(patient, initialSpecificContext, valueFns)
@@ -563,7 +563,7 @@ atLeastOneFalse = (precondition, patient, initialSpecificContext, valueFns...) -
         break if Logger.short_circuit
     hqmf.SpecificsManager.intersectAll(new Boolean(values.length>0 && hasFalse), values, true)
 @atLeastOneFalse = atLeastOneFalse
-  
+
 # Returns true if all of the supplied values are false
 allFalse = (precondition, patient, initialSpecificContext, valueFns...) ->
   evalUnlessShortCircuit ->
@@ -571,7 +571,7 @@ allFalse = (precondition, patient, initialSpecificContext, valueFns...) ->
     falseValues = (value for value in values when value.isFalse())
     hqmf.SpecificsManager.unionAll(new Boolean(falseValues.length>0 && falseValues.length==values.length), values, true)
 @allFalse = allFalse
-  
+
 # Return true if compareTo matches value
 matchingValue = (value, compareTo) ->
   new Boolean(compareTo.match(value))
@@ -604,8 +604,8 @@ filterEventsByReference = (events, type, possibles) ->
   matching = []
   matching.specific_occurrence = events.specific_occrrence
   for event in events when event.respondTo("references")
-    referencedIds = (item.referenced_id() for item in event.referencesByType(type))
-    matchingPossibles = (possible for possible in possibles when possible.id in referencedIds)
+    referencedIds = (item.referenced_id().valueOf() for item in event.referencesByType(type))
+    matchingPossibles = (possible for possible in possibles when possible.id.valueOf() in referencedIds)
     matching.push(event) if matchingPossibles.length > 0
     if events.specific_occurrence? || possibles.specific_occurrence?
       specificContext.addRows(Row.buildRowsForMatching(events.specific_occurrence, event, possibles.specific_occurrence, matchingPossibles))
@@ -705,14 +705,14 @@ XPRODUCT = (eventLists...) ->
 # Create a new list containing all the events from the supplied event lists
 UNION = (eventLists...) ->
   union = []
-  # keep track of the specific occurrences by encounter ID.  This is used in 
+  # keep track of the specific occurrences by encounter ID.  This is used in
   # eventsMatchBounds (specifically in buildRowsForMatching down the _.isObject path)
   specific_occurrence = {}
   for eventList in eventLists
     for event in eventList
       if eventList.specific_occurrence
         specific_occurrence[event.id] ||= []
-        specific_occurrence[event.id].push eventList.specific_occurrence 
+        specific_occurrence[event.id].push eventList.specific_occurrence
       union.push(event)
   union.specific_occurrence = specific_occurrence unless _.isEmpty(specific_occurrence)
   hqmf.SpecificsManager.unionAll(union, eventLists)
@@ -760,7 +760,7 @@ getTS = (date, inclusive=false) ->
     ts
 @getTS = getTS
 
-eventAccessor = {  
+eventAccessor = {
   'DURING': 'low',
   'OVERLAP': 'low',
   'SBS': 'low',
@@ -791,7 +791,7 @@ eventAccessor = {
   'DATEDIFF': 'low'
 }
 
-boundAccessor = {  
+boundAccessor = {
   'DURING': 'low',
   'OVERLAP': 'low',
   'SBS': 'low',
@@ -821,7 +821,7 @@ boundAccessor = {
   'CONCURRENT': 'low',
   'DATEDIFF': 'low'
 }
-    
+
 # Determine whether the supplied event falls within range of the supplied bound
 # using the method to determine which property of the event and bound to use in
 # the comparison. E.g. if method is SBS then check whether the start of the event
@@ -831,7 +831,7 @@ withinRange = (method, eventIVL, boundIVL, range) ->
   boundTS = boundIVL[boundAccessor[method]]
   range.match(eventTS.difference(boundTS, range.unit()))
 @withinRange = withinRange
-    
+
 # Determine which bounds an event matches
 eventMatchesBounds = (event, bounds, methodName, range) ->
   if bounds.eventLists
@@ -853,14 +853,14 @@ eventMatchesBounds = (event, bounds, methodName, range) ->
     ))
     hqmf.SpecificsManager.maintainSpecifics(matchingBounds, bounds)
 @eventMatchesBounds = eventMatchesBounds
-  
+
 # Determine which event match one of the supplied bounds
 eventsMatchBounds = (events, bounds, methodName, range) ->
   if (bounds.length==undefined)
     bounds = [bounds]
   if (events.length==undefined)
     events = [events]
-  
+
   specificContext = new hqmf.SpecificOccurrence()
   hasSpecificOccurrence = (events.specific_occurrence? || bounds.specific_occurrence?)
   matchingEvents = []
@@ -877,12 +877,12 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
     else
       # add all stars
       specificContext.addIdentityRow()
-  
+
   matchingEvents.specificContext = specificContext.finalizeEvents(events.specificContext, bounds.specificContext)
-  
+
   matchingEvents
 @eventsMatchBounds = eventsMatchBounds
-  
+
 DURING = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "DURING", offset)
 @DURING = DURING
@@ -934,7 +934,7 @@ EDU = (events, bounds, offset) ->
 ECW = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "ECW", offset)
 @ECW = ECW
-  
+
 SCW = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SCW", offset)
 @SCW = SCW
@@ -942,7 +942,7 @@ SCW = (events, bounds, offset) ->
 ECWS = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "ECWS", offset)
 @ECWS = ECWS
-  
+
 SCWE = (events, bounds, offset) ->
   eventsMatchBounds(events, bounds, "SCWE", offset)
 @SCWE = SCWE
@@ -1055,16 +1055,16 @@ RECENT = (events) ->
   result = selectConcurrent(events.sort(dateSortDescending)[0], events) if (events.length > 0)
   applySpecificOccurrenceSubset('RECENT',hqmf.SpecificsManager.maintainSpecifics(result, events))
 @RECENT = RECENT
-  
+
 LAST = (events) ->
   RECENT(events)
 @LAST = LAST
-  
+
 valueSortDescending = (a, b) ->
   va = vb = Infinity
   if a.value
     va = a.value()["scalar"]
-  if b.value 
+  if b.value
     vb = b.value()["scalar"]
   if va==vb
     0
@@ -1076,7 +1076,7 @@ valueSortAscending = (a, b) ->
   va = vb = Infinity
   if a.value
     va = a.value()["scalar"]
-  if b.value 
+  if b.value
     vb = b.value()["scalar"]
   if va==vb
     0
@@ -1181,7 +1181,7 @@ TIMEDIFF = (events, range, initialSpecificContext) ->
     for row in initialSpecificContext.rows
       event1 = row.values[eventIndex1]
       event2 = row.values[eventIndex2]
-      if event1 and event2 and event1 != hqmf.SpecificsManager.any and event2 != hqmf.SpecificsManager.any 
+      if event1 and event2 and event1 != hqmf.SpecificsManager.any and event2 != hqmf.SpecificsManager.any
         # The maps contain the actual events we want to work with since these may contain
         # time shifted clones of the events in the specificContext, e.g. via adjustBoundsForField
         shiftedEvent1 = eventMap1[event1.id]
@@ -1225,16 +1225,16 @@ class ActiveDays
   add_days_from: (start, number_of_days) ->
     for x in[0..number_of_days-1]
       diff = (1000*60*60*24)*x
-      @add_date(new Date((start.getTime() + diff))) 
-     
+      @add_date(new Date((start.getTime() + diff)))
+
 
   add_date: (_date)->
     date = @as_date(_date)
     formated_date = @format_date(date)
     if @active_days[formated_date]
       @active_days[formated_date]["count"] +=1
-    else 
-      @active_days[formated_date]={date: formated_date, count: 1}   
+    else
+      @active_days[formated_date]={date: formated_date, count: 1}
 
   days_active: (low,high)->
     start = @as_date(low)
@@ -1242,24 +1242,24 @@ class ActiveDays
     formated_start = @format_date(start)
     formated_end = @format_date(end)
     days = @active_days.slice(formated_start,formated_end+1).filter (e)-> e # the filter removes all nulls,0, and empty strings
-    days 
+    days
 
   format_date: (date)->
-    #format the date as an integer in the format of yyyymmdd  ex 20141010 
+    #format the date as an integer in the format of yyyymmdd  ex 20141010
     ds = ""+date.getFullYear()
     month = date.getMonth() + 1
-    day = date.getDate() 
+    day = date.getDate()
     ds +=  if  month < 10 then "0"+ month else  month
     ds += if day < 10 then "0"+ day else day
     parseInt(ds)
 
   date_diff: (low,high) ->
-      
+
 
   as_date: (date)->
     if date instanceof TS
       new Date(date.asDate().getTime())
-    else 
+    else
       new Date(date.getTime())
 
   print_days_in_range: (low,high) ->
@@ -1273,7 +1273,7 @@ class ActiveDays
     str+= "End :"+formated_end+"\n"
     for x in  @days_active(low,high)
       str+="Date: "+x["date"]+ "  count: "+x["count"]+"\n"
-    str  
+    str
 
 @ActiveDays = ActiveDays
 
@@ -1309,5 +1309,3 @@ class CMD extends  ActiveDays
 
 hqmfjs = hqmfjs||{}
 @hqmfjs = @hqmfjs||{};
-
-
