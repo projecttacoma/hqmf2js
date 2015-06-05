@@ -89,8 +89,13 @@ module HQMF2JS
         var denexcep = function() {
           return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::DENEXCEP}, patient_api);
         }
-        var msrpopl = function() {
-          return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);
+        var msrpopl = function(specific_context) {
+          if (specific_context){
+            #{msrpopl_function(custom_functions, population_index)}
+          }
+          else {
+            return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);
+          }
         }
         var observ = function(specific_context) {
           #{observation_function(custom_functions, population_index)}
@@ -140,8 +145,25 @@ module HQMF2JS
           else
             return [];"
 
-        if (custom_functions && custom_functions[HQMF::PopulationCriteria::OBSERV])
+        if (custom_functions && custom_functions[:OBSERV])
           result = "return #{custom_functions[HQMF::PopulationCriteria::OBSERV]}(patient_api, hqmfjs)"
+        end
+
+        result
+
+      end
+
+      def self.msrpopl_function(custom_functions, population_index)
+
+        result = "
+          var observFunc = hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}
+          if (typeof(observFunc)==='function')
+            return observFunc(patient_api, specific_context);
+          else
+            return [];"
+
+        if (custom_functions && custom_functions[:MSRPOPL])
+          result = "return #{custom_functions[HQMF::PopulationCriteria::MSRPOPL]}(patient_api, hqmfjs)"
         end
 
         result
