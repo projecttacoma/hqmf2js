@@ -153,6 +153,7 @@ class @hqmf.CustomCalc.PercentTTREntries extends hQuery.CodedEntryList
     total
 
   calculatePercentTTR: () ->
+    @totalNumberOfDays = 0
     if (@calculateNumberOfIntervals() > 1)
       @calculateTTR()/@totalNumberOfDays*100
     else 
