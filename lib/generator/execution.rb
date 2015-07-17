@@ -149,7 +149,7 @@ module HQMF2JS
       end
 
       def self.msrpopl_function(custom_functions, population_index)
-        if (custom_functions && custom_functions[:MSRPOPL])
+        if (custom_functions && custom_functions[HQMF::PopulationCriteria::MSRPOPL])
           "return #{custom_functions[HQMF::PopulationCriteria::MSRPOPL]}(patient_api, hqmfjs)"
         else
           "return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);"
