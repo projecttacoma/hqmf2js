@@ -15,10 +15,7 @@
   else
     inrReadings = DURING(hqmfjs.LaboratoryTestPerformedInr(patient), hqmfjs.MeasurePeriod(patient));
   inrReadings = new hqmf.CustomCalc.PercentTTREntries(inrReadings)
-  if (inrReadings.calculateNumberOfIntervals() > 1)
-    return 1
-  else 
-    return 0
+  return new Boolean(inrReadings.calculateNumberOfIntervals() > 1)
 
 class @hqmf.CustomCalc.PercentTTREntries extends hQuery.CodedEntryList
 
