@@ -140,7 +140,7 @@ module HQMF2JS
           else
             return [];"
 
-        if (custom_functions && custom_functions[:OBSERV])
+        if (custom_functions && custom_functions[HQMF::PopulationCriteria::OBSERV])
           result = "return #{custom_functions[HQMF::PopulationCriteria::OBSERV]}(patient_api, hqmfjs)"
         end
 
@@ -149,15 +149,11 @@ module HQMF2JS
       end
 
       def self.msrpopl_function(custom_functions, population_index)
-
-        result = "return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);"
-
         if (custom_functions && custom_functions[:MSRPOPL])
-          result = "return #{custom_functions[HQMF::PopulationCriteria::MSRPOPL]}(patient_api, hqmfjs)"
+          "return #{custom_functions[HQMF::PopulationCriteria::MSRPOPL]}(patient_api, hqmfjs)"
+        else
+          "return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);"
         end
-
-        result
-
       end
 
     end
