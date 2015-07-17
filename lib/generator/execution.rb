@@ -90,7 +90,7 @@ module HQMF2JS
           return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::DENEXCEP}, patient_api);
         }
         var msrpopl = function() {
-          return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);
+          #{msrpopl_function(custom_functions, population_index)}
         }
         var observ = function(specific_context) {
           #{observation_function(custom_functions, population_index)}
@@ -146,6 +146,14 @@ module HQMF2JS
 
         result
 
+      end
+
+      def self.msrpopl_function(custom_functions, population_index)
+        if (custom_functions && custom_functions[HQMF::PopulationCriteria::MSRPOPL])
+          "return #{custom_functions[HQMF::PopulationCriteria::MSRPOPL]}(patient_api, hqmfjs)"
+        else
+          "return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPL}, patient_api);"
+        end
       end
 
     end

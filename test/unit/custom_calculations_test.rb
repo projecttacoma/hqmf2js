@@ -93,10 +93,6 @@ class CustomCalculationsTest < Test::Unit::TestCase
     assert @context.eval("Math.abs(list.calculateDaysInRange(inr12,inr13) - 14) < .001")
     
   end
-  
-  def test_total_number_of_days
-    @context.eval("list.totalNumberOfDays()").must_equal 198
-  end
 
   def test_calculate_ttr
     assert @context.eval("Math.abs(list.calculateTTR() - 87.11113886) < .001")
