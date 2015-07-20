@@ -1286,7 +1286,7 @@ class CMD extends  ActiveDays
       @add_medication(m)
 
   add_medication: (medication) ->
-    dose = medication.dose().value()
+    dose = medication.dose().scalar
     dosesPerDay = medication.administrationTiming().dosesPerDay()
     if @calculation_type == "order"
       for oi in medication.orderInformation()
