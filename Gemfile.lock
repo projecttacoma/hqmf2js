@@ -17,6 +17,13 @@ GIT
       rubyzip (= 0.9.9)
       uuid (~> 2.3.7)
 
+GIT
+  remote: https://github.com/projecttacoma/patientapi.git
+  revision: b0fb77f1cfb5f9a3c1f49714934ba7c7f1d04d48
+  branch: master
+  specs:
+    hquery-patient-api (1.0.4)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -62,7 +69,6 @@ GEM
     erubis (2.7.0)
     execjs (2.1.0)
     hike (1.2.3)
-    hquery-patient-api (1.0.4)
     i18n (0.6.9)
     json (1.8.1)
     libv8 (3.16.14.3)
@@ -169,7 +175,7 @@ DEPENDENCIES
   coffee-rails
   coffee-script
   health-data-standards!
-  hquery-patient-api (= 1.0.4)
+  hquery-patient-api!
   minitest
   nokogiri
   pry

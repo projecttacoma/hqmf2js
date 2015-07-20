@@ -105,7 +105,7 @@ hQuery.Fulfillment::daysInRange = (dateRange,dose, dosesPerDay) ->
 # date range
 hQuery.Medication::fulfillmentTotals = (dateRange)->
   dpd = this.administrationTiming().dosesPerDay()
-  dose = this.dose().value()
+  dose = this.dose().scalar
   this.fulfillmentHistory().reduce (t, s) -> 
     t + s.daysInRange(dateRange,dose,dpd)
   , 0  
