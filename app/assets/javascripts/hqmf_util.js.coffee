@@ -998,12 +998,12 @@ dateSortAscending = (a, b) ->
   a.timeStamp().getTime() - b.timeStamp().getTime()
 @dateSortAscending = dateSortAscending
 
-applySpecificOccurrenceSubset = (operator, result, range, calculateSpecifics) ->
+applySpecificOccurrenceSubset = (operator, result, range, fields) ->
   # the subset operators are re-used in the specifics calculation of those operators.  Checking for a specificContext
   # prevents entering into an infinite loop here.
   if (result.specificContext?)
     if (range?)
-      result.specificContext = result.specificContext[operator](range)
+      result.specificContext = result.specificContext[operator](range, fields)
     else
       result.specificContext = result.specificContext[operator]()
   result
@@ -1089,20 +1089,20 @@ FIELD_METHOD_UNITS = {
   'lengthOfStay': 'd'
 }
 
-MIN = (events, range) ->
+MIN = (events, range, fields) ->
   minValue = Infinity
   if (events.length > 0)
     minValue = events.sort(valueSortAscending)[0].value()["scalar"]
   result = new Boolean(range.match(minValue))
-  applySpecificOccurrenceSubset('MIN',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
+  applySpecificOccurrenceSubset('MIN',hqmf.SpecificsManager.maintainSpecifics(result, events), range, fields)
 @MIN = MIN
 
-MAX = (events, range) ->
+MAX = (events, range, fields) ->
   maxValue = -Infinity
   if (events.length > 0)
     maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
   result = new Boolean(range.match(maxValue))
-  applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
+  applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range, fields)
 @MAX = MAX
 
 SUM = (events, range, initialSpecificContext, fields) ->
@@ -1120,7 +1120,7 @@ SUM = (events, range, initialSpecificContext, fields) ->
         sum = (new PQ(sum, unit, true)).normalizeToMins()
         comparison = comparison.normalizeToMins()
   result = new Boolean(comparison.match(sum))
-  applySpecificOccurrenceSubset('SUM',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
+  applySpecificOccurrenceSubset('SUM',hqmf.SpecificsManager.maintainSpecifics(result, events), range, fields)
 @SUM = SUM
 
 MEDIAN = (events, range, initialSpecificContext, fields) ->
@@ -1141,7 +1141,7 @@ MEDIAN = (events, range, initialSpecificContext, fields) ->
         median = (new PQ(median, unit, true)).normalizeToMins()
         comparison = comparison.normalizeToMins()
   result = new Boolean(comparison.match(median))
-  applySpecificOccurrenceSubset('MEDIAN',hqmf.SpecificsManager.maintainSpecifics(result, events), range)
+  applySpecificOccurrenceSubset('MEDIAN',hqmf.SpecificsManager.maintainSpecifics(result, events), range, fields)
 @MEDIAN = MEDIAN
 
 DATEDIFF = (events, range) ->

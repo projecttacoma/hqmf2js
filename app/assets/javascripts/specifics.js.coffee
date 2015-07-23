@@ -83,7 +83,7 @@ class hqmf.SpecificsManagerSingleton
       entry = row.values[index]
     else
       entry = row.nonSpecificLeftMost
-    entry = new hQuery.CodedEntry(entry.json)
+    entry = new entry.constructor(entry.json)
     entry.specificRow = row
     entry
     
@@ -328,27 +328,27 @@ class hqmf.SpecificOccurrence
       groupedRows[row.groupKeyForLeftMost()].push(row)
     groupedRows
     
-  COUNT: (range) ->
-    @applyRangeSubset(COUNT, range)
+  COUNT: (range, fields) ->
+    @applyRangeSubset(COUNT, range, fields)
 
-  MIN: (range) ->
-    @applyRangeSubset(MIN, range)
+  MIN: (range, fields) ->
+    @applyRangeSubset(MIN, range, fields)
 
-  MAX: (range) ->
-    @applyRangeSubset(MAX, range)
+  MAX: (range, fields) ->
+    @applyRangeSubset(MAX, range, fields)
 
-  SUM: (range) ->
-    @applyRangeSubset(SUM, range)
+  SUM: (range, fields) ->
+    @applyRangeSubset(SUM, range, fields)
 
-  MEDIAN: (range) ->
-    @applyRangeSubset(MEDIAN, range)
+  MEDIAN: (range, fields) ->
+    @applyRangeSubset(MEDIAN, range, fields)
     
-  applyRangeSubset: (func, range) ->
+  applyRangeSubset: (func, range, fields) ->
     return this if !@hasSpecifics()
     resultRows = []
     groupedRows = @group()
     for groupKey, group of groupedRows
-      if func(hqmf.SpecificsManager.extractEventsForLeftMost(group), range).isTrue()
+      if func(hqmf.SpecificsManager.extractEventsForLeftMost(group), range, null, fields).isTrue()
         resultRows = resultRows.concat(group)
     new hqmf.SpecificOccurrence(resultRows)
 
