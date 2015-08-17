@@ -92,6 +92,9 @@ module HQMF2JS
         var msrpopl = function() {
           #{msrpopl_function(custom_functions, population_index)}
         }
+        var msrpoplex = function() {
+          return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::MSRPOPLEX}, patient_api);
+        }
         var observ = function(specific_context) {
           #{observation_function(custom_functions, population_index)}
         }
@@ -122,7 +125,7 @@ module HQMF2JS
         }
 
         try {
-          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, observ, occurrenceId,#{continuous_variable},stratification);
+          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, msrpoplex, observ, occurrenceId,#{continuous_variable},stratification);
         } catch(err) {
           print(err.stack);
           throw err;
