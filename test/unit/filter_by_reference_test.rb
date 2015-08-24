@@ -1,7 +1,7 @@
 require_relative '../test_helper'
 require 'hquery-patient-api'
 
-class FilterByReferenceTest < Test::Unit::TestCase
+class FilterByReferenceTest < Minitest::Test
   
   def setup
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)

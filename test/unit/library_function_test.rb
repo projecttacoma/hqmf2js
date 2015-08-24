@@ -1,7 +1,7 @@
 require_relative '../test_helper'
 require 'hquery-patient-api'
 
-class LibraryFunctionTest < Test::Unit::TestCase
+class LibraryFunctionTest < Minitest::Test
   
   def setup
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
@@ -10,57 +10,57 @@ class LibraryFunctionTest < Test::Unit::TestCase
 
 
   def test_library_function_parses
-    @context.eval('hQuery == undefined').must_equal false
-    @context.eval('typeof hQuery.Patient').must_equal "function"
-    @context.eval('typeof allTrue').must_equal "function"
-    @context.eval('typeof atLeastOneTrue').must_equal "function"
+    assert_equal false, @context.eval('hQuery == undefined')
+    assert_equal "function", @context.eval('typeof hQuery.Patient')
+    assert_equal "function", @context.eval('typeof allTrue')
+    assert_equal "function", @context.eval('typeof atLeastOneTrue')
   end
   
   def test_all_true
-    @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal false
-    @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false))().isTrue()').must_equal false
-    @context.eval('allTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal true
-    @context.eval('allTrue(1,null,null)().isTrue()').must_equal false
+    assert_equal false, @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()')
+    assert_equal false, @context.eval('allTrue(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false))().isTrue()')
+    assert_equal true, @context.eval('allTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()')
+    assert_equal false, @context.eval('allTrue(1,null,null)().isTrue()')
   end
   
   def test_at_least_one_true
-    @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
-    @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal true
-    @context.eval('atLeastOneTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal false
-    @context.eval('atLeastOneTrue(1,null,null)().isTrue()').must_equal false
+    assert_equal true, @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false))().isTrue()')
+    assert_equal true, @context.eval('atLeastOneTrue(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()')
+    assert_equal false, @context.eval('atLeastOneTrue(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()')
+    assert_equal false, @context.eval('atLeastOneTrue(1,null,null)().isTrue()')
   end
   
   def test_all_false
-    @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
-    @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false))().isTrue()').must_equal false
-    @context.eval('allFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal false
-    @context.eval('allFalse(1,null,null)().isTrue()').must_equal false
+    assert_equal true, @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()')
+    assert_equal false, @context.eval('allFalse(1,null,null,new Boolean(false),new Boolean(true),new Boolean(false))().isTrue()')
+    assert_equal false, @context.eval('allFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()')
+    assert_equal false, @context.eval('allFalse(1,null,null)().isTrue()')
   end
   
   def test_at_least_one_false
-    @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
-    @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()').must_equal false
-    @context.eval('atLeastOneFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()').must_equal true
-    @context.eval('atLeastOneFalse(1,null,null)().isTrue()').must_equal false
+    assert_equal true, @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(false),new Boolean(false))().isTrue()')
+    assert_equal false, @context.eval('atLeastOneFalse(1,null,null,new Boolean(true),new Boolean(true),new Boolean(true))().isTrue()')
+    assert_equal true, @context.eval('atLeastOneFalse(1,null,null,new Boolean(false),new Boolean(false),new Boolean(false))().isTrue()')
+    assert_equal false, @context.eval('atLeastOneFalse(1,null,null)().isTrue()')
   end
   
   def test_patient_extensions
-    @context.eval('typeof hQuery.Patient.prototype.procedureResults').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.laboratoryTests').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.allMedications').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.allProblems').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.allDevices').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.activeDiagnoses').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.inactiveDiagnoses').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.resolvedDiagnoses').must_equal "function"
-    @context.eval('typeof hQuery.Patient.prototype.getEvents').must_equal "function"
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.procedureResults')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.laboratoryTests')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.allMedications')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.allProblems')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.allDevices')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.activeDiagnoses')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.inactiveDiagnoses')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.resolvedDiagnoses')
+    assert_equal "function", @context.eval('typeof hQuery.Patient.prototype.getEvents')
   end
 
   def test_code_list
-    @context.eval('(new CodeList({"foo": [10,11]})).match(10)').must_equal true
-    @context.eval('(new CodeList({"foo": [10,11]})).match({"code": 10})').must_equal true
-    @context.eval('(new CodeList({"foo": [10,11]})).match(12)').must_equal false
-    @context.eval('(new CodeList({"foo": [10,11]})).match({"code": 12})').must_equal false
+    assert_equal true, @context.eval('(new CodeList({"foo": [10,11]})).match(10)')
+    assert_equal true, @context.eval('(new CodeList({"foo": [10,11]})).match({"code": 10})')
+    assert_equal false, @context.eval('(new CodeList({"foo": [10,11]})).match(12)')
+    assert_equal false, @context.eval('(new CodeList({"foo": [10,11]})).match({"code": 12})')
   end
   
   def test_pq
@@ -637,12 +637,12 @@ class LibraryFunctionTest < Test::Unit::TestCase
       var ddEvents3 = [{'id': 30, 'asTS': function() {return ts3;}, 'timeStamp': function() {return ts3.date}}, {'id': 20, 'asTS': function() {return ts2;}, 'timeStamp': function() {return ts2.date}}];
     ");
 
-    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents2)).length').must_equal 1
-    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents2))[0]').must_equal 10
-    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents3)).length').must_equal 1
-    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents3))[0]').must_equal 30
-    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents2,ddEvents3)).length').must_equal 1
-    @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents2,ddEvents3))[0]').must_equal 20
+    assert_equal 1, @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents2)).length')
+    assert_equal 10, @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents2))[0]')
+    assert_equal 1, @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents3)).length')
+    assert_equal 30, @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents1,ddEvents3))[0]')
+    assert_equal 1, @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents2,ddEvents3)).length')
+    assert_equal 20, @context.eval('DATETIMEDIFF(XPRODUCT(ddEvents2,ddEvents3))[0]')
     
   end
   
