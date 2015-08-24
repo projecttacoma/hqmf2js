@@ -1304,6 +1304,7 @@ class CMD extends  ActiveDays
            startDate = new Date(fh.dispenseDate())
            @add_days_from(startDate,totalDays)
 
+@CMD = CMD
 
 @OidDictionary = {};
 
