@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class HqmfFromJsonJavascriptTest < Test::Unit::TestCase
+class HqmfFromJsonJavascriptTest < Minitest::Test
   def setup
     json_measure = File.open("test/fixtures/json/59New.json").read
     measure_hash = JSON.parse(json_measure)
