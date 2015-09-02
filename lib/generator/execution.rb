@@ -121,6 +121,7 @@ module HQMF2JS
             injectLogger(hqmfjs, enable_logging, enable_rationale, short_circuit);
           } else {
             Logger.enable_rationale = false;
+            Logger.short_circuit = short_circuit;
           }
         }
 
