@@ -43,8 +43,12 @@ class hqmf.SpecificsManagerSingleton
     new hqmf.SpecificOccurrence([new Row(undefined)])
 
   setIfNull: (events) ->
-    if (!events.specificContext? || events.length == 0)
-      events.specificContext=hqmf.SpecificsManager.identity()
+    # Add specifics if missing, appropriately based on the truthiness
+    if !events.specificContext?
+      if events.isTrue()
+        events.specificContext=hqmf.SpecificsManager.identity()
+      else
+        events.specificContext=hqmf.SpecificsManager.empty()
     events
       
   getColumnIndex: (occurrenceID) ->
@@ -166,7 +170,13 @@ class hqmf.SpecificsManagerSingleton
   
   # copy the specifics parameters from an existing element onto the new value element
   maintainSpecifics: (newElement, existingElement) ->
-    newElement.specificContext = existingElement.specificContext
+    # We handle a special case: if the existing element is falsy (ie an empty result set), and the new element
+    # is truthy (ie a boolean true), and the specific context is the empty set (no rows), we change it to the
+    # identity; this can happen, for example, if the new element is checking COUNT=0 of the existing element
+    if newElement.isTrue() && existingElement.isFalse() && existingElement.specificContext? && !existingElement.specificContext.hasRows()
+      newElement.specificContext = hqmf.SpecificsManager.identity()
+    else
+      newElement.specificContext = existingElement.specificContext
     newElement.specific_occurrence = existingElement.specific_occurrence
     newElement
 
