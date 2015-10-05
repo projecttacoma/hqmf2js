@@ -597,6 +597,11 @@ filterEventsByField = (events, field, value) ->
   hqmf.SpecificsManager.maintainSpecifics(result, events)
 @filterEventsByField = filterEventsByField
 
+#Function that grabs events with the correct Communication Direction
+filterEventsByCommunicationDirection = (events, value) ->
+  matchingEvents = (event for event in events when (event.json.direction == value))
+  hqmf.SpecificsManager.maintainSpecifics(matchingEvents, events)
+@filterEventsByCommunicationDirection = filterEventsByCommunicationDirection
 
 # This turns out to work similarly to eventsMatchBounds
 filterEventsByReference = (events, type, possibles) ->

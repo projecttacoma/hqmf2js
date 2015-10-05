@@ -32,6 +32,9 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
     <%- if ['transfer_from','transfer_to'].include?(criteria.definition) -%>
   events = denormalizeEventsByTransfer(events, '<%=criteria.definition.camelize(:lower)%>');
     <%- end -%>
+    <%- if :communications == criteria.type-%>
+  events = filterEventsByCommunicationDirection(events, '<%=criteria.definition%>');
+    <%- end -%>
     <%- if criteria.temporal_references and criteria.temporal_references.length > 0 -%>
       <%- criteria.temporal_references.each do |temporal_reference| -%>
   if (events.length > 0 || !Logger.short_circuit) events = <%= temporal_reference.type %>(events, hqmfjs.<%= temporal_reference.reference.id %>(patient)<%= ", #{js_for_bounds(temporal_reference.range)}" if temporal_reference.range %>);

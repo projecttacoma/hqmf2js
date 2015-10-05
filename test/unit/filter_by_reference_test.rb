@@ -24,6 +24,16 @@ class FilterByReferenceTest < Minitest::Test
     assert_equal 1, @context.eval("filterEventsByReference(evts,'some_reference',pos).length")
     assert_equal 'id2' , @context.eval("filterEventsByReference(evts,'some_reference',pos)[0].id")
     assert_equal 0, @context.eval("filterEventsByReference(evts,'nonexistent_ref',pos).length")
+
   end
 
+  def test_communicationFilter
+
+    @context.eval "var communication_evts = [new hQuery.Communication({ 'direction' : 'communication_from_patient_to_provider' })]
+
+    "
+
+    assert_equal 1, @context.eval("filterEventsByCommunicationDirection(communication_evts,'communication_from_patient_to_provider').length")
+    assert_equal 0, @context.eval("filterEventsByCommunicationDirection(communication_evts,'communication_from_provider_to_patient').length")
+  end
 end
