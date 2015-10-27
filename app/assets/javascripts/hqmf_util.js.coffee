@@ -173,6 +173,8 @@ fieldOrContainerValue = (value, fieldName, defaultToValue=true) ->
       value[fieldName]()
     else if typeof value[fieldName] != 'undefined'
       value[fieldName]
+    else if value.json? && typeof value.json[fieldName] != 'undefined'
+      value.json[fieldName]
     else if defaultToValue
       value
     else
