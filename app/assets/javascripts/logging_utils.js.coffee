@@ -9,7 +9,7 @@ class @Logger
     if @enable_rationale and result? and typeof(result.isTrue) == 'function'
       if result.isTrue() and result.length
         json_results = _.map(result,(item) -> {id: item.id, json: item.json})
-        @rationale[id] = {results: json_results }
+        @rationale[id] = {results: json_results, specificContext: result.specificContext }
       else  
         @rationale[id] = result.isTrue()
 
