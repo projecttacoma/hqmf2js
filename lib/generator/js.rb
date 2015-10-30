@@ -48,7 +48,9 @@ module HQMF2JS
       
       def field_library_method(field_name, value=nil)
         field_type = HQMF::DataCriteria::FIELDS[field_name][:field_type]
-        if field_type == :value || !value.nil? && value.type == 'IVL_TS'
+        if field_type == :value
+          'filterEventsByField'
+        elsif field_type == :timestamp && !value.nil? && value.type == 'IVL_TS' # Handles static date comparisons
           'filterEventsByField'
         elsif field_type == :timestamp
           'adjustBoundsForField'

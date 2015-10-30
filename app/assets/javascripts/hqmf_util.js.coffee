@@ -173,6 +173,8 @@ fieldOrContainerValue = (value, fieldName, defaultToValue=true) ->
       value[fieldName]()
     else if typeof value[fieldName] != 'undefined'
       value[fieldName]
+    else if value.json? && typeof value.json[fieldName] != 'undefined'
+      value.json[fieldName]
     else if defaultToValue
       value
     else
@@ -303,7 +305,13 @@ class IVL_PQ
   # Return whether the supplied scalar or patient API hash value is within this range
   match: (scalarOrHash) ->
     val = fieldOrContainerValue(scalarOrHash, 'scalar')
-    (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
+    #Add a check for ANYNonNull value for Reference Range High And Low (Lab Test). QDM 4.2 update.
+    if @low_pq? && @low_pq.constructor == ANYNonNull
+      val != null
+    else if @high_pq? && @high_pq.constructor == ANYNonNull
+      val != null
+    else
+      (!@low_pq? || @low_pq.lessThan(val)) && (!@high_pq? || @high_pq.greaterThan(val))
 
   # Helper method to normalize the current values as a new IVL_PQ with 'min' precision
   normalizeToMins: -> new IVL_PQ(@low_pq?.normalizeToMins(), @high_pq?.normalizeToMins())
