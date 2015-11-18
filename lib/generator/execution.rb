@@ -99,6 +99,10 @@ module HQMF2JS
           #{observation_function(custom_functions, population_index)}
         }
         
+        var variables = function() {
+          return executeIfAvailable(hqmfjs.VARIABLES, patient_api);
+        }
+        
         var executeIfAvailable = function(optionalFunction, patient_api) {
           if (typeof(optionalFunction)==='function') {
             result = optionalFunction(patient_api);
@@ -126,7 +130,7 @@ module HQMF2JS
         }
 
         try {
-          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, msrpoplex, observ, occurrenceId,#{continuous_variable},stratification);
+          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, msrpoplex, observ, occurrenceId,#{continuous_variable},stratification, variables);
         } catch(err) {
           print(err.stack);
           throw err;
