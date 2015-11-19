@@ -9,7 +9,7 @@ class @Logger
     if @enable_rationale and result? and typeof(result.isTrue) == 'function'
       if result.isTrue() and result.length
         json_results = _.map(result,(item) -> {id: item.id, json: item.json})
-        if typeof result.specificContext != 'undefined'
+        if result.specificContext?
           specific_ids = result.specificContext.flattenToIds()
         @rationale[id] = {results: json_results, specifics: specific_ids }
       else  
