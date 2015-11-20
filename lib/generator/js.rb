@@ -277,7 +277,7 @@ module HQMF2JS
         variables_js = ""
         variables_js += "hqmfjs.VARIABLES = function(patient, initialSpecificContext) {\n" 
         @doc.source_data_criteria.each do |criteria|
-          if criteria.type == :derived
+          if criteria.variable && !criteria.specific_occurrence
             variables_js += "hqmfjs." + criteria.id + "(patient, initialSpecificContext);\n"
           end
         end

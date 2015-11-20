@@ -100,7 +100,9 @@ module HQMF2JS
         }
         
         var variables = function() {
-          return executeIfAvailable(hqmfjs.VARIABLES, patient_api);
+          if (Logger.enable_rationale) {
+            return executeIfAvailable(hqmfjs.VARIABLES, patient_api);
+          }
         }
         
         var executeIfAvailable = function(optionalFunction, patient_api) {
