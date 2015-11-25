@@ -234,6 +234,8 @@ module HQMF2JS
         #{js_for(population[HQMF::PopulationCriteria::MSRPOPL], HQMF::PopulationCriteria::MSRPOPL)}
         #{js_for(population[HQMF::PopulationCriteria::MSRPOPLEX], HQMF::PopulationCriteria::MSRPOPLEX)}
         #{js_for(population[HQMF::PopulationCriteria::OBSERV], HQMF::PopulationCriteria::OBSERV)}
+        // VARIABLES
+        #{js_for_variables()}
         "
       end
       
@@ -269,6 +271,18 @@ module HQMF2JS
       # Generate JS for a HQMF2::DataCriteria
       def js_for_data_criteria(force_sources=nil)
         HQMF2JS::Generator.render_template('data_criteria', {'all_criteria' => @doc.specific_occurrence_source_data_criteria(force_sources).concat(@doc.all_data_criteria), 'measure_period' => @doc.measure_period})
+      end
+      
+      def js_for_variables()
+        variables_js = ""
+        variables_js += "hqmfjs.VARIABLES = function(patient, initialSpecificContext) {\n" 
+        @doc.source_data_criteria.each do |criteria|
+          if criteria.variable && !criteria.specific_occurrence
+            variables_js += "hqmfjs." + criteria.id + "(patient, initialSpecificContext);\n"
+          end
+        end
+        variables_js += "return false;\n}"
+        variables_js
       end
       
       def self.library_functions(check_crosswalk=false, include_underscore=true)
