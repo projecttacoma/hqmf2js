@@ -712,7 +712,7 @@ class CrossProduct extends Array
 
 # Create a CrossProduct of the supplied event lists.
 XPRODUCT = (eventLists...) ->
-  hqmf.SpecificsManager.intersectAll(new CrossProduct(eventLists), eventLists)
+  hqmf.SpecificsManager.intersectAll(new CrossProduct(eventLists), eventLists, false, null, considerLeftMost: true)
 @XPRODUCT = XPRODUCT
 
 # Create a new list containing all the events from the supplied event lists
@@ -724,8 +724,14 @@ UNION = (eventLists...) ->
   for eventList in eventLists
     for event in eventList
       if eventList.specific_occurrence
-        specific_occurrence[event.id] ||= []
-        specific_occurrence[event.id].push eventList.specific_occurrence
+        # If there's already an object due to a previous UNION, merge the contents
+        if _.isObject(eventList.specific_occurrence)
+          for id, occurrences of eventList.specific_occurrence
+            specific_occurrence[id] ||= []
+            specific_occurrence[id] = _.uniq(specific_occurrence[id].concat(occurrences))
+        else
+          specific_occurrence[event.id] ||= []
+          specific_occurrence[event.id].push eventList.specific_occurrence
       union.push(event)
   union.specific_occurrence = specific_occurrence unless _.isEmpty(specific_occurrence)
   hqmf.SpecificsManager.unionAll(union, eventLists)
@@ -734,15 +740,9 @@ UNION = (eventLists...) ->
 # Create a CrossProduct of the supplied event lists.
 INTERSECT = (eventLists...) ->
   events = hqmf.SpecificsManager.intersectAll((new CrossProduct(eventLists)).intersect(), eventLists, false, null, considerLeftMost: true)
-  # If the logical evaluation of an INTERSECT excludes an event, the resulting specifics
-  # should not include rows that refer to that event where the specific comes from the
-  # leftmost of one of the inputs to the INTERSECT.
-  #
-  # This addresses https://jira.oncprojectracking.org/browse/BONNIE-64
-  for eventList in eventLists when eventList.specific_occurrence # Event lists from logic with a specific as leftmost
-    if _(eventList.specific_occurrence).isString() # UNION can wedge an object in there, we don't handle that
-      excluded = _(eventList).difference(events) # Events that aren't part of the result
-      events.specificContext = events.specificContext.excludeEventsForSpecific(excluded, eventList.specific_occurrence)
+  # If the logical evaluation of an INTERSECT excludes an event, the resulting specifics should not include
+  # rows that refer to that event; this fixes https://jira.oncprojectracking.org/browse/BONNIE-64
+  events.specificContext = events.specificContext.filterSpecificsAgainstEvents(events)
   events
 @INTERSECT = INTERSECT
 
@@ -875,7 +875,9 @@ eventsMatchBounds = (events, bounds, methodName, range) ->
     events = [events]
 
   specificContext = new hqmf.SpecificOccurrence()
-  hasSpecificOccurrence = (events.specific_occurrence? || bounds.specific_occurrence?)
+  # For the bounds (RHS), we check not only if the immediate RHS has specifics, but also whether anything on
+  # the RHS has specifics steps further removed, by checking if there's a specificContext with specifics
+  hasSpecificOccurrence = (events.specific_occurrence? || bounds.specific_occurrence? || bounds.specificContext?.hasSpecifics())
   matchingEvents = []
   matchingEvents.specific_occurrence = events.specific_occurrence
   for event in events
@@ -1033,44 +1035,43 @@ selectConcurrent = (target, events) ->
   uniqueEvents((result for result in events when target.timeStamp().getTime() == result.timeStamp().getTime()))
 @selectConcurrent = selectConcurrent
 
-FIRST = (events) ->
-  result = []
-  result = selectConcurrent(events.sort(dateSortAscending)[0], events) if (events.length > 0)
-  applySpecificOccurrenceSubset('FIRST',hqmf.SpecificsManager.maintainSpecifics(result, events))
+# Common code for all subset operators
+applySubsetOperator = (operatorName, events, sortFunction, subsetIndex) ->
+  # If there is no specific context (that means we're being called from within specifics handling code), or
+  # there are no specifics involved, just perform the logical operator
+  unless events.specificContext && events.specificContext.hasSpecifics()
+    result = []
+    result = selectConcurrent(events.sort(sortFunction)[subsetIndex], events) if (events.length > subsetIndex)
+    hqmf.SpecificsManager.maintainSpecifics(result, events)
+    return result
+
+  # Specific occurrences are involved, which means that we have to return all the events that *might* satisfy
+  # the subset operator once specific occurrences are taken into account; start by calculating the specifics
+  events.specificContext = events.specificContext[operatorName]()
+
+  # Then, return the events after removing entries that *cannot possibly* satisfy the subset operator
+  hqmf.SpecificsManager.filterEventsAgainstSpecifics(events)
+
+
+FIRST = (events) -> applySubsetOperator('FIRST', events, dateSortAscending, 0)
 @FIRST = FIRST
 
-SECOND = (events) ->
-  result = []
-  result = selectConcurrent(events.sort(dateSortAscending)[1], events) if (events.length > 1)
-  applySpecificOccurrenceSubset('SECOND',hqmf.SpecificsManager.maintainSpecifics(result, events))
+SECOND = (events) -> applySubsetOperator('SECOND', events, dateSortAscending, 1)
 @SECOND = SECOND
 
-THIRD = (events) ->
-  result = []
-  result = selectConcurrent(events.sort(dateSortAscending)[2], events) if (events.length > 2)
-  applySpecificOccurrenceSubset('THIRD',hqmf.SpecificsManager.maintainSpecifics(result, events))
+THIRD = (events) -> applySubsetOperator('THIRD', events, dateSortAscending, 2)
 @THIRD = THIRD
 
-FOURTH = (events) ->
-  result = []
-  result = selectConcurrent(events.sort(dateSortAscending)[3], events) if (events.length > 3)
-  applySpecificOccurrenceSubset('FOURTH',hqmf.SpecificsManager.maintainSpecifics(result, events))
+FOURTH = (events) -> applySubsetOperator('FOURTH', events, dateSortAscending, 3)
 @FOURTH = FOURTH
 
-FIFTH = (events) ->
-  result = []
-  result = selectConcurrent(events.sort(dateSortAscending)[4], events) if (events.length > 4)
-  applySpecificOccurrenceSubset('FIFTH',hqmf.SpecificsManager.maintainSpecifics(result, events))
+FIFTH = (events) -> applySubsetOperator('FIFTH', events, dateSortAscending, 4)
 @FIFTH = FIFTH
 
-RECENT = (events) ->
-  result = []
-  result = selectConcurrent(events.sort(dateSortDescending)[0], events) if (events.length > 0)
-  applySpecificOccurrenceSubset('RECENT',hqmf.SpecificsManager.maintainSpecifics(result, events))
+RECENT = (events) -> applySubsetOperator('RECENT', events, dateSortDescending, 0)
 @RECENT = RECENT
 
-LAST = (events) ->
-  RECENT(events)
+LAST = (events) -> RECENT(events)
 @LAST = LAST
 
 valueSortDescending = (a, b) ->

@@ -167,7 +167,24 @@ class hqmf.SpecificsManagerSingleton
       boolVal = new Boolean(true) if @occurrences.length > 0
     boolVal.specificContext = result
     boolVal
-  
+
+  # Given a set of events with a specificContext, filter the events to include only those
+  # referenced in the specific context
+  filterEventsAgainstSpecifics: (events) ->
+    # If there are no specifics (ie identity) we return them all as-is
+    return events unless events.specificContext.hasSpecifics()
+
+    # Find all the events referenced in the specific context
+    referencedEvents = hqmf.SpecificsManager.extractEventsForLeftMost(events.specificContext.rows)
+    referencedEventIds = _(referencedEvents).pluck('id')
+
+    # Filter original events to only return referenced ones (and ones without an ID, likely dates)
+    result = _(events).select (e) -> !e.id || _(referencedEventIds).contains(e.id)
+
+    # Copy the specifics over and return the result
+    hqmf.SpecificsManager.maintainSpecifics(result, events)
+    return result
+
   # copy the specifics parameters from an existing element onto the new value element
   maintainSpecifics: (newElement, existingElement) ->
     # We handle a special case: if the existing element is falsy (ie an empty result set), and the new element
@@ -292,11 +309,20 @@ class hqmf.SpecificOccurrence
       newRows.push(myRow) if goodRow
     new hqmf.SpecificOccurrence(newRows)
   
-  # Given a set of events and a specific occurrence, return new specifics removing any
-  # rows containing one of the supplied events at the index of that specific occurrence
-  excludeEventsForSpecific: (events, occurrenceID) ->
-    eventIndex = hqmf.SpecificsManager.getColumnIndex(occurrenceID)
-    rowsToKeep = _(@rows).reject (row) -> _(events).include(row.values[eventIndex])
+  # Given a set of events, return new specifics removing any rows that *do not* refer to that set of events
+  filterSpecificsAgainstEvents: (events) ->
+    # If there are no specifics (ie identity) return what we have as-is
+    return this unless @hasSpecifics()
+
+    # Keep and return the rows that refer to any of the provided events (via a leftMost)
+    rowsToKeep = _(@rows).select (row) ->
+      _(row.leftMostEvents()).any (leftMostEvent) ->
+        _(events).any (event) ->
+          # We consider events the same if either 1) both have ids and the ids are the same, or 2) both are
+          # dates, and the dates are the same
+          (event instanceof Date && leftMostEvent instanceof Date && event.getTime() == leftMostEvent.getTime()) ||
+          (event.id? && leftMostEvent.id? && event.id == leftMostEvent.id)
+
     new hqmf.SpecificOccurrence(rowsToKeep)
 
   hasRow: (row) ->
@@ -564,7 +590,23 @@ class Row
   toHashKey: ->
     @flattenToIds().join(",") + ",#{@specificLeftMost}" + ",#{@nonSpecificLeftMost?.id}"
 
-  
+  # If the row references a leftmost, either specific or not, return the event(s)
+  # (because a UNION can place multiple events in the specific leftMost, this can be > 1)
+  leftMostEvents: ->
+    if @nonSpecificLeftMost?
+      return [@nonSpecificLeftMost]
+    if @specificLeftMost? && _.isString(@specificLeftMost)
+      specificIndex = hqmf.SpecificsManager.getColumnIndex(@specificLeftMost)
+      return [@values[specificIndex]] if @values[specificIndex]?
+    if @specificLeftMost? && _.isObject(@specificLeftMost)
+      events = []
+      for id, occurrences of @specificLeftMost
+        for occurrence in occurrences
+          specificIndex = hqmf.SpecificsManager.getColumnIndex(occurrence)
+          events.push(@values[specificIndex]) if @values[specificIndex]?
+      return events
+    return []
+
 @Row = Row
   
 ###
