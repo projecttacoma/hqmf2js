@@ -60,37 +60,16 @@ class hqmf.SpecificsManagerSingleton
   empty: ->
     new hqmf.SpecificOccurrence([])
 
+  # Extract events for leftmost of supplied rows, returning copies with a specificRow attribute set
   extractEventsForLeftMost: (rows) ->
     events = []
     for row in rows
-      # row.specificLeftMost can be a hash (if we're handling a UNION) or a string, handle both cases
-      if _.isObject(row.specificLeftMost)
-        # Collect the occurrences that represent the leftmost for the UNION
-        occurrences = _(row.specificLeftMost).chain().values().flatten().uniq().value() # array of occurrence keys across events
-        for occurrence in occurrences
-          index = @indexLookup[occurrence]
-          if index? && row.values[index] && row.values[index] != hqmf.SpecificsManager.any
-            events.push(@extractEvent(occurrence, row))
-      else
-        events.push(@extractEvent(row.specificLeftMost, row)) if row.specificLeftMost? || row.nonSpecificLeftMost?
+      for event in row.leftMostEvents()
+        event = new event.constructor(event.json)
+        event.specificRow = row
+        events.push(event)
     events
-  
-  extractEvents: (key, rows) ->
-    events = []
-    for row in rows
-      events.push(@extractEvent(key, row))
-    events
-    
-  extractEvent: (key, row) ->
-    index = @indexLookup[key]
-    if index?
-      entry = row.values[index]
-    else
-      entry = row.nonSpecificLeftMost
-    entry = new entry.constructor(entry.json)
-    entry.specificRow = row
-    entry
-    
+
   intersectSpecifics: (nextPopulation, previousPopulation, occurrenceIDs) ->
     # we need to pass the episode indicies all the way down through the interesection to the match function
     # this must be done because we need to ensure that on intersection of populations the * does not allow an episode through
@@ -597,13 +576,13 @@ class Row
       return [@nonSpecificLeftMost]
     if @specificLeftMost? && _.isString(@specificLeftMost)
       specificIndex = hqmf.SpecificsManager.getColumnIndex(@specificLeftMost)
-      return [@values[specificIndex]] if @values[specificIndex]?
+      return [@values[specificIndex]] if @values[specificIndex]? && @values[specificIndex] != hqmf.SpecificsManager.any
     if @specificLeftMost? && _.isObject(@specificLeftMost)
       events = []
       for id, occurrences of @specificLeftMost
         for occurrence in occurrences
           specificIndex = hqmf.SpecificsManager.getColumnIndex(occurrence)
-          events.push(@values[specificIndex]) if @values[specificIndex]?
+          events.push(@values[specificIndex]) if @values[specificIndex]? && @values[specificIndex] != hqmf.SpecificsManager.any
       return events
     return []
 

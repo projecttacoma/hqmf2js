@@ -1037,20 +1037,27 @@ selectConcurrent = (target, events) ->
 
 # Common code for all subset operators
 applySubsetOperator = (operatorName, events, sortFunction, subsetIndex) ->
-  # If there is no specific context (that means we're being called from within specifics handling code), or
-  # there are no specifics involved, just perform the logical operator
-  unless events.specificContext && events.specificContext.hasSpecifics()
+  # If we have a specificContext, and there are actual specific occurrences involved (ie the specificContext
+  # has rows other than identity), then we have to return all the events that *might* satisfy the subset
+  # operator once specific occurrences are taken into account
+  if events.specificContext && events.specificContext.hasSpecifics()
+
+    # Start by calculating the specific context subset, which creates at least one row for each event that
+    # satisfies the subset operator for at least one of the specifics
+    events.specificContext = events.specificContext[operatorName]()
+
+    # Then, return only the events that can satisfy the subset operator for one or more specifics
+    return hqmf.SpecificsManager.filterEventsAgainstSpecifics(events)
+
+  else
+
+    # There's is no specific context, and that means that either there are no specifics involved or we are
+    # being called recursively from within the specifics handling code; in each case we just perform the
+    # logical operator and return the appropriate subset elements
     result = []
     result = selectConcurrent(events.sort(sortFunction)[subsetIndex], events) if (events.length > subsetIndex)
     hqmf.SpecificsManager.maintainSpecifics(result, events)
     return result
-
-  # Specific occurrences are involved, which means that we have to return all the events that *might* satisfy
-  # the subset operator once specific occurrences are taken into account; start by calculating the specifics
-  events.specificContext = events.specificContext[operatorName]()
-
-  # Then, return the events after removing entries that *cannot possibly* satisfy the subset operator
-  hqmf.SpecificsManager.filterEventsAgainstSpecifics(events)
 
 
 FIRST = (events) -> applySubsetOperator('FIRST', events, dateSortAscending, 0)
