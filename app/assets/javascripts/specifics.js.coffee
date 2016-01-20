@@ -580,7 +580,7 @@ class Row
     if @specificLeftMost? && _.isObject(@specificLeftMost)
       events = []
       for id, occurrences of @specificLeftMost
-        for occurrence in occurrences
+        for occurrence in _.uniq(occurrences)
           specificIndex = hqmf.SpecificsManager.getColumnIndex(occurrence)
           events.push(@values[specificIndex]) if @values[specificIndex]? && @values[specificIndex] != hqmf.SpecificsManager.any
       return events
