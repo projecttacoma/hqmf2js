@@ -947,21 +947,21 @@ class SpecificsTest < Minitest::Test
                            new Row('OccurrenceAEncounter',{'OccurrenceAEncounter': new hQuery.CodedEntry({_id:15}), 'OccurrenceBEncounter':new hQuery.CodedEntry({'_id':3})})]
     "
     @context.eval(rows)
-    assert_equal 6, @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows).length')
-    assert_equal '10', @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[0].id')
-    assert_equal '11', @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[1].id')
-    assert_equal '12', @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[2].id')
-    assert_equal '13', @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[3].id')
-    assert_equal '14', @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[4].id')
-    assert_equal '15', @context.eval('hqmf.SpecificsManager.extractEvents(undefined, non_specific_rows)[5].id')
-    
-    assert_equal 6, @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows).length")
-    assert_equal '10', @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[0].id")
-    assert_equal '11', @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[1].id")
-    assert_equal '12', @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[2].id")
-    assert_equal '13', @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[3].id")
-    assert_equal '14', @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[4].id")
-    assert_equal '15', @context.eval("hqmf.SpecificsManager.extractEvents('OccurrenceAEncounter', specific_rows)[5].id")
+    assert_equal 6, @context.eval('hqmf.SpecificsManager.extractEventsForLeftMost(non_specific_rows).length')
+    assert_equal '10', @context.eval('hqmf.SpecificsManager.extractEventsForLeftMost(non_specific_rows)[0].id')
+    assert_equal '11', @context.eval('hqmf.SpecificsManager.extractEventsForLeftMost(non_specific_rows)[1].id')
+    assert_equal '12', @context.eval('hqmf.SpecificsManager.extractEventsForLeftMost(non_specific_rows)[2].id')
+    assert_equal '13', @context.eval('hqmf.SpecificsManager.extractEventsForLeftMost(non_specific_rows)[3].id')
+    assert_equal '14', @context.eval('hqmf.SpecificsManager.extractEventsForLeftMost(non_specific_rows)[4].id')
+    assert_equal '15', @context.eval('hqmf.SpecificsManager.extractEventsForLeftMost(non_specific_rows)[5].id')
+
+    assert_equal 6, @context.eval("hqmf.SpecificsManager.extractEventsForLeftMost(specific_rows).length")
+    assert_equal '10', @context.eval("hqmf.SpecificsManager.extractEventsForLeftMost(specific_rows)[0].id")
+    assert_equal '11', @context.eval("hqmf.SpecificsManager.extractEventsForLeftMost(specific_rows)[1].id")
+    assert_equal '12', @context.eval("hqmf.SpecificsManager.extractEventsForLeftMost(specific_rows)[2].id")
+    assert_equal '13', @context.eval("hqmf.SpecificsManager.extractEventsForLeftMost(specific_rows)[3].id")
+    assert_equal '14', @context.eval("hqmf.SpecificsManager.extractEventsForLeftMost(specific_rows)[4].id")
+    assert_equal '15', @context.eval("hqmf.SpecificsManager.extractEventsForLeftMost(specific_rows)[5].id")
     
   end
 
