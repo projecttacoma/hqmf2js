@@ -111,11 +111,11 @@ hQuery.Medication::fulfillmentTotals = (dateRange)->
   , 0  
   
 hQuery.Medication::cumulativeMedicationDuration = (dateRange) ->
-  #assuming that the dose is the same across fills and that fills is  stated in individual 
-  #doses not total amount. Will need to flush this out more at a later point in time. 
-  #Considering that liquid meds are probaly dispensed as total volume ex 325ml with a dose of 
-  #say 25ml per dose.  Will definatley need to revisit this.  
-  this.fulfillmentTotals(dateRange) if this.administrationTiming() && this.dose()
+  #assuming that the dose is the same across fills and that fills is  stated in individual
+  #doses not total amount. Will need to flush this out more at a later point in time.
+  #Considering that liquid meds are probaly dispensed as total volume ex 325ml with a dose of
+  #say 25ml per dose.  Will definatley need to revisit this.
+  this.fulfillmentTotals(dateRange) if this.administrationTiming() && this.dose() && @json['fulfillmentHistory']
 
 class hQuery.Reference 
   constructor: (@json) ->
