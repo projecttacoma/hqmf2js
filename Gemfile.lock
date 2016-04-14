@@ -20,7 +20,7 @@ GIT
 
 GIT
   remote: https://github.com/projecttacoma/patientapi.git
-  revision: 52ddf582425b3a5a3fb7d6327611026294f2b87f
+  revision: 48dfd82014ee99e48e76c119a193b290dcad4adf
   branch: master
   specs:
     hquery-patient-api (1.0.4)
@@ -199,4 +199,4 @@ DEPENDENCIES
   uglifier
 
 BUNDLED WITH
-   1.10.6
+   1.11.2

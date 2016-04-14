@@ -601,7 +601,16 @@ filterEventsByValue = (events, value) ->
 filterEventsByField = (events, field, value) ->
   respondingEvents = (event for event in events when event.respondTo(field))
   unit = value.unit() if value.unit?
-  result = (event for event in respondingEvents when value.match(event[field](unit)))
+  result = []
+  for event in respondingEvents
+    # If the responding event's field has multiple attributes, check each one
+    if event[field](unit) instanceof Array
+      for attr in event[field](unit)
+        if value.match(attr)
+          result.push event
+          break
+    else
+      result.push event if value.match(event[field](unit))
   hqmf.SpecificsManager.maintainSpecifics(result, events)
 @filterEventsByField = filterEventsByField
 
