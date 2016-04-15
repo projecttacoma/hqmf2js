@@ -1,51 +1,51 @@
 module HQMF2JS
   module Generator
-    
+
     def self.render_template(name, params)
       template_path = File.expand_path(File.join('..', "#{name}.js.erb"), __FILE__)
       template_str = File.read(template_path)
       template = ERB.new(template_str, nil, '-', "_templ#{TemplateCounter.instance.new_id}")
       context = ErbContext.new(params)
-      template.result(context.get_binding)        
+      template.result(context.get_binding)
     end
-  
+
     # Utility class used to supply a binding to Erb. Contains utility functions used
     # by the erb templates that are used to generate code.
     class ErbContext < OpenStruct
-    
+
       # Create a new context
       # @param [Hash] vars a hash of parameter names (String) and values (Object).
       # Each entry is added as an accessor of the new Context
       def initialize(vars)
         super(vars)
       end
-    
+
       # Get a binding that contains all the instance variables
       # @return [Binding]
       def get_binding
         binding
       end
-      
+
       def js_for_measure_period(measure_period)
         HQMF2JS::Generator.render_template('measure_period', {'measure_period' => measure_period})
       end
-      
+
       def js_for_characteristic(criteria)
         HQMF2JS::Generator.render_template('characteristic', {'criteria' => criteria})
       end
-      
+
       def js_for_patient_data(criteria)
         HQMF2JS::Generator.render_template('patient_data', {'criteria' => criteria})
       end
-      
+
       def js_for_derived_data(criteria)
         HQMF2JS::Generator.render_template('derived_data', {'criteria' => criteria})
       end
-      
+
       def field_method(field_name)
         HQMF::DataCriteria::FIELDS[field_name][:coded_entry_method].to_s.camelize(:lower)
       end
-      
+
       def field_library_method(field_name, value=nil)
         field_type = HQMF::DataCriteria::FIELDS[field_name][:field_type]
         if field_type == :value
@@ -65,7 +65,7 @@ module HQMF2JS
         settings = HQMF::DataCriteria.get_settings_for_definition(criteria.definition, criteria.status)
         settings && settings['sub_category'] == 'result'
       end
-      
+
       def js_for_value(value)
         if value
           if value.respond_to?(:derived?) && value.derived?
@@ -104,13 +104,13 @@ module HQMF2JS
         if (bounds.respond_to?(:low) && bounds.respond_to?(:high))
           type = bounds.type || 'IVL_PQ'
           "new #{type}(#{js_for_value(bounds.low)}, #{js_for_value(bounds.high)})"
-        elsif bounds.respond_to?(:reference) 
+        elsif bounds.respond_to?(:reference)
           "hqmfjs.#{bounds.reference.gsub(/\W/, '_')}(patient,initialSpecificContext)"
-        else  
+        else
           "#{js_for_value(bounds)}"
         end
       end
-      
+
       def js_for_date_bound(criteria)
         bound = nil
         if criteria.effective_time
@@ -133,14 +133,14 @@ module HQMF2JS
             end
           end
         end
-        
+
         if bound
           "#{js_for_value(bound)}.asDate()"
         else
           'MeasurePeriod.high.asDate()'
         end
       end
-      
+
       def js_for_code_list(criteria)
         if criteria.inline_code_list
           criteria.inline_code_list.to_json
@@ -150,20 +150,20 @@ module HQMF2JS
           "getCodes(\"#{criteria.code_list_id}\")"
         end
       end
-      
+
       # Returns the JavaScript generated for a HQMF::Precondition
       def js_for_precondition(precondition, indent, context=false)
         HQMF2JS::Generator.render_template('precondition', {'doc' => doc, 'precondition' => precondition, 'indent' => indent, 'context' => context})
       end
-      
+
       def patient_api_method(criteria)
         criteria.patient_api_function
       end
-      
+
       def conjunction_code_for(precondition)
         precondition.conjunction_code_with_negation
       end
-      
+
       # Returns a Javascript compatable name based on an entity's identifier
       def js_name(entity)
         if !entity.id
@@ -171,11 +171,11 @@ module HQMF2JS
         end
         entity.id.gsub(/\W/, '_')
       end
-      
+
     end
 
     class JS
-  
+
       # Entry point to JavaScript generator
       def initialize(doc)
         @doc = doc
@@ -184,17 +184,17 @@ module HQMF2JS
       def self.map_reduce_utils
         File.read(File.expand_path(File.join('..', '..', "assets",'javascripts','libraries','map_reduce_utils.js'), __FILE__))
       end
-      
+
       def to_js(population_index=0, codes=nil, force_sources=nil)
         population_index ||= 0
         population = @doc.populations[population_index]
-        
+
         if codes
           oid_dictionary = HQMF2JS::Generator::CodesToJson.hash_to_js(codes)
         else
           oid_dictionary = "<%= oid_dictionary %>"
         end
-        
+
         sub_ids = ('a'..'zz').to_a
         sub_id = @doc.populations.size > 1 ? "'#{sub_ids[population_index]}'" : "null";
 
@@ -211,13 +211,13 @@ module HQMF2JS
         if (typeof(test_id) == 'undefined') hqmfjs.test_id = null;
 
         OidDictionary = #{oid_dictionary};
-        
+
         #{js_for_data_criteria(force_sources)}
 
         // #########################
         // ##### MEASURE LOGIC #####
         // #########################
-        
+
         #{js_initialize_specifics(@doc.source_data_criteria)}
 
         // INITIAL PATIENT POPULATION
@@ -228,6 +228,7 @@ module HQMF2JS
         #{js_for(population[HQMF::PopulationCriteria::DENOM], HQMF::PopulationCriteria::DENOM, true)}
         // NUMERATOR
         #{js_for(population[HQMF::PopulationCriteria::NUMER], HQMF::PopulationCriteria::NUMER)}
+        #{js_for(population[HQMF::PopulationCriteria::NUMEX], HQMF::PopulationCriteria::NUMEX)}
         #{js_for(population[HQMF::PopulationCriteria::DENEX], HQMF::PopulationCriteria::DENEX)}
         #{js_for(population[HQMF::PopulationCriteria::DENEXCEP], HQMF::PopulationCriteria::DENEXCEP)}
         // CV
@@ -238,7 +239,7 @@ module HQMF2JS
         #{js_for_variables()}
         "
       end
-      
+
       def js_initialize_specifics(data_criteria)
         specific_occurrences = []
         data_criteria.each do |criteria|
@@ -251,7 +252,7 @@ module HQMF2JS
         specifics_list = ",#{specifics_list}" unless specifics_list.empty?
         "hqmfjs.initializeSpecifics = function(patient_api, hqmfjs) { hqmf.SpecificsManager.initialize(patient_api,hqmfjs#{specifics_list}) }"
       end
-      
+
       # Generate JS for a HQMF2::PopulationCriteria
       def js_for(criteria_code, type=nil, when_not_found=false)
         # for multiple populations, criteria code will be something like IPP_1 and type will be IPP
@@ -267,15 +268,15 @@ module HQMF2JS
           "hqmfjs.#{type} = function(patient) { return new Boolean(#{when_not_found}); }"
         end
       end
-      
+
       # Generate JS for a HQMF2::DataCriteria
       def js_for_data_criteria(force_sources=nil)
         HQMF2JS::Generator.render_template('data_criteria', {'all_criteria' => @doc.specific_occurrence_source_data_criteria(force_sources).concat(@doc.all_data_criteria), 'measure_period' => @doc.measure_period})
       end
-      
+
       def js_for_variables()
         variables_js = ""
-        variables_js += "hqmfjs.VARIABLES = function(patient, initialSpecificContext) {\n" 
+        variables_js += "hqmfjs.VARIABLES = function(patient, initialSpecificContext) {\n"
         @doc.source_data_criteria.each do |criteria|
           if criteria.variable && !criteria.specific_occurrence
             variables_js += "hqmfjs." + criteria.id + "(patient, initialSpecificContext);\n"
@@ -284,12 +285,12 @@ module HQMF2JS
         variables_js += "return false;\n}"
         variables_js
       end
-      
+
       def self.library_functions(check_crosswalk=false, include_underscore=true)
         ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
-        Tilt::CoffeeScriptTemplate.default_bare = true 
+        Tilt::CoffeeScriptTemplate.default_bare = true
         ctx.append_path "app/assets/javascripts"
-        
+
         libraries = []
 
         if include_underscore
@@ -302,7 +303,7 @@ module HQMF2JS
                       "// #########################\n// ## SPECIFIC OCCURRENCES ##\n// #########################\n",
                       ctx.find_asset('specifics').to_s,
                       "// #########################\n// ### LIBRARY FUNCTIONS ####\n// #########################\n",
-                      ctx.find_asset('hqmf_util').to_s, 
+                      ctx.find_asset('hqmf_util').to_s,
                       "// #########################\n// ### PATIENT EXTENSION ####\n// #########################\n",
                       ctx.find_asset('patient_api_extension').to_s,
                       "// #########################\n// ## CUSTOM CALCULATIONS ###\n// #########################\n",
@@ -319,7 +320,7 @@ module HQMF2JS
         libraries.join("\n")
 
       end
-  
+
       # Allow crosswalk functionality to be loaded separately from main JS libraries
       def self.crosswalk_functions
         ctx = Sprockets::Environment.new(File.expand_path("../../..", __FILE__))
@@ -328,23 +329,23 @@ module HQMF2JS
         ctx.find_asset('crosswalk').to_s
       end
     end
-  
+
     # Simple class to issue monotonically increasing integer identifiers
     class Counter
       def initialize
         @count = 0
       end
-      
+
       def new_id
         @count+=1
       end
     end
-      
+
     # Singleton to keep a count of function identifiers
     class FunctionCounter < Counter
       include Singleton
     end
-    
+
     # Singleton to keep a count of template identifiers
     class TemplateCounter < Counter
       include Singleton
