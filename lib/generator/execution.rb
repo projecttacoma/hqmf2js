@@ -2,7 +2,7 @@ module HQMF2JS
   module Generator
     class Execution
 
-    
+
       def self.quoted_string_array_or_null(arr)
         if arr
           quoted = arr.map {|e| "\"#{e}\""}
@@ -33,7 +33,7 @@ module HQMF2JS
 
           hqmfjs.effective_date = effective_date;
           hqmfjs.test_id = test_id;
-      
+
           #{logic(hqmf_document, population_index, options)}
         };
         "
@@ -58,16 +58,16 @@ module HQMF2JS
           crosswalk_instrument = "instrumentTrueCrosswalk(hqmfjs);"
         end
 
-        
+
         "
         var patient_api = new hQuery.Patient(patient);
 
         #{gen.to_js(population_index, codes, force_sources)}
-        
+
         var occurrenceId = #{quoted_string_array_or_null(episode_ids)};
 
         hqmfjs.initializeSpecifics(patient_api, hqmfjs)
-        
+
         var population = function() {
           return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::IPP}, patient_api);
         }
@@ -89,6 +89,9 @@ module HQMF2JS
         var denexcep = function() {
           return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::DENEXCEP}, patient_api);
         }
+        var numex = function() {
+          return executeIfAvailable(hqmfjs.#{HQMF::PopulationCriteria::NUMEX}, patient_api);
+        }
         var msrpopl = function() {
           #{msrpopl_function(custom_functions, population_index)}
         }
@@ -98,13 +101,13 @@ module HQMF2JS
         var observ = function(specific_context) {
           #{observation_function(custom_functions, population_index)}
         }
-        
+
         var variables = function() {
           if (Logger.enable_rationale) {
             return executeIfAvailable(hqmfjs.VARIABLES, patient_api);
           }
         }
-        
+
         var executeIfAvailable = function(optionalFunction, patient_api) {
           if (typeof(optionalFunction)==='function') {
             result = optionalFunction(patient_api);
@@ -121,7 +124,7 @@ module HQMF2JS
           Logger.logger = [];
           Logger.rationale={};
           if (typeof short_circuit == 'undefined') short_circuit = true;
-        
+
           // turn on logging if it is enabled
           if (enable_logging || enable_rationale) {
             injectLogger(hqmfjs, enable_logging, enable_rationale, short_circuit);
@@ -132,7 +135,7 @@ module HQMF2JS
         }
 
         try {
-          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, msrpoplex, observ, occurrenceId,#{continuous_variable},stratification, variables);
+          map(patient, population, denominator, numerator, exclusion, denexcep, msrpopl, msrpoplex, observ, occurrenceId,#{continuous_variable},stratification, variables, numex);
         } catch(err) {
           print(err.stack);
           throw err;
