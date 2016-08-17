@@ -115,7 +115,11 @@ hQuery.Medication::cumulativeMedicationDuration = (dateRange) ->
   #doses not total amount. Will need to flush this out more at a later point in time.
   #Considering that liquid meds are probaly dispensed as total volume ex 325ml with a dose of
   #say 25ml per dose.  Will definatley need to revisit this.
-  this.fulfillmentTotals(dateRange) if this.administrationTiming() && this.dose() && @json['fulfillmentHistory']
+  if this.administrationTiming() && this.dose() && @json['fulfillmentHistory']
+    this.fulfillmentTotals(dateRange)
+  else if this.administrationTiming() && this.allowedAdministrations()
+    # this happens if we have a Medication, Order.
+    this.allowedAdministrations() / this.administrationTiming().dosesPerDay()
 
 class hQuery.Reference 
   constructor: (@json) ->
