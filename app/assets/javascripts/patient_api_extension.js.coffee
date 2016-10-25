@@ -109,7 +109,8 @@ hQuery.Medication::fulfillmentTotals = (dateRange)->
   this.fulfillmentHistory().reduce (t, s) -> 
     t + s.daysInRange(dateRange,dose,dpd)
   , 0  
-  
+
+# returns cumulativeMedicationDuration in terms of days
 hQuery.Medication::cumulativeMedicationDuration = (dateRange) ->
   #assuming that the dose is the same across fills and that fills is  stated in individual
   #doses not total amount. Will need to flush this out more at a later point in time.
@@ -119,7 +120,10 @@ hQuery.Medication::cumulativeMedicationDuration = (dateRange) ->
     this.fulfillmentTotals(dateRange)
   else if this.administrationTiming() && this.allowedAdministrations()
     # this happens if we have a Medication, Order.
-    this.allowedAdministrations() / this.administrationTiming().dosesPerDay()
+    cumulativeMedicationDuration = this.allowedAdministrations() / this.administrationTiming().dosesPerDay()
+    # need to do in case of divide by zero error
+    cumulativeMedicationDuration = 0 if isNaN(cumulativeMedicationDuration)
+    cumulativeMedicationDuration
 
 class hQuery.Reference 
   constructor: (@json) ->
