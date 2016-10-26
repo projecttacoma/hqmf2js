@@ -1,4 +1,4 @@
-require_relative "./simplecov"
+require_relative "./simplecov_init"
 require 'minitest/autorun'
 
 if RUBY_PLATFORM=='java'
