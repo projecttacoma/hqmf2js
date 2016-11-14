@@ -1090,24 +1090,48 @@ RECENT = (events) -> applySubsetOperator('RECENT', events, dateSortDescending, 0
 LAST = (events) -> RECENT(events)
 @LAST = LAST
 
-valueSortDescending = (a, b) ->
-  va = vb = Infinity
-  if a.value
-    va = a.value()["scalar"]
-  if b.value
-    vb = b.value()["scalar"]
-  if va==vb
-    0
+# this needs to handle if an object has a json structure inside or not. if the json structure
+# referenced is an array (as is the case with a 'result') or just a value.
+# if there's not json structure, this has to deal with if the field is a function or a value.
+getScalar = (object, field) ->
+  if !field
+    if object.json?
+      field = 'values'
+    else
+      field = 'value'
+  
+  if object.json? # assume both a and b have json
+    if $.isArray(object.json[field])
+      # TODO: probably there's a better way than to just pick the first...
+      scalar = object.json[field][0]['scalar']
+    else
+      scalar = object.json[field]['scalar']
   else
-    vb - va
+    if $.isFunction(object[field])
+      scalar = object[field]()['scalar']
+    else
+      scalar = object[field]['scalar']
+  scalar
+
+valueSortDescending = (field) ->
+  return (a, b) ->
+    va = vb = Infinity
+
+    va = getScalar(a, field)
+    vb = getScalar(b, field)
+
+    if va==vb
+      0
+    else
+      vb - va
 @valueSortDescending = valueSortDescending
 
 valueSortAscending = (a, b) ->
   va = vb = Infinity
-  if a.value
-    va = a.value()["scalar"]
-  if b.value
-    vb = b.value()["scalar"]
+
+  va = getScalar(a, field)
+  vb = getScalar(b, field)
+  
   if va==vb
     0
   else
@@ -1119,18 +1143,20 @@ FIELD_METHOD_UNITS = {
   'lengthOfStay': 'd'
 }
 
-MIN = (events, range, fields) ->
+MIN = (events, range, initialSpecificContext, fields) ->
+  field = null
   minValue = Infinity
   if (events.length > 0)
-    minValue = events.sort(valueSortAscending)[0].value()["scalar"]
+    minValue = getScalar(events.sort(valueSortAscending(field))[0], field)
   result = new Boolean(range.match(minValue))
   applySpecificOccurrenceSubset('MIN',hqmf.SpecificsManager.maintainSpecifics(result, events), range, fields)
 @MIN = MIN
 
-MAX = (events, range, fields) ->
+MAX = (events, range, initialSpecificContext, fields) ->
+  field =  null
   maxValue = -Infinity
   if (events.length > 0)
-    maxValue = events.sort(valueSortDescending)[0].value()["scalar"]
+    maxValue = getScalar(events.sort(valueSortDescending(field))[0], field)
   result = new Boolean(range.match(maxValue))
   applySpecificOccurrenceSubset('MAX',hqmf.SpecificsManager.maintainSpecifics(result, events), range, fields)
 @MAX = MAX

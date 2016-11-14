@@ -51,8 +51,13 @@ hQuery.CodedEntry::asTS = ->
   ts
 
 hQuery.Encounter::lengthOfStay = (unit) ->
-  ivl_ts = this.asIVL_TS()
-  ivl_ts.low.difference(ivl_ts.high, unit)
+  # handle when ANYNonNull is used by returning -1 if unit is undefined.
+  # this may be done with lenghtOfStay is used in conjunction with MIN/MAX/etc.
+  if unit?
+    ivl_ts = this.asIVL_TS()
+    ivl_ts.low.difference(ivl_ts.high, unit)
+  else
+    -1
 
 hQuery.Encounter::transferTime = () ->
   transfer = (@json['transferFrom'] || @json['transferTo'])

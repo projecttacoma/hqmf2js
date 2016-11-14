@@ -49,7 +49,7 @@ hqmfjs.<%= js_name(criteria) %> = function(patient, initialSpecificContext) {
     <%- end -%>
     <%- if criteria.subset_operators -%>
       <%- criteria.subset_operators.select {|subset_operator| subset_operator.type}.each do |subset_operator| -%>
-  events = <%= subset_operator.type %>(events<%= if subset_operator.value then ", #{js_for_bounds(subset_operator.value)}"; elsif subset_operator.type == 'DATETIMEDIFF' then ", null"; end  %>, initialSpecificContext<%- if ['SUM','MEDIAN'].include?(subset_operator.type) -%>, fields<%- end -%>);
+  events = <%= subset_operator.type %>(events<%= if subset_operator.value then ", #{js_for_bounds(subset_operator.value)}"; elsif subset_operator.type == 'DATETIMEDIFF' then ", null"; end  %>, initialSpecificContext<%- if ['SUM','MEDIAN', 'MIN', 'MAX'].include?(subset_operator.type) && criteria.field_values.present? -%>, fields<%- end -%>);
       <%- end # each operator -%>
     <%- end # subset operators -%>
   return events;
