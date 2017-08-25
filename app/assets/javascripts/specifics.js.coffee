@@ -277,10 +277,29 @@ class hqmf.SpecificOccurrence
   
   # removes any rows that have the same value for OccurrenceA and OccurrenceB
   compactReusedEvents: ->
+    # LDY 8/25/17
+    # Something changed in the MAT so the "type" is no longer included in the HQMF. The backup
+    # type included too much detail (OccurrenceA_... and OccurrenceB_...), which made the types
+    # appear different for two occurrences of the same type.
+    # The code below ignores "Occ..." strings within the "type". This makes it so the type will
+    # now appear the same where appropriate.
+    # Note: OccurrenceA... is used for regular instances of an occurrence. OccA... is used for
+    # QDM variables.
+    typeLookup = {}
+    Object.keys(hqmf.SpecificsManager.typeLookup).map (type, index) =>
+      generic_type = type.toLowerCase()
+      match = generic_type.match(/^occ[a-zA-Z]*_(.*)/)
+      if match
+        generic_type = match[1]
+      if generic_type not of typeLookup
+        typeLookup[generic_type] = []
+
+      typeLookup[generic_type] = typeLookup[generic_type].concat(hqmf.SpecificsManager.typeLookup[type])
+
     newRows = []
     for myRow in @rows
       goodRow = true
-      for type,indexes of hqmf.SpecificsManager.typeLookup
+      for type,indexes of typeLookup
         ids = []
         for index in indexes
           ids.push(myRow.values[index].id) if myRow.values[index] != hqmf.SpecificsManager.any
@@ -641,4 +660,3 @@ hQuery.CodedEntryList::match = _.wrap(hQuery.CodedEntryList::match, (func, codeS
   result.specific_occurrence = occurrence
   return result;
 );
-
