@@ -27,9 +27,22 @@ class hqmf.SpecificsManagerSingleton
       @keyLookup[i] = occurrenceKey.id
       @indexLookup[occurrenceKey.id] = i
       @functionLookup[i] = occurrenceKey.function
-      @typeLookup[occurrenceKey.type] ||= []
-      @typeLookup[occurrenceKey.type].push(i)
-  
+      # LDY 8/25/17
+      # Something changed in the MAT so the "type" is no longer included in the HQMF. The backup
+      # type included too much detail (OccurrenceA_... and OccurrenceB_...), which made the types
+      # appear different for two occurrences of the same type.
+      # The code below ignores "Occ..." strings within the "type". This makes it so the type will
+      # now appear the same where appropriate.
+      # Note: OccurrenceA... is used for regular instances of an occurrence. OccA... is used for
+      # QDM variables.
+      generic_type = occurrenceKey.type
+      match = generic_type.match(/^occ[a-z]*_(.*)/i)
+      if match
+        generic_type = match[1]
+      if generic_type not of @typeLookup
+        @typeLookup[generic_type] = []
+      @typeLookup[generic_type].push(i)
+
   _generateCartisian: (allValues) ->
     _.reduce(allValues, (as, bs) -> 
       product = []
@@ -641,4 +654,3 @@ hQuery.CodedEntryList::match = _.wrap(hQuery.CodedEntryList::match, (func, codeS
   result.specific_occurrence = occurrence
   return result;
 );
-

@@ -7,7 +7,7 @@ class SpecificsTest < Minitest::Test
     @context = get_js_context(HQMF2JS::Generator::JS.library_functions)
     test_initialize_js = 
     "
-      hqmf.SpecificsManager.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'Encounter', 'function':'SourceOccurrenceBEncounter'})
+      hqmf.SpecificsManager.initialize({},hqmfjs, {'id':'OccurrenceAEncounter', 'type':'OccA_Encounter', 'function':'SourceOccurrenceAEncounter'},{'id':'OccurrenceBEncounter', 'type':'OccB_Encounter', 'function':'SourceOccurrenceBEncounter'})
       hqmfjs.SourceOccurrenceAEncounter = function(patient) {
         return [{'id':1},{'id':2},{'id':3},{'id':4},{'id':5}]
       }
