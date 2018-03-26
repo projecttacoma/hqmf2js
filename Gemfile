@@ -11,8 +11,7 @@ end
 gem 'hquery-patient-api', :git => 'https://github.com/projecttacoma/patientapi.git', :branch => 'bonnie-prior_1302_nokogiri_fix'
 #gem 'hquery-patient-api', :path => '../patientapi'
 # will point HDS to mongoid5 after nokogiri fix applied (before merging this hqmf2js PR)
-#gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'mongoid5'
-gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'bonnie-prior_1302_nokogiri_fix'
+gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'mongoid5'
 #gem 'health-data-standards', :path => '../health-data-standards'
 
 gem 'nokogiri', '~> 1.8.2'
