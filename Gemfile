@@ -7,8 +7,7 @@ group :assets do
   gem 'coffee-rails'
 end
 
-#gem 'hquery-patient-api', :git => 'https://github.com/projecttacoma/patientapi.git', :branch => 'bonnie-prior'
-gem 'hquery-patient-api', :git => 'https://github.com/projecttacoma/patientapi.git', :branch => 'bonnie-prior_1302_nokogiri_fix'
+gem 'hquery-patient-api', :git => 'https://github.com/projecttacoma/patientapi.git', :branch => 'bonnie-prior'
 #gem 'hquery-patient-api', :path => '../patientapi'
 # will point HDS to mongoid5 after nokogiri fix applied (before merging this hqmf2js PR)
 gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'mongoid5'
