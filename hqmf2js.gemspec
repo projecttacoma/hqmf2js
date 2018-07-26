@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   
   s.files = s.files = `git ls-files`.split("\n")
   s.add_dependency "rails", "~> 4.2.7"
-  # s.add_dependency 'health-data-standards', '~> 3.7'
+  s.add_dependency 'health-data-standards', '~> 3.7'
   s.add_dependency 'hquery-patient-api', '~> 1.0.4'
 end
 
