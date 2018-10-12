@@ -23,7 +23,7 @@ GIT
 GIT
   remote: https://github.com/projecttacoma/patientapi.git
   revision: 4cae28f52820e7e390b12bc0df2d961b1ac7bad7
-  branch: bonnie-prior
+  branch: bonnie-qdm
   specs:
     hquery-patient-api (1.0.4)
 

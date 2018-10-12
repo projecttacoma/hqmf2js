@@ -7,7 +7,7 @@ group :assets do
   gem 'coffee-rails'
 end
 
-gem 'hquery-patient-api', :git => 'https://github.com/projecttacoma/patientapi.git', :branch => 'bonnie-prior'
+gem 'hquery-patient-api', :git => 'https://github.com/projecttacoma/patientapi.git', :branch => 'bonnie-qdm'
 #gem 'hquery-patient-api', :path => '../patientapi'
 gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-data-standards.git', :branch => 'mongoid5'
 #gem 'health-data-standards', :path => '../health-data-standards'
